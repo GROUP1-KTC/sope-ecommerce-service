@@ -1,7 +1,6 @@
 package com.sope.sope_ecommerce_backend.modules.user.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,22 +15,15 @@ import lombok.NoArgsConstructor;
 public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "address_id")
+    private Long addressId;
 
-    @Column
-    private String details;
+    private String recipient;
 
-    @NotBlank(message = "village cannot be empty")
-    @Column(nullable = false)
-    private String village;
+    private String phone;
 
-    @Column
-    private String city;
+    private String detail;
 
-    @Column
-    private String country;
-
-    @Column
     private boolean isDefault;
 
     @ManyToOne

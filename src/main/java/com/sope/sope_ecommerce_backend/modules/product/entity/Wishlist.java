@@ -1,0 +1,33 @@
+package com.sope.sope_ecommerce_backend.modules.product.entity;
+
+import com.sope.sope_ecommerce_backend.modules.user.entity.User;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Wishlist {
+    @EmbeddedId
+    WishlistId wishlistId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("userId")
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("productId")
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(name = "add_at")
+    private LocalDateTime createdAt;
+}

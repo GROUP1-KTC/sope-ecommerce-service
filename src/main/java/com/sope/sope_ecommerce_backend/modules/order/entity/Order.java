@@ -1,9 +1,14 @@
 package com.sope.sope_ecommerce_backend.modules.order.entity;
 
+import com.sope.sope_ecommerce_backend.modules.order.enums.OrderStatus;
+import com.sope.sope_ecommerce_backend.modules.revenue.entity.Commission;
+import com.sope.sope_ecommerce_backend.modules.revenue.entity.TransactionFee;
 import com.sope.sope_ecommerce_backend.modules.user.entity.Address;
 import com.sope.sope_ecommerce_backend.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -19,8 +24,8 @@ public class Order {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "id", columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID id;
+    @Column(name = "order_id", columnDefinition = "UUID", updatable = false, nullable = false)
+    private UUID orderId;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -33,11 +38,18 @@ public class Order {
     @Column(nullable = false)
     private LocalDateTime orderDate;
 
-    @Column
-    private double totalAmount;
+    private BigDecimal total;
 
-    @Enumerated(EnumType.STRING)
-    private OrderStatus status = OrderStatus.PENDING;
+    @Column(name = "shipping_charges")
+    private BigDecimal shippingCharges;
+
+    @Column(name = "total_amount")
+    private BigDecimal totalAmount;
+
+    private String note;
+
+    @Builder.Default
+    private OrderStatus status =OrderStatus.PENDING;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
@@ -49,7 +61,22 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderStatusHistory> statusHistory;
 
-    public enum OrderStatus {
-        PENDING, CONFIRMED, SHIPPING, DELIVERED
-    }
+    @ManyToOne
+    @JoinColumn(name = "buyer_id", referencedColumnName = "user_id", nullable = false)
+    private User buyer;
+
+    @ManyToOne
+    @JoinColumn(name = "seller_id", referencedColumnName = "user_id", nullable = false)
+    private User seller;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Payment payment;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Commission commission;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private TransactionFee transactionFee;
+
+
 }
