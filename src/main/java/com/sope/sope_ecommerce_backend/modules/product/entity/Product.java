@@ -1,7 +1,9 @@
 package com.sope.sope_ecommerce_backend.modules.product.entity;
 
 import com.sope.sope_ecommerce_backend.modules.product.enums.StatusProduct;
+import com.sope.sope_ecommerce_backend.modules.review.entity.Review;
 import com.sope.sope_ecommerce_backend.modules.user.entity.Shop;
+import com.sope.sope_ecommerce_backend.modules.wishlist.entity.Wishlist;
 import jakarta.persistence.*;
 import lombok.*;
 

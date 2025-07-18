@@ -1,6 +1,6 @@
-package com.sope.sope_ecommerce_backend.modules.order.entity;
+package com.sope.sope_ecommerce_backend.modules.discount.entity;
 
-import com.sope.sope_ecommerce_backend.modules.order.enums.ScopeType;
+import com.sope.sope_ecommerce_backend.modules.discount.enums.ScopeType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -2,7 +2,7 @@ package com.sope.sope_ecommerce_backend.modules.user.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.sope.sope_ecommerce_backend.modules.order.entity.Order;
-import com.sope.sope_ecommerce_backend.modules.product.entity.Review;
+import com.sope.sope_ecommerce_backend.modules.review.entity.Review;
 import com.sope.sope_ecommerce_backend.modules.user.enums.Gender;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

@@ -1,7 +1,8 @@
-package com.sope.sope_ecommerce_backend.modules.order.entity;
+package com.sope.sope_ecommerce_backend.modules.payment.entity;
 
-import com.sope.sope_ecommerce_backend.modules.order.enums.PaymentMethod;
-import com.sope.sope_ecommerce_backend.modules.order.enums.PaymentStatus;
+import com.sope.sope_ecommerce_backend.modules.order.entity.Order;
+import com.sope.sope_ecommerce_backend.modules.payment.enums.PaymentStatus;
+import com.sope.sope_ecommerce_backend.modules.payment.enums.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

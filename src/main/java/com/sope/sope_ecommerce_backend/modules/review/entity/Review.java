@@ -1,6 +1,7 @@
-package com.sope.sope_ecommerce_backend.modules.product.entity;
+package com.sope.sope_ecommerce_backend.modules.review.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.sope.sope_ecommerce_backend.modules.product.entity.Product;
 import com.sope.sope_ecommerce_backend.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;

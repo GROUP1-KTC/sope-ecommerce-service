@@ -1,4 +1,4 @@
-package com.sope.sope_ecommerce_backend.modules.user.entity;
+package com.sope.sope_ecommerce_backend.modules.wishlist.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -14,9 +14,9 @@ import java.util.UUID;
 @Builder
 @Embeddable
 @Data
-public class CartId {
+public class WishlistId {
     @Column(name = "user_id")
     private UUID userId;
-    @Column(name = "product_variant_id")
-    private UUID productVariantId;
+    @Column(name = "product_id")
+    private UUID productId;
 }

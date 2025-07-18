@@ -1,8 +1,8 @@
-package com.sope.sope_ecommerce_backend.modules.solution.entity;
+package com.sope.sope_ecommerce_backend.modules.complaint.entity;
 
 import com.sope.sope_ecommerce_backend.modules.order.entity.Order;
-import com.sope.sope_ecommerce_backend.modules.solution.enums.ComplaintStatus;
-import com.sope.sope_ecommerce_backend.modules.solution.enums.ComplaintType;
+import com.sope.sope_ecommerce_backend.modules.complaint.enums.ComplaintStatus;
+import com.sope.sope_ecommerce_backend.modules.complaint.enums.ComplaintType;
 import com.sope.sope_ecommerce_backend.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

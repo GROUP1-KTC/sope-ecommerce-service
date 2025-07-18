@@ -1,4 +1,4 @@
-package com.sope.sope_ecommerce_backend.modules.solution.enums;
+package com.sope.sope_ecommerce_backend.modules.complaint.enums;
 
 public enum ReturnStatus {
     PENDING,

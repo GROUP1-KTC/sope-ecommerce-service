@@ -1,6 +1,8 @@
 package com.sope.sope_ecommerce_backend.modules.order.entity;
 
+import com.sope.sope_ecommerce_backend.modules.discount.entity.DiscountCode;
 import com.sope.sope_ecommerce_backend.modules.order.enums.OrderStatus;
+import com.sope.sope_ecommerce_backend.modules.payment.entity.Payment;
 import com.sope.sope_ecommerce_backend.modules.revenue.entity.Commission;
 import com.sope.sope_ecommerce_backend.modules.revenue.entity.TransactionFee;
 import com.sope.sope_ecommerce_backend.modules.user.entity.Address;

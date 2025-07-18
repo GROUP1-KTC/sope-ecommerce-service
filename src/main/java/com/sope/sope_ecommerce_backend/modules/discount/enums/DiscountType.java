@@ -1,4 +1,4 @@
-package com.sope.sope_ecommerce_backend.modules.order.enums;
+package com.sope.sope_ecommerce_backend.modules.discount.enums;
 
 public enum DiscountType {
     PERCENTAGE,

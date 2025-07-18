@@ -1,4 +1,4 @@
-package com.sope.sope_ecommerce_backend.modules.solution.entity;
+package com.sope.sope_ecommerce_backend.modules.complaint.entity;
 
 import com.sope.sope_ecommerce_backend.modules.user.entity.User;
 import jakarta.persistence.*;

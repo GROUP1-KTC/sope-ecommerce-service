@@ -1,4 +1,4 @@
-package com.sope.sope_ecommerce_backend.modules.solution.enums;
+package com.sope.sope_ecommerce_backend.modules.complaint.enums;
 
 public enum ComplaintType {
     DELIVERY_ISSUE,        // Vấn đề giao hàng

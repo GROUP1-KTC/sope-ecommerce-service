@@ -1,4 +1,4 @@
-package com.sope.sope_ecommerce_backend.modules.product.entity;
+package com.sope.sope_ecommerce_backend.modules.review.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

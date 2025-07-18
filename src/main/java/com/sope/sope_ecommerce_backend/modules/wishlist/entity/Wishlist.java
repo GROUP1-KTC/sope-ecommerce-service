@@ -1,5 +1,6 @@
-package com.sope.sope_ecommerce_backend.modules.product.entity;
+package com.sope.sope_ecommerce_backend.modules.wishlist.entity;
 
+import com.sope.sope_ecommerce_backend.modules.product.entity.Product;
 import com.sope.sope_ecommerce_backend.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

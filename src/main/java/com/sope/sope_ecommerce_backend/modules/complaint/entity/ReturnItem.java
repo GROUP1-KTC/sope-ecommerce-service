@@ -1,6 +1,5 @@
-package com.sope.sope_ecommerce_backend.modules.solution.entity;
+package com.sope.sope_ecommerce_backend.modules.complaint.entity;
 
-import com.sope.sope_ecommerce_backend.modules.order.entity.OrderItem;
 import com.sope.sope_ecommerce_backend.modules.product.entity.ProductVariant;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

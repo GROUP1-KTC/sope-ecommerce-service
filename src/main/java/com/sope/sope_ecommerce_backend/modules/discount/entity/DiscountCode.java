@@ -1,6 +1,7 @@
-package com.sope.sope_ecommerce_backend.modules.order.entity;
+package com.sope.sope_ecommerce_backend.modules.discount.entity;
 
-import com.sope.sope_ecommerce_backend.modules.order.enums.DiscountType;
+import com.sope.sope_ecommerce_backend.modules.order.entity.Order;
+import com.sope.sope_ecommerce_backend.modules.discount.enums.DiscountType;
 import jakarta.persistence.*;
 import lombok.*;
 
