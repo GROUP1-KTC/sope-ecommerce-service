@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.modules.order.entity;
 
+import com.sope.sope_ecommerce_backend.modules.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -20,7 +21,7 @@ public class OrderStatusHistory {
     private Order order;
 
     @Enumerated(EnumType.STRING)
-    private Order.OrderStatus status;
+    private OrderStatus status;
 
     @Column
     private LocalDateTime timestamp;

@@ -4,6 +4,8 @@ import com.sope.sope_ecommerce_backend.modules.product.entity.ProductVariant;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -11,15 +13,16 @@ import lombok.*;
 @Entity
 @Table(name = "order_items")
 public class OrderItem {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @EmbeddedId
+    private OrderItemId orderItemId;
 
     @ManyToOne
+    @MapsId("orderId")
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     @ManyToOne
+    @MapsId("productVariantId")
     @JoinColumn(name = "product_variant_id", nullable = false)
     private ProductVariant productVariant;
 
@@ -27,5 +30,5 @@ public class OrderItem {
     private int quantity;
 
     @Column(nullable = false)
-    private double price;
+    private BigDecimal price;
 }

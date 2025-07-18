@@ -1,20 +1,29 @@
 package com.sope.sope_ecommerce_backend.modules.product.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.sope.sope_ecommerce_backend.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "reviews")
+@Table(
+        name = "reviews",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "product_id"})
+        }
+)
 public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "review_id")
+    private Long reviewId;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
@@ -22,11 +31,17 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user; // Nullable for guest reviews
+    @JsonBackReference
+    private User user;
 
-    @Column
-    private String comment;
+    private Integer rating;
 
-    @Column
+    private String content;
+
+    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ReviewImage> reviewImages = new ArrayList<>();
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 }

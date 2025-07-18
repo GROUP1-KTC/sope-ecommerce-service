@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class LoyaltyPoint {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "loyalty_point_id")
     private Long id;
 
     @OneToOne
