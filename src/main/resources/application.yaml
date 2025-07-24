@@ -35,3 +35,8 @@ server:
 
 api:
   prefix: /api/v1
+
+cloudinary:
+  cloud-name: dybo8zd4y123
+  api-key: 111854312673546
+  api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
