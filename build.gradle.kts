@@ -50,6 +50,8 @@ dependencies {
 
 	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+
+	implementation("com.github.slugify:slugify:3.0.6")
 }
 
 tasks.withType<Test> {

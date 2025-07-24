@@ -27,7 +27,7 @@ public class WebSecurityConfiguration {
 
     @Autowired
     public WebSecurityConfiguration(OurUserDetailsService ourUserDetailsService,
-                                    JwtAuthenticationFilter jwtAuthenticationFilter) {
+            JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.ourUserDetailsService = ourUserDetailsService;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
@@ -41,7 +41,7 @@ public class WebSecurityConfiguration {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           CorsConfigurationSource corsConfigurationSource) throws Exception {
+            CorsConfigurationSource corsConfigurationSource) throws Exception {
 
         http
                 // close CSRF
@@ -65,8 +65,14 @@ public class WebSecurityConfiguration {
                                 apiPrefix + "/account/refreshtoken",
                                 apiPrefix + "/image",
                                 apiPrefix + "/product-types",
+                                apiPrefix + "/products",
                                 apiPrefix + "/products/**",
-                                apiPrefix + "/category",
+                                apiPrefix + "/products/by-slug/**",
+                                // apiPrefix + "/products/create-details",
+                                apiPrefix + "/products/variants",
+                                apiPrefix + "/products/variants/**",
+                                apiPrefix + "/categories",
+                                apiPrefix + "/categories/**",
                                 apiPrefix + "/supplier/**",
                                 apiPrefix + "/accounts/**",
                                 apiPrefix + "/reviews/product/**",
@@ -76,15 +82,14 @@ public class WebSecurityConfiguration {
                         .permitAll()
                         .anyRequest().authenticated() // otherwise, require authentication
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                ;
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
