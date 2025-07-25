@@ -1,143 +1,125 @@
-package com.sope.sope_ecommerce_backend.modules.user.entity;
+package example.userdemo.user.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.sope.sope_ecommerce_backend.modules.order.entity.Order;
-import com.sope.sope_ecommerce_backend.modules.review.entity.Review;
-import com.sope.sope_ecommerce_backend.modules.user.enums.Gender;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class User implements UserDetails {
-
+public class User {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "user_id", columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID userId;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-    @NotBlank(message = "Name cannot be empty")
-    @Column(name = "full_name", nullable = false)
-    private String fullName;
+    @Column(unique = true, nullable = false)
+    private String username;
 
-    @Column(name = "date_of_birth")
-    private LocalDate dateOfBirth;
+    @Column(nullable = false)
+    private String name;
 
-    @Column
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
-
-    @NotBlank(message = "Email cannot be empty")
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(nullable = false)
     private String password;
 
-    @Column(name = "social_media_id", unique = true)
-    private String socialMediaId;
-
-    private String phone;
-
-    private String tax;
-
-    private boolean verified;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRoles = new HashSet<>();
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean locked = false;
+    @Column
+    private String address;
 
     @Column
-    @JoinColumn(name = "created_at")
-    private LocalDateTime createdAt;
+    private String phone;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Address> addresses;
+    @Column
+    private String note;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Order> orders;
+    @Column(nullable = false)
+    private String status;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<Review> reviews;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private LoyaltyPoint loyaltyPoint;
-
-    @OneToOne(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Shop shop;
-
-    @Builder.Default
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserFollower> followers = new HashSet<>();
-
-    @Builder.Default
-    @OneToMany(mappedBy = "follower", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserFollower> following = new HashSet<>();
-
-    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL)
-    private List<Notification> notifications;
-
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
-    private List<Message> sentMessages;
-
-    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL)
-    private List<Message> receivedMessages;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return userRoles.stream()
-                .filter(UserRole::isEnabled)
-                .map(userRole -> new SimpleGrantedAuthority(userRole.getRole().getRole().name()))
-                .collect(Collectors.toSet());
+    public String getId() {
+        return id;
     }
 
-    @Override
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     public String getPassword() {
         return password;
     }
 
-    @Override
-    public String getUsername() {
-        return email;
+    public void setPassword(String password) {
+        this.password = password;
     }
 
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
+    public String getAddress() {
+        return address;
     }
 
-    @Override
-    public boolean isAccountNonLocked() {
-        return !locked;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
+    public String getPhone() {
+        return phone;
     }
 
-    @Override
-    public boolean isEnabled() {
-        return verified;
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 }
-
