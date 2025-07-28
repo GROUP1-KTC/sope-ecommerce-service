@@ -46,16 +46,12 @@ public class ProductVariant {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-
     @ManyToMany
-    @JoinTable(
-            name = "product_variant_attributes",
-            joinColumns = @JoinColumn(name = "product_variant_id"),
-            inverseJoinColumns = @JoinColumn(name = "attribute_id")
-    )
+    @JoinTable(name = "product_variant_attributes", joinColumns = @JoinColumn(name = "product_variant_id"), inverseJoinColumns = @JoinColumn(name = "attribute_id"))
+
     @Builder.Default
     private Set<Attribute> attributes = new HashSet<>();
 
-    @OneToMany(mappedBy = "productVariant")
+    @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Image> images;
 }

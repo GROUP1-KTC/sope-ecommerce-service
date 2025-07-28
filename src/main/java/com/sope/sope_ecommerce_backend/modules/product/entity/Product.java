@@ -34,7 +34,7 @@ public class Product {
 
     private String brand;
 
-    @Column(length = 1000)
+    @Column(length = 3000)
     private String description;
 
     @Column(nullable = false)
@@ -42,6 +42,7 @@ public class Product {
 
     private boolean hidden;
 
+    @Enumerated(EnumType.STRING)
     private StatusProduct status;
 
     @Column(name = "slug", length = 100, unique = true)
@@ -57,7 +58,7 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants; // At least 2 variants per product
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
@@ -73,4 +74,3 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ProductDetail> productDetails;
 }
-
