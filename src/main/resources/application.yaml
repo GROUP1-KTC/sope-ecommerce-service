@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
@@ -35,3 +35,8 @@ server:
 
 api:
   prefix: /api/v1
+
+cloudinary:
+  cloud-name: dybo8zd4y123
+  api-key: 111854312673546
+  api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
