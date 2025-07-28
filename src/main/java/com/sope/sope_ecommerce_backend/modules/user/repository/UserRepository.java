@@ -1,17 +1,17 @@
-package com.sope.sope_ecommerce_backend.modules.user.repository;
+package example.userdemo.user.repository;
 
-import com.sope.sope_ecommerce_backend.modules.user.entity.User;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import example.userdemo.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, UUID> {
+public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findAll(Pageable pageable);
 
-    Optional<User> findByEmail(String userName);
+    Optional<User> findByUsername(String username);
+
+    Optional<User> findByEmail(String email);
+
 }
