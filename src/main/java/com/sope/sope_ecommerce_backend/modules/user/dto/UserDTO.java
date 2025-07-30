@@ -1,12 +1,13 @@
-package example.userdemo.user.dto;
+package com.sope.sope_ecommerce_backend.modules.user.dto;
 
-import example.userdemo.user.entity.Role;
+import com.sope.sope_ecommerce_backend.modules.user.entity.Role;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class UserDTO {
-    private String id;
+    private UUID id;
     private String username;
     private String name;
     private String email;
@@ -16,11 +17,11 @@ public class UserDTO {
     private String status;
     private Set<Role> roles = new HashSet<>();
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

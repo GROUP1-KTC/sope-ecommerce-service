@@ -1,6 +1,6 @@
-package example.userdemo.chat.repository;
+package com.sope.sope_ecommerce_backend.modules.chat.repository;
+import com.sope.sope_ecommerce_backend.modules.chat.entity.Message;
 
-import example.userdemo.chat.entity.Message;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

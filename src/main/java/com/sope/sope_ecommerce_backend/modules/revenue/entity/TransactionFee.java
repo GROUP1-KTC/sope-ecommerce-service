@@ -27,9 +27,6 @@ public class TransactionFee {
     @JoinColumn(name = "order_id", referencedColumnName = "order_id", nullable = false, unique = true)
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "seller_id", referencedColumnName = "user_id", nullable = false)
-    private User seller;
 
     @Column(name = "fee_rate", precision = 5, scale = 4, nullable = false)
     private BigDecimal feeRate;

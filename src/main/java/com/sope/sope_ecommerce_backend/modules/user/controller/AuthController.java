@@ -1,10 +1,9 @@
-package example.userdemo.user.controller;
+package com.sope.sope_ecommerce_backend.modules.user.controller;
 
-
-import example.userdemo.user.dto.AuthResponse;
-import example.userdemo.user.dto.LoginRequest;
-import example.userdemo.user.dto.RegisterRequest;
-import example.userdemo.user.service.AuthService;
+import com.sope.sope_ecommerce_backend.modules.user.dto.AuthResponse;
+import com.sope.sope_ecommerce_backend.modules.user.dto.LoginRequest;
+import com.sope.sope_ecommerce_backend.modules.user.dto.RegisterRequest;
+import com.sope.sope_ecommerce_backend.modules.user.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

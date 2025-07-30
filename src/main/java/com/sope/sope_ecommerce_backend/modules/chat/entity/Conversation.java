@@ -1,4 +1,4 @@
-package example.userdemo.chat.entity;
+package com.sope.sope_ecommerce_backend.modules.chat.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
-package example.userdemo.user.repository;
+package com.sope.sope_ecommerce_backend.modules.user.repository;
 
-import example.userdemo.user.entity.Role;
+import com.sope.sope_ecommerce_backend.modules.user.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

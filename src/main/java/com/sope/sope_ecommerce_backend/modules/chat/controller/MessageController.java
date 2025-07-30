@@ -1,9 +1,9 @@
-package example.userdemo.chat.controller;
+package com.sope.sope_ecommerce_backend.modules.chat.controller;
 
-import example.userdemo.chat.dto.ConversationDTO;
-import example.userdemo.chat.dto.MessageDTO;
-import example.userdemo.chat.service.ConversationService;
-import example.userdemo.chat.service.MessageService;
+import com.sope.sope_ecommerce_backend.modules.chat.dto.ConversationDTO;
+import com.sope.sope_ecommerce_backend.modules.chat.dto.MessageDTO;
+import com.sope.sope_ecommerce_backend.modules.chat.service.ConversationService;
+import com.sope.sope_ecommerce_backend.modules.chat.service.MessageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

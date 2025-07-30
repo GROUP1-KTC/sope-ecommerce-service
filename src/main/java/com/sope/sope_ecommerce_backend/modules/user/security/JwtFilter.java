@@ -1,4 +1,4 @@
-package example.userdemo.user.security;
+package com.sope.sope_ecommerce_backend.modules.user.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

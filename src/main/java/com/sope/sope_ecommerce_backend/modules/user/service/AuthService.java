@@ -1,13 +1,13 @@
-package example.userdemo.user.service;
+package com.sope.sope_ecommerce_backend.modules.user.service;
 
-import example.userdemo.user.dto.AuthResponse;
-import example.userdemo.user.dto.LoginRequest;
-import example.userdemo.user.dto.RegisterRequest;
-import example.userdemo.user.entity.Role;
-import example.userdemo.user.entity.User;
-import example.userdemo.user.repository.RoleRepository;
-import example.userdemo.user.repository.UserRepository;
-import example.userdemo.user.security.JwtProvider;
+import com.sope.sope_ecommerce_backend.modules.user.dto.AuthResponse;
+import com.sope.sope_ecommerce_backend.modules.user.dto.LoginRequest;
+import com.sope.sope_ecommerce_backend.modules.user.dto.RegisterRequest;
+import com.sope.sope_ecommerce_backend.modules.user.entity.Role;
+import com.sope.sope_ecommerce_backend.modules.user.entity.User;
+import com.sope.sope_ecommerce_backend.modules.user.repository.RoleRepository;
+import com.sope.sope_ecommerce_backend.modules.user.repository.UserRepository;
+import com.sope.sope_ecommerce_backend.modules.user.security.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

@@ -34,6 +34,10 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	// https://mvnrepository.com/artifact/org.springframework/spring-websocket
+	implementation("org.springframework:spring-websocket:6.1.14")
+	// https://mvnrepository.com/artifact/org.springframework/spring-messaging
+	implementation("org.springframework:spring-messaging:6.1.14")
 
 
 	// https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http44
