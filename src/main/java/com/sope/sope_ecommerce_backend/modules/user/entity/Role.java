@@ -1,4 +1,4 @@
-package example.userdemo.user.entity;
+package com.sope.sope_ecommerce_backend.modules.user.entity;
 
 import jakarta.persistence.*;
 

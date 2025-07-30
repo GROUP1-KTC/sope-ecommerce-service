@@ -1,4 +1,4 @@
-package example.userdemo.websocket;
+package com.sope.sope_ecommerce_backend.modules.websocket;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;

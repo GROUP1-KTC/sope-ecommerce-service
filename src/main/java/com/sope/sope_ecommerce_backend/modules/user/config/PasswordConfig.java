@@ -1,4 +1,4 @@
-package example.userdemo.user.config;
+package com.sope.sope_ecommerce_backend.modules.user.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

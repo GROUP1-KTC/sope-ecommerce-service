@@ -1,7 +1,7 @@
-package example.userdemo.user.security;
+package com.sope.sope_ecommerce_backend.modules.user.security;
 
-import example.userdemo.user.entity.User;
-import example.userdemo.user.repository.UserRepository;
+import com.sope.sope_ecommerce_backend.modules.user.entity.User;
+import com.sope.sope_ecommerce_backend.modules.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

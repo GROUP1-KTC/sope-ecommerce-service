@@ -1,7 +1,7 @@
-package example.userdemo.user.seeder;
+package com.sope.sope_ecommerce_backend.modules.user.seeder;
 
-import example.userdemo.user.entity.Role;
-import example.userdemo.user.repository.RoleRepository;
+import com.sope.sope_ecommerce_backend.modules.user.entity.Role;
+import com.sope.sope_ecommerce_backend.modules.user.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;

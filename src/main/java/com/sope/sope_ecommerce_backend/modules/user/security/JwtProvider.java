@@ -1,4 +1,4 @@
-package example.userdemo.user.security;
+package com.sope.sope_ecommerce_backend.modules.user.security;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.JwtException;
@@ -14,10 +14,10 @@ import java.util.Date;
 @Component
 public class JwtProvider {
 
-    @Value("${jwt.secret}")
+    @Value("${spring.jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${spring.jwt.expiration}")
     private long validityInMs;
 
     private SecretKey key;

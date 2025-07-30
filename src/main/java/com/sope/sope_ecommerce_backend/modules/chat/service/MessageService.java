@@ -1,10 +1,10 @@
-package example.userdemo.chat.service;
+package com.sope.sope_ecommerce_backend.modules.chat.service;
 
-import example.userdemo.chat.dto.MessageDTO;
-import example.userdemo.chat.entity.Conversation;
-import example.userdemo.chat.entity.Message;
-import example.userdemo.chat.repository.ConversationRepository;
-import example.userdemo.chat.repository.MessageRepository;
+import com.sope.sope_ecommerce_backend.modules.chat.dto.MessageDTO;
+import com.sope.sope_ecommerce_backend.modules.chat.entity.Conversation;
+import com.sope.sope_ecommerce_backend.modules.chat.entity.Message;
+import com.sope.sope_ecommerce_backend.modules.chat.repository.ConversationRepository;
+import com.sope.sope_ecommerce_backend.modules.chat.repository.MessageRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 

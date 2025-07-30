@@ -1,7 +1,7 @@
-package example.userdemo.websocket;
+package com.sope.sope_ecommerce_backend.modules.websocket;
 
-import example.userdemo.chat.dto.MessageDTO;
-import example.userdemo.chat.service.MessageService;
+import com.sope.sope_ecommerce_backend.modules.chat.dto.MessageDTO;
+import com.sope.sope_ecommerce_backend.modules.chat.service.MessageService;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 

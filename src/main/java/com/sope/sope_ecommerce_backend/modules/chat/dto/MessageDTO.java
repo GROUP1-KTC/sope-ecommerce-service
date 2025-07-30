@@ -1,4 +1,4 @@
-package example.userdemo.chat.dto;
+package com.sope.sope_ecommerce_backend.modules.chat.dto;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -7,7 +7,7 @@ public class MessageDTO implements Serializable {
     private String id;
     private String content;
     private String sender;
-    private String timestamp; // Đổi sang String để khớp với định dạng yêu cầu
+    private String timestamp; 
     private String conversationId;
     private FileInfo file;
 

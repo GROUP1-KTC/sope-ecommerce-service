@@ -1,15 +1,17 @@
-package example.userdemo.user.entity;
+package com.sope.sope_ecommerce_backend.modules.user.entity;
 
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+    @Column(name = "user_id")
+    private UUID id;
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -43,11 +45,11 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 

@@ -1,4 +1,4 @@
-package example.userdemo.user.dto;
+package com.sope.sope_ecommerce_backend.modules.user.dto;
 
 public class RegisterRequest {
     private String username;

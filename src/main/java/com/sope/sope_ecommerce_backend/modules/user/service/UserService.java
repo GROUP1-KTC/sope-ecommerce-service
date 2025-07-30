@@ -1,10 +1,10 @@
-package example.userdemo.user.service;
+package com.sope.sope_ecommerce_backend.modules.user.service;
 
-import example.userdemo.user.dto.UserRegistrationDTO;
-import example.userdemo.user.entity.Role;
-import example.userdemo.user.entity.User;
-import example.userdemo.user.repository.RoleRepository;
-import example.userdemo.user.repository.UserRepository;
+import com.sope.sope_ecommerce_backend.modules.user.dto.UserRegistrationDTO;
+import com.sope.sope_ecommerce_backend.modules.user.entity.Role;
+import com.sope.sope_ecommerce_backend.modules.user.entity.User;
+import com.sope.sope_ecommerce_backend.modules.user.repository.RoleRepository;
+import com.sope.sope_ecommerce_backend.modules.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;

@@ -1,4 +1,4 @@
-package example.userdemo.chat.dto;
+package com.sope.sope_ecommerce_backend.modules.chat.dto;
 
 import java.time.LocalDateTime;
 import java.util.List;

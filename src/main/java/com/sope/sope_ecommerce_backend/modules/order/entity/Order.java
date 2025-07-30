@@ -5,7 +5,7 @@ import com.sope.sope_ecommerce_backend.modules.order.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.modules.payment.entity.Payment;
 import com.sope.sope_ecommerce_backend.modules.revenue.entity.Commission;
 import com.sope.sope_ecommerce_backend.modules.revenue.entity.TransactionFee;
-import com.sope.sope_ecommerce_backend.modules.user.entity.Address;
+import com.sope.sope_ecommerce_backend.modules.address.entity.AddressEntity;
 import com.sope.sope_ecommerce_backend.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,7 +35,7 @@ public class Order {
 
     @ManyToOne
     @JoinColumn(name = "address_id", nullable = false)
-    private Address shippingAddress;
+    private AddressEntity shippingAddress;
 
     @Column(nullable = false)
     private LocalDateTime orderDate;
@@ -62,14 +62,6 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderStatusHistory> statusHistory;
-
-    @ManyToOne
-    @JoinColumn(name = "buyer_id", referencedColumnName = "user_id", nullable = false)
-    private User buyer;
-
-    @ManyToOne
-    @JoinColumn(name = "seller_id", referencedColumnName = "user_id", nullable = false)
-    private User seller;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Payment payment;

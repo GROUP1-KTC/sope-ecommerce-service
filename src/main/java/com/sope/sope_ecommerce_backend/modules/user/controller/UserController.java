@@ -1,9 +1,9 @@
-package example.userdemo.user.controller;
+package com.sope.sope_ecommerce_backend.modules.user.controller;
 
-import example.userdemo.user.dto.UserDTO;
-import example.userdemo.user.dto.UserRegistrationDTO;
-import example.userdemo.user.entity.User;
-import example.userdemo.user.service.UserService;
+import com.sope.sope_ecommerce_backend.modules.user.dto.UserDTO;
+import com.sope.sope_ecommerce_backend.modules.user.dto.UserRegistrationDTO;
+import com.sope.sope_ecommerce_backend.modules.user.entity.User;
+import com.sope.sope_ecommerce_backend.modules.user.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

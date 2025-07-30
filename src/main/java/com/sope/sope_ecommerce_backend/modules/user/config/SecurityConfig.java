@@ -1,6 +1,6 @@
-package example.userdemo.user.config;
+package com.sope.sope_ecommerce_backend.modules.user.config;
 
-import example.userdemo.user.security.JwtFilter;
+import com.sope.sope_ecommerce_backend.modules.user.security.JwtFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

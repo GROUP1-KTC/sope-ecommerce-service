@@ -1,9 +1,9 @@
-package example.userdemo.chat.seeder;
+package com.sope.sope_ecommerce_backend.modules.chat.seeder;
 
-import example.userdemo.chat.entity.Conversation;
-import example.userdemo.chat.entity.Message;
-import example.userdemo.chat.repository.ConversationRepository;
-import example.userdemo.chat.repository.MessageRepository;
+import com.sope.sope_ecommerce_backend.modules.chat.entity.Conversation;
+import com.sope.sope_ecommerce_backend.modules.chat.entity.Message;
+import com.sope.sope_ecommerce_backend.modules.chat.repository.ConversationRepository;
+import com.sope.sope_ecommerce_backend.modules.chat.repository.MessageRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 

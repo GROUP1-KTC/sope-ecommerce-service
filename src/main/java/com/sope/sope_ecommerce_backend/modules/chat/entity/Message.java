@@ -1,5 +1,4 @@
-package example.userdemo.chat.entity;
-
+package com.sope.sope_ecommerce_backend.modules.chat.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -7,7 +6,7 @@ import java.time.LocalDateTime;
 @Table(name = "messages")
 public class Message {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID) // Sử dụng UUID để tạo ID dạng chuỗi
+    @GeneratedValue(strategy = GenerationType.UUID) 
     private String id;
 
     @Column(nullable = false)

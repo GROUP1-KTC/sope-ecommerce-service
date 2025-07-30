@@ -1,9 +1,9 @@
-package example.userdemo.user.seeder;
+package com.sope.sope_ecommerce_backend.modules.user.seeder;
 
-import example.userdemo.user.entity.Role;
-import example.userdemo.user.entity.User;
-import example.userdemo.user.repository.RoleRepository;
-import example.userdemo.user.repository.UserRepository;
+import com.sope.sope_ecommerce_backend.modules.user.entity.Role;
+import com.sope.sope_ecommerce_backend.modules.user.entity.User;
+import com.sope.sope_ecommerce_backend.modules.user.repository.RoleRepository;
+import com.sope.sope_ecommerce_backend.modules.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
