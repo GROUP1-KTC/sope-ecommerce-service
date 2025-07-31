@@ -1,2 +1,0 @@
-user_id,created_at,date_of_birth,email,full_name,gender,locked,password,phone,social_media_id,tax,verified
-8d6b9a9c-7c3f-42c4-8d7f-d9d5cf1f308e,2025-07-23 14:41:36.180719,1995-06-15,nguyenvana@example.com,Nguyen Van A,MALE,f,$2a$10$hashpassword...,0987654321,,,t

@@ -1,0 +1,28 @@
+package com.sope.sope_ecommerce_backend.entities;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "review_images")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ReviewImageEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "review_image_id")
+    private Long reviewImageId;
+
+    @Column(nullable = false)
+    private String url;
+
+    @ManyToOne
+    @JoinColumn(name = "review_id", nullable = false)
+    private ReviewEntity review;
+}

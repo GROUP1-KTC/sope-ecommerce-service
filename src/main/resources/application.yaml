@@ -1,6 +1,11 @@
 spring:
   application:
     name: sope ecommerce backend
+
+  profiles:
+    active: dev
+
+
   jwt:
     secret: bWVzc2lidWN1cm9uYWxkb2hhaGFoYWhhaGFoYWhhaGE=
     expiration: 3600000
