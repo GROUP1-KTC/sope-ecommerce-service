@@ -11,8 +11,8 @@ import com.sope.sope_ecommerce_backend.modules.product.repository.CategoryReposi
 import com.sope.sope_ecommerce_backend.modules.product.repository.ProductDetailRepository;
 import com.sope.sope_ecommerce_backend.modules.product.repository.ProductRepository;
 import com.sope.sope_ecommerce_backend.modules.product.repository.ProductVariantRepository;
-import com.sope.sope_ecommerce_backend.modules.user.entity.Shop;
-import com.sope.sope_ecommerce_backend.modules.user.repository.ShopRepository;
+import com.sope.sope_ecommerce_backend.modules.shop.entity.Shop;
+import com.sope.sope_ecommerce_backend.modules.shop.repository.ShopRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -184,7 +184,6 @@ public class ProductService {
             response.setCategory(categoryInfo);
 
             ProductResponse.ShopInfo shopInfo = new ProductResponse.ShopInfo();
-            shopInfo.setId(product.getShop().getShopId());
             shopInfo.setName(product.getShop().getName());
             response.setShop(shopInfo);
 
