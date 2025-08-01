@@ -8,7 +8,6 @@ import com.sope.sope_ecommerce_backend.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,7 +21,6 @@ public class CategoryServiceImpl {
             CategoryEntity category = new CategoryEntity();
             category.setName(request.getName());
 
-            // Bước 1: Xử lý parent nếu có
             CategoryEntity parent = null;
             if (request.getParentId() != null) {
                   parent = categoryRepository.findById(request.getParentId())
@@ -30,10 +28,8 @@ public class CategoryServiceImpl {
                   category.setParent(parent);
             }
 
-            // Bước 2: Lưu tạm để có UUID
             category = categoryRepository.save(category);
 
-            // Bước 3: Tạo slug
             Slugify slugify = Slugify.builder().lowerCase(true).build();
             String nameSlug = slugify.slugify(category.getName());
             String shortId = category.getId().toString().substring(0, 8);
@@ -41,7 +37,6 @@ public class CategoryServiceImpl {
             String slug;
 
             if (parent != null) {
-                  // Tách phần "cat.ancestor_ids" từ slug của cha
                   String parentSlug = parent.getSlug(); // ví dụ: ao-khoac-cat.29ff1169.c619af8d
                   String slugSuffix = parentSlug.substring(parentSlug.indexOf("cat.")); // "cat.29ff1169.c619af8d"
                   slug = nameSlug + "-" + slugSuffix + "." + shortId;
@@ -51,7 +46,6 @@ public class CategoryServiceImpl {
 
             category.setSlug(slug);
 
-            // Bước 4: lưu lại slug
             category = categoryRepository.save(category);
 
             return toResponse(category);
@@ -61,25 +55,6 @@ public class CategoryServiceImpl {
             return categoryRepository.findAll().stream()
                         .map(this::toResponse)
                         .collect(Collectors.toList());
-      }
-
-      public List<CategoryEntity> getAllDescendantCategories(CategoryEntity parent) {
-            List<CategoryEntity> result = new ArrayList<>();
-            result.add(parent); // bao gồm chính nó
-
-            List<CategoryEntity> allCategories = categoryRepository.findAll();
-            findChildrenRecursive(parent, allCategories, result);
-
-            return result;
-      }
-
-      private void findChildrenRecursive(CategoryEntity parent, List<CategoryEntity> allCategories, List<CategoryEntity> result) {
-            for (CategoryEntity category : allCategories) {
-                  if (category.getParent() != null && category.getParent().getId().equals(parent.getId())) {
-                        result.add(category);
-                        findChildrenRecursive(category, allCategories, result);
-                  }
-            }
       }
 
       private CategoryDTO toResponse(CategoryEntity category) {

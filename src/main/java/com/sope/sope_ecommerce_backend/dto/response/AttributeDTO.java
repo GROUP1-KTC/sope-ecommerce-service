@@ -1,12 +1,11 @@
-package com.sope.sope_ecommerce_backend.dto;
+package com.sope.sope_ecommerce_backend.dto.response;
 
 import lombok.Data;
 
 @Data
-public class AttributeDto {
+public class AttributeDTO {
       private String name;
       private String value;
-      private Long imageId;
 
       // Getters and setters
       public String getName() {
@@ -25,11 +24,4 @@ public class AttributeDto {
             this.value = value;
       }
 
-      public Long getImageId() {
-            return imageId;
-      }
-
-      public void setImageId(Long imageId) {
-            this.imageId = imageId;
-      }
 }

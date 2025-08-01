@@ -5,7 +5,6 @@ spring:
   profiles:
     active: dev
 
-
   jwt:
     secret: bWVzc2lidWN1cm9uYWxkb2hhaGFoYWhhaGFoYWhhaGE=
     expiration: 3600000
@@ -40,12 +39,13 @@ logging:
 
 server:
   port: 8082
+  tomcat:
+    max-part-count: 50
+    max-part-header-size: 2048
 
 api:
-
 
 cloudinary:
   cloud-name: dybo8zd4y123
   api-key: 111854312673546
   api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
-

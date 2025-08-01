@@ -4,8 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import com.sope.sope_ecommerce_backend.dto.AttributeDto;
-import com.sope.sope_ecommerce_backend.dto.ImageDto;
+import com.sope.sope_ecommerce_backend.dto.response.AttributeDTO;
 import lombok.Data;
 
 @Data
@@ -14,6 +13,6 @@ public class ProductVariantCreateDTO {
       private int stock;
       private boolean hidden;
       private UUID productId;
-      private List<AttributeDto> attributes;
-      private List<ImageDto> images;
+      private List<AttributeDTO> attributes;
+      private String imageVariant;
 }

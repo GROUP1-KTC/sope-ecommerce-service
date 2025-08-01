@@ -16,13 +16,18 @@ public class ProductDTO {
       private String brand;
       private String description;
       private String defaultImage;
+      private String defaultVideoIntro;
       private boolean hidden;
       private StatusProduct status;
       private String slug;
       private LocalDateTime createdAt;
+      private LocalDateTime updatedAt;
       private CategoryInfo category;
+      private int stock;
+      private int sold;
       private ShopInfo shop;
-      private List<ProductVariantDTO> variants; // Thêm dòng này
+      private List<ProductVariantDTO> variants;
+      private List<ImageDTO> imagesList;
 
       @Data
       public static class CategoryInfo {

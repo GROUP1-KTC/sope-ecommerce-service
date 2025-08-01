@@ -1,13 +1,19 @@
-package com.sope.sope_ecommerce_backend.dto;
+package com.sope.sope_ecommerce_backend.dto.response;
 
 import lombok.Data;
 
 @Data
-public class ImageDto {
+public class ImageDTO {
+      private Long imageId;
       private String url;
       private int priority;
 
-      // Getters and setters
+      public Long getImageId() {
+            return imageId;
+      }
+      public void setImageId(Long imageId) {
+            this.imageId = imageId;
+      }
       public String getUrl() {
             return url;
       }

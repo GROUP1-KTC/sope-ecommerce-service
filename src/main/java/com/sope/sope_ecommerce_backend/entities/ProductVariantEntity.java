@@ -7,7 +7,6 @@ import org.hibernate.annotations.GenericGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -33,8 +32,7 @@ public class ProductVariantEntity {
 
     private boolean hidden;
 
-    @Column(name = "slug", length = 100, unique = true)
-    private String slug;
+    private String imageVariant;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -48,10 +46,6 @@ public class ProductVariantEntity {
 
     @ManyToMany
     @JoinTable(name = "product_variant_attributes", joinColumns = @JoinColumn(name = "product_variant_id"), inverseJoinColumns = @JoinColumn(name = "attribute_id"))
-
     @Builder.Default
     private Set<AttributeEntity> attributes = new HashSet<>();
-
-    @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ImageEntity> images;
 }

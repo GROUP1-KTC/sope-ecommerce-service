@@ -37,6 +37,12 @@ public class ProductEntity {
     @Column(nullable = false)
     private String defaultImage;
 
+    private String defaultVideoIntro;
+
+    private int stock;
+
+    private int sold;
+
     private boolean hidden;
 
     @Enumerated(EnumType.STRING)
@@ -60,6 +66,9 @@ public class ProductEntity {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     private List<ReviewEntity> reviews;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ImageEntity> imagesList;
 
     @ManyToOne
     @JoinColumn(name = "shop_id", nullable = false)
