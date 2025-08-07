@@ -1,8 +1,10 @@
 package com.sope.sope_ecommerce_backend.dto.request;
 
-public class RegisterDTO {
+public class UserRegisterRequest {
     private String username;
     private String password;
+    private String name;
+    private String email;
 
     public String getUsername() {
         return username;
@@ -28,5 +30,11 @@ public class RegisterDTO {
         this.email = email;
     }
 
-    private String email;
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }

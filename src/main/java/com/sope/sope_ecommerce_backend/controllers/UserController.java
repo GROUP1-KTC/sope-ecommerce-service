@@ -1,60 +1,46 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
-import com.sope.sope_ecommerce_backend.dto.response.UserDTO;
-import com.sope.sope_ecommerce_backend.dto.request.UserRegistrationDTO;
-import com.sope.sope_ecommerce_backend.entities.UserEntity;
-import com.sope.sope_ecommerce_backend.services.impl.UserServiceImpl;
+import com.sope.sope_ecommerce_backend.dto.request.UserRegisterRequest;
+import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
+import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
+import com.sope.sope_ecommerce_backend.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
-    @Autowired
-    private UserServiceImpl userService;
 
-    @GetMapping("/")
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> userDTOs = userService.getAllUsers().stream()
-                .map(user -> {
-                    UserDTO dto = new UserDTO();
-                    dto.setId(user.getId());
-                    dto.setUsername(user.getUsername());
-                    dto.setName(user.getName());
-                    dto.setEmail(user.getEmail());
-                    dto.setAddress(user.getAddress());
-                    dto.setPhone(user.getPhone());
-                    dto.setNote(user.getNote());
-                    dto.setStatus(user.getStatus());
-                    dto.setRoles(user.getRoles());
-                    return dto;
-                })
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(userDTOs);
-    }
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<UserEntity> getCurrentUser() {
-        return ResponseEntity.ok(userService.getCurrentUser());
+    public ResponseEntity<UserInformationResponse> getCurrentUserInfo() {
+        return ResponseEntity.ok(userService.getCurrentUserInfo());
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<UserDTO> registerUser(@RequestBody UserRegistrationDTO registrationDTO) {
-        UserEntity user = userService.registerUser(registrationDTO);
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(user.getId());
-        userDTO.setUsername(user.getUsername());
-        userDTO.setName(user.getName());
-        userDTO.setEmail(user.getEmail());
-        userDTO.setAddress(user.getAddress());
-        userDTO.setPhone(user.getPhone());
-        userDTO.setNote(user.getNote());
-        userDTO.setStatus(user.getStatus());
-        userDTO.setRoles(user.getRoles());
-        return ResponseEntity.ok(userDTO);
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
+        return ResponseEntity.ok(userService.getUserById(id));
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<UserInformationResponse>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @RequestBody UserRegisterRequest request) {
+        return ResponseEntity.ok(userService.updateUser(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }

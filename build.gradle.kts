@@ -56,6 +56,15 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
 	implementation("com.github.slugify:slugify:3.0.6")
+
+	// https://mvnrepository.com/artifact/org.mapstruct/mapstruct
+	implementation("org.mapstruct:mapstruct:1.6.3")
+
+	// https://mvnrepository.com/artifact/org.mapstruct/mapstruct-processor
+	annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3")
+
+	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt
+	implementation("io.jsonwebtoken:jjwt:0.12.6")
 }
 
 tasks.withType<Test> {

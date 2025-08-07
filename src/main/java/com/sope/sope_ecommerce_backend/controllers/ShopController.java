@@ -1,8 +1,8 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.response.ShopDTO;
+import com.sope.sope_ecommerce_backend.entities.User;
 import com.sope.sope_ecommerce_backend.services.ShopService;
-import com.sope.sope_ecommerce_backend.entities.UserEntity;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +19,12 @@ public class ShopController {
 
     private final ShopService shopService;
 
-    @PostMapping
-    public ResponseEntity<ShopDTO> createShop(@Valid @RequestBody ShopDTO shopDTO,
-                                              @AuthenticationPrincipal UserEntity user) {
-        ShopDTO createdShop = shopService.createShop(shopDTO, user);
-        return ResponseEntity.ok(createdShop);
-    }
+//    @PostMapping
+//    public ResponseEntity<ShopDTO> createShop(@Valid @RequestBody ShopDTO shopDTO,
+//                                              @AuthenticationPrincipal User user) {
+//        ShopDTO createdShop = shopService.createShop(shopDTO, user);
+//        return ResponseEntity.ok(createdShop);
+//    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ShopDTO> getShopById(@PathVariable UUID id) {
