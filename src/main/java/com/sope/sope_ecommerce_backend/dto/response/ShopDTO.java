@@ -1,13 +1,13 @@
 package com.sope.sope_ecommerce_backend.dto.response;
 
-import com.sope.sope_ecommerce_backend.entities.UserEntity;
+import com.sope.sope_ecommerce_backend.entities.User;
 
 import java.util.UUID;
 
 public class ShopDTO {
     private UUID id;
 
-    private UserEntity user;
+    private User user;
 
     private String name;
 
@@ -33,11 +33,11 @@ public class ShopDTO {
         this.id = id;
     }
 
-    public UserEntity getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(UserEntity user) {
+    public void setUser(User user) {
         this.user = user;
     }
 

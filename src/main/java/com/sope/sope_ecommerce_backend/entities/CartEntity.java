@@ -23,7 +23,7 @@ public class CartEntity {
     @MapsId("userId")  // Liên kết với userId trong CartId
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference("user-carts")
-    private UserEntity user;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("productVariantId")

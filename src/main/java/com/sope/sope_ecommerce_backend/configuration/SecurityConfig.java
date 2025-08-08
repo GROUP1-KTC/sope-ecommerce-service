@@ -1,7 +1,6 @@
 package com.sope.sope_ecommerce_backend.configuration;
 
-import com.sope.sope_ecommerce_backend.security.JwtFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.sope.sope_ecommerce_backend.security.JwtRequestFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,76 +10,43 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtFilter jwtFilter;
-
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/user/me").authenticated()
-//                        .anyRequest().authenticated()
-//                )
-//                .sessionManagement(session -> session
-//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                );
-//
-//        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-//
-//        return http.build();
-//    }
-
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(auth -> auth
-//                        // Cho phép truy cập các trang HTML frontend
-//                        .requestMatchers("/", "/login-page", "/user", "/admin").permitAll()
-//                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll() // Nếu có file tĩnh
-//                        // Cho phép gọi API không cần login
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        // Yêu cầu xác thực cho các API khác
-//                        .requestMatchers("/api/user/me").authenticated()
-//                        .anyRequest().authenticated()
-//                )
-//                .sessionManagement(session -> session
-//                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                );
-//
-//        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-//
-//        return http.build();
-//    }
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        return authenticationConfiguration.getAuthenticationManager();
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtRequestFilter jwtRequestFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép tất cả yêu cầu mà không cần xác thực
-                        .anyRequest().permitAll()
+                        // Cho phép truy cập các trang HTML frontend
+                        .requestMatchers("/", "/login-page", "/user", "/admin").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll() // Nếu có file tĩnh
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/index.html"
+                        ).permitAll()
+                        // Cho phép gọi API không cần login
+                        .requestMatchers("/api/auth/**").permitAll()
+                        // Yêu cầu xác thực cho các API khác
+                        .requestMatchers("/api/user/me").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
-        // Bỏ qua JwtFilter để không kiểm tra token
-        // http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
-    }
 }
+
