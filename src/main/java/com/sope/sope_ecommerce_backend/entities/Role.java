@@ -1,41 +1,26 @@
 package com.sope.sope_ecommerce_backend.entities;
 
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.*;
 
 import java.util.UUID;
 
 @Entity
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@RequiredArgsConstructor
+
 public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    private String roleName;
-
-    public Role() {
-    }
-
-    public Role(String roleName) {
-        this.roleName = roleName;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
+    @NonNull
+    private RoleName roleName;
 }

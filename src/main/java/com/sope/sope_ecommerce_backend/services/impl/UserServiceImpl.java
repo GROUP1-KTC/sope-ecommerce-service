@@ -7,6 +7,7 @@ import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.Role;
 import com.sope.sope_ecommerce_backend.entities.User;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
@@ -64,14 +65,14 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
 
-        Role userRole = roleRepository.findByRoleName("user")
+        Role userRole = roleRepository.findByRoleName(RoleName.USER)
                 .orElseGet(() -> {
-                    Role newRole = new Role("user");
+                    Role newRole = new Role(RoleName.USER);
                     return roleRepository.save(newRole);
                 });
 
-        // Gán vai trò "user" cho người dùng
-        user.addRole(userRole);
+
+        user.getRoles().add(userRole);
 
         user = userRepository.save(user);
         return userMapper.toResponse(user);
@@ -97,9 +98,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        UserLoginResponse response = userMapper.toLoginResponse(user);
+        UserLoginResponse response = userMapper.toLoginResponse(user, jwt);
 
-        response.setJwt(jwt);
+
 
         return response;
     }

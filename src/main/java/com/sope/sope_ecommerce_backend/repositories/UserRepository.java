@@ -1,3 +1,4 @@
+
 package com.sope.sope_ecommerce_backend.repositories;
 
 import com.sope.sope_ecommerce_backend.entities.User;
@@ -12,3 +13,4 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
 }
+

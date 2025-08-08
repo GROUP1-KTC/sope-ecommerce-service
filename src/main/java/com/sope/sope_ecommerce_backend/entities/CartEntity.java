@@ -8,33 +8,31 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "cart", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_id", "product_variant_id"})
+})
 public class CartEntity {
-
-    @EmbeddedId
-    CartId cartId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("userId")  // Liên kết với userId trong CartId
     @JoinColumn(name = "user_id", nullable = false)
+
     @JsonBackReference("user-carts")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("productVariantId")
-    @JoinColumn(name = "product_variant_id", nullable = false)
-    @JsonBackReference
-    private ProductVariantEntity productVariant;
 
-    @Column(nullable = false)
-    private int quantity;
-
-    @Column(name = "added_at")
-    private LocalDateTime addedAt;
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CartItemEntity> items = new ArrayList<>();
 }
 
