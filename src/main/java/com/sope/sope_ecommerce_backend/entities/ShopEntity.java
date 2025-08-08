@@ -17,7 +17,7 @@ public class ShopEntity {
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
+    private User user;
 
     @Column(nullable = false)
     private String name;
@@ -53,7 +53,7 @@ public class ShopEntity {
 
     public ShopEntity() {}
 
-    public ShopEntity(UUID id, UserEntity user, String name, String phone, String email, String address, String description, String logoUrl, boolean isMall, Status status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ShopEntity(UUID id, User user, String name, String phone, String email, String address, String description, String logoUrl, boolean isMall, Status status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.user = user;
         this.name = name;

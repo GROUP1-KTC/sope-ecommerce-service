@@ -1,28 +1,28 @@
 package com.sope.sope_ecommerce_backend.seeder.user;
 
-import com.sope.sope_ecommerce_backend.entities.RoleEntity;
+import com.sope.sope_ecommerce_backend.entities.Role;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("dev")
+@AllArgsConstructor
 public class RoleSeeder implements CommandLineRunner {
-    @Autowired
     private RoleRepository roleRepository;
 
     @Override
     public void run(String... args) throws Exception {
-        createRoleIfNotExists("ROLE_USER");
-        createRoleIfNotExists("ROLE_ADMIN");
+        createRoleIfNotExists("admin");
+        createRoleIfNotExists("user");
+        createRoleIfNotExists("seller");
     }
 
-    private void createRoleIfNotExists(String roleName) {
-        if (roleRepository.findByName(roleName).isEmpty()) {
-            RoleEntity role = new RoleEntity();
-            role.setName(roleName);
+    private void createRoleIfNotExists(String roleNameStr) {
+        RoleName roleName = RoleName.valueOf(roleNameStr.toUpperCase());
+        if (roleRepository.findByRoleName(roleName).isEmpty()) {
+            Role role = new Role(roleName);
             roleRepository.save(role);
             System.out.println("✅ Seeded role: " + roleName);
         }

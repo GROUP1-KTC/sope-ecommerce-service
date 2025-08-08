@@ -23,7 +23,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void addToCart(UUID userId, UUID productVariantId, int quantity) {
-        UserEntity user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         ProductVariantEntity product = productVariantRepository.findById(productVariantId)
@@ -52,7 +52,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void removeItemFromCart(UUID userId, Long cartItemId) {
-        UserEntity user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         CartEntity cart = cartRepository.findByUser(user)
@@ -72,7 +72,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public List<CartItemResponseDTO> getCartItemsByUser(UUID userId) {
-        UserEntity user = userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         CartEntity cart = cartRepository.findByUser(user)

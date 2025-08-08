@@ -2,9 +2,9 @@ package com.sope.sope_ecommerce_backend.services.impl;
 
 import com.sope.sope_ecommerce_backend.dto.response.ShopDTO;
 import com.sope.sope_ecommerce_backend.entities.ShopEntity;
+import com.sope.sope_ecommerce_backend.entities.User;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.services.ShopService;
-import com.sope.sope_ecommerce_backend.entities.UserEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +21,7 @@ public class ShopServiceImpl implements ShopService {
     private final ShopRepository shopRepository;
 
     @Transactional
-    public ShopDTO createShop(ShopDTO shopDTO, UserEntity user) {
+    public ShopDTO createShop(ShopDTO shopDTO, User user) {
         if (shopRepository.existsByName(shopDTO.getName())) {
             throw new RuntimeException("Shop name already exists");
         }

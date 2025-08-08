@@ -1,10 +1,9 @@
 package com.sope.sope_ecommerce_backend.dto.request;
 
-public class LoginDTO {
+public class UserLoginRequest {
     private String username;
     private String password;
 
-    // Getters and Setters
     public String getUsername() {
         return username;
     }

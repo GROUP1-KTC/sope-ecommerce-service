@@ -1,44 +1,47 @@
 package com.sope.sope_ecommerce_backend.seeder.user;
 
-import com.sope.sope_ecommerce_backend.entities.RoleEntity;
-import com.sope.sope_ecommerce_backend.entities.UserEntity;
+
+import com.sope.sope_ecommerce_backend.entities.Role;
+import com.sope.sope_ecommerce_backend.entities.User;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.boot.CommandLineRunner;
 
 import java.util.Collections;
 import java.util.Optional;
 
 @Component
 @Profile("dev")
+@AllArgsConstructor
 public class UserSeeder implements CommandLineRunner {
-    @Autowired
+
     private UserRepository userRepository;
 
-    @Autowired
     private RoleRepository roleRepository;
 
-    @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public void run(String... args) {
-        createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", "ROLE_ADMIN");
-        createUserIfNotExists("user", "Regular User", "user@example.com", "user123", "ROLE_USER");
+    public void run(String... args) throws Exception {
+        createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", "admin");
+        createUserIfNotExists("user", "Regular User", "user@example.com", "user123", "user");
+        createUserIfNotExists("seller", "Shop Seller", "seller@example.com", "seller123", "seller");
     }
 
-    private void createUserIfNotExists(String username, String name, String email, String rawPassword, String roleName) {
+    private void createUserIfNotExists(String username, String name, String email, String rawPassword, String roleNamestr) {
         if (userRepository.findByUsername(username).isEmpty()) {
-            Optional<RoleEntity> roleOpt = roleRepository.findByName(roleName);
+            RoleName roleName = RoleName.valueOf(roleNamestr.toUpperCase());
+            Optional<Role> roleOpt = roleRepository.findByRoleName(roleName);
             if (roleOpt.isEmpty()) {
                 throw new RuntimeException("Role not found: " + roleName);
             }
 
-            UserEntity user = new UserEntity();
+            User user = new User();
             user.setUsername(username);
             user.setName(name);
             user.setEmail(email);
