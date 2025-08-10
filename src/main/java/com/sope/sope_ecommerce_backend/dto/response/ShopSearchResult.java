@@ -2,8 +2,8 @@ package com.sope.sope_ecommerce_backend.dto.response;
 
 import java.util.UUID;
 
-public record UserResponse(
+public record ShopSearchResult(
         UUID id,
-        String username,
-        String email
+        String name,
+        String logoUrl
 ) {}

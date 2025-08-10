@@ -1,40 +1,16 @@
 package com.sope.sope_ecommerce_backend.dto.request;
 
-public class UserRegisterRequest {
-    private String username;
-    private String password;
-    private String name;
-    private String email;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-}
+public record UserRegisterRequest(
+        @NotBlank(message = "Username is required")
+        String username,
+        @NotBlank(message = "Password is required")
+        String password,
+        @NotBlank(message = "Name is required")
+        String name,
+        @NotBlank(message = "Email is required")
+        @Email(message = "Email should be valid")
+        String email
+) {}

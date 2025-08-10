@@ -1,6 +1,8 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.request.UserRegisterRequest;
+import com.sope.sope_ecommerce_backend.dto.request.UserStatusRequest;
+import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.services.UserService;
@@ -33,14 +35,15 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable UUID id, @RequestBody UserRegisterRequest request) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<UserInformationResponse> updateUser(@PathVariable UUID id, @RequestBody UserUpdateRecord request) {
         return ResponseEntity.ok(userService.updateUser(id, request));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-        userService.deleteUser(id);
+
+    @PatchMapping("status/{id}")
+    public ResponseEntity<Void> changeUserStatus(@PathVariable UUID id ,@RequestBody UserStatusRequest request) {
+        userService.changeUserStatus(id, request);
         return ResponseEntity.noContent().build();
     }
 }

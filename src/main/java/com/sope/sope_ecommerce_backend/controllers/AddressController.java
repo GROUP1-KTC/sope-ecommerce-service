@@ -1,39 +1,64 @@
 package com.sope.sope_ecommerce_backend.controllers;
-import com.sope.sope_ecommerce_backend.dto.response.AddressDTO;
-import com.sope.sope_ecommerce_backend.services.impl.AddressServiceImpl;
+
+import com.sope.sope_ecommerce_backend.dto.request.AddressCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.AddressUpdateRequest;
+import com.sope.sope_ecommerce_backend.dto.response.AddressResponse;
+import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.services.AddressService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/addresses")
-@CrossOrigin(origins = {"*"}, allowedHeaders = "*")
+@RequiredArgsConstructor
 public class AddressController {
-    private final AddressServiceImpl addressService;
 
-    public AddressController(AddressServiceImpl addressService) {
-        this.addressService = addressService;
-    }
+    private final AddressService addressService;
 
     @PostMapping
-    public ResponseEntity<AddressDTO> createAddress(@RequestBody AddressDTO addressDTO) {
-        return ResponseEntity.ok(addressService.createAddress(addressDTO));
+    public ResponseEntity<AddressResponse> addAddress(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody AddressCreateRequest request) {
+        return ResponseEntity.ok(addressService.addAddress(userDetails.getUserId(), request));
+    }
+
+    @PutMapping("/{addressId}")
+    public ResponseEntity<AddressResponse> updateAddress(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID addressId,
+            @RequestBody AddressUpdateRequest request) {
+        return ResponseEntity.ok(addressService.updateAddress(userDetails.getUserId(), addressId, request));
+    }
+
+    @DeleteMapping("/{addressId}")
+    public ResponseEntity<Void> deleteAddress(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID addressId) {
+        addressService.deleteAddress(userDetails.getUserId(), addressId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping
-    public ResponseEntity<List<AddressDTO>> getAllAddresses() {
-        return ResponseEntity.ok(addressService.getAllAddresses());
+    public ResponseEntity<List<AddressResponse>> getUserAddresses(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(addressService.getUserAddresses(userDetails.getUserId()));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<AddressDTO> updateAddress(@PathVariable Long id, @RequestBody AddressDTO addressDTO) {
-        return ResponseEntity.ok(addressService.updateAddress(id, addressDTO));
+    @PutMapping("/{addressId}/default")
+    public ResponseEntity<AddressResponse> setDefaultAddress(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable UUID addressId) {
+        return ResponseEntity.ok(addressService.setDefaultAddress(userDetails.getUserId(), addressId));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAddress(@PathVariable Long id) {
-        addressService.deleteAddress(id);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/default")
+    public ResponseEntity<AddressResponse> getDefaultAddress(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(addressService.getDefaultAddress(userDetails.getUserId()));
     }
 }

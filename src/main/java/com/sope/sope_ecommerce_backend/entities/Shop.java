@@ -1,18 +1,21 @@
 package com.sope.sope_ecommerce_backend.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Getter
-@Setter
+
+@Data
+@Table(name = "shops")
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-public class ShopEntity {
+public class Shop {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @OneToOne(fetch = FetchType.EAGER)
@@ -50,21 +53,4 @@ public class ShopEntity {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt = LocalDateTime.now();
-
-    public ShopEntity() {}
-
-    public ShopEntity(UUID id, User user, String name, String phone, String email, String address, String description, String logoUrl, boolean isMall, Status status, LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
-        this.user = user;
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-        this.address = address;
-        this.description = description;
-        this.logoUrl = logoUrl;
-        this.isMall = isMall;
-        this.status = status;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
 }
