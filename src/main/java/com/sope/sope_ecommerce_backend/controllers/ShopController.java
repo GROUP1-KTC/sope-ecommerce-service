@@ -1,7 +1,11 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
-import com.sope.sope_ecommerce_backend.dto.response.ShopDTO;
-import com.sope.sope_ecommerce_backend.entities.User;
+import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
+import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
+import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
+import com.sope.sope_ecommerce_backend.entities.Shop;
+import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,35 +23,54 @@ public class ShopController {
 
     private final ShopService shopService;
 
-//    @PostMapping
-//    public ResponseEntity<ShopDTO> createShop(@Valid @RequestBody ShopDTO shopDTO,
-//                                              @AuthenticationPrincipal User user) {
-//        ShopDTO createdShop = shopService.createShop(shopDTO, user);
-//        return ResponseEntity.ok(createdShop);
-//    }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ShopDTO> getShopById(@PathVariable UUID id) {
-        ShopDTO shop = shopService.getShopById(id);
-        return ResponseEntity.ok(shop);
+    @PostMapping
+    public ResponseEntity<ShopResponse> createShop(
+            @Valid @RequestBody ShopCreateRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        ShopResponse createdShop = shopService.createShop(request, currentUser.getUserId());
+        return ResponseEntity.ok(createdShop);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ShopResponse> getShop(@AuthenticationPrincipal CustomUserDetails currentUser) {
+        ShopResponse getShop = shopService.getShop(currentUser.getUserId());
+        return ResponseEntity.ok(getShop);
     }
 
     @GetMapping
-    public ResponseEntity<List<ShopDTO>> getAllShops() {
-        List<ShopDTO> shops = shopService.getAllShops();
-        return ResponseEntity.ok(shops);
+    public ResponseEntity<List<ShopResponse>> getAllShop() {
+        List<ShopResponse> getAllShops = shopService.getAllShops();
+        return ResponseEntity.ok(getAllShops);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ShopDTO> updateShop(@PathVariable UUID id,
-                                              @Valid @RequestBody ShopDTO shopDTO) {
-        ShopDTO updatedShop = shopService.updateShop(id, shopDTO);
-        return ResponseEntity.ok(updatedShop);
+    @GetMapping("/{id}")
+    public ResponseEntity<ShopResponse> getShopById(UUID shopId) {
+        ShopResponse getShop = shopService.getShopById(shopId);
+        return ResponseEntity.ok(getShop);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteShop(@PathVariable UUID id) {
-        shopService.deleteShop(id);
-        return ResponseEntity.noContent().build();
+    @PatchMapping()
+    public ResponseEntity<ShopResponse> updateShop(
+            @RequestBody ShopUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+
+        return ResponseEntity.ok(
+                shopService.updateShop(request, currentUser.getUserId())
+        );
     }
+
+    @PatchMapping("/status")
+    public ResponseEntity<ShopResponse> updateShopStatus(UUID shopId, Shop.Status status) {
+        return ResponseEntity.ok(shopService.changeShopStatus(shopId, status));
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ShopSearchResult>> searchShops(@RequestParam String name) {
+        return ResponseEntity.ok(shopService.searchShopsByName(name));
+    }
+
+
+
 }

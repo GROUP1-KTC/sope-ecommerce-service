@@ -63,7 +63,7 @@ public class ProductEntity {
 
     @ManyToOne
     @JoinColumn(name = "shop_id", nullable = false)
-    private ShopEntity shop;
+    private Shop shop;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WishlistEntity> wishlists;

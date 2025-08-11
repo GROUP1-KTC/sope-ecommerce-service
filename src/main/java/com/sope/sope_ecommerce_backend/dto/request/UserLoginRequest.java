@@ -1,22 +1,10 @@
 package com.sope.sope_ecommerce_backend.dto.request;
 
-public class UserLoginRequest {
-    private String username;
-    private String password;
+import jakarta.validation.constraints.NotBlank;
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-}
+public record UserLoginRequest(
+        @NotBlank(message = "Username is required")
+        String username,
+        @NotBlank(message = "Password is required")
+        String password
+) {}

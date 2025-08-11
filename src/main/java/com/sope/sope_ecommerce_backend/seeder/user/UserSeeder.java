@@ -28,9 +28,9 @@ public class UserSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", "admin");
-        createUserIfNotExists("user", "Regular User", "user@example.com", "user123", "user");
-        createUserIfNotExists("seller", "Shop Seller", "seller@example.com", "seller123", "seller");
+        createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", "ADMIN");
+        createUserIfNotExists("user", "Regular User", "user@example.com", "user123", "USER");
+        createUserIfNotExists("seller", "Shop Seller", "seller@example.com", "seller123", "SELLER");
     }
 
     private void createUserIfNotExists(String username, String name, String email, String rawPassword, String roleNamestr) {

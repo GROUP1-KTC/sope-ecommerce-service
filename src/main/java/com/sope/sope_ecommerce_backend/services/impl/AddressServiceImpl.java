@@ -1,92 +1,141 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.dto.response.AddressDTO;
-import com.sope.sope_ecommerce_backend.entities.AddressEntity;
+import com.sope.sope_ecommerce_backend.dto.request.AddressCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.AddressUpdateRequest;
+import com.sope.sope_ecommerce_backend.dto.response.AddressResponse;
+import com.sope.sope_ecommerce_backend.entities.Address;
+import com.sope.sope_ecommerce_backend.entities.User;
 import com.sope.sope_ecommerce_backend.repositories.AddressRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sope.sope_ecommerce_backend.repositories.UserRepository;
+import com.sope.sope_ecommerce_backend.services.AddressService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
-public class AddressServiceImpl {
-    private static final Logger logger = LoggerFactory.getLogger(AddressServiceImpl.class);
+@RequiredArgsConstructor
+public class AddressServiceImpl implements AddressService {
+
     private final AddressRepository addressRepository;
+    private final UserRepository userRepository;
 
-    public AddressServiceImpl(AddressRepository addressRepository) {
-        this.addressRepository = addressRepository;
+    @Override
+    @Transactional
+    public AddressResponse addAddress(UUID userId, AddressCreateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.isDefault()) {
+            addressRepository.findByUser_Id(userId)
+                    .forEach(a -> {
+                        if (a.isDefault()) {
+                            a.setDefault(false);
+                            addressRepository.save(a);
+                        }
+                    });
+        }
+
+        Address address = new Address();
+        address.setUser(user);
+        address.setRecipientName(request.recipientName());
+        address.setPhoneNumber(request.phoneNumber());
+        address.setStreet(request.street());
+        address.setWard(request.ward());
+        address.setDistrict(request.district());
+        address.setCity(request.city());
+        address.setCountry(request.country());
+        address.setDefault(request.isDefault());
+
+        Address saved = addressRepository.save(address);
+        return toResponse(saved);
     }
 
-    public AddressDTO createAddress(AddressDTO addressDTO) {
-        logger.info("Đang tạo địa chỉ: {}", addressDTO);
+    @Override
+    @Transactional
+    public AddressResponse updateAddress(UUID userId, UUID addressId, AddressUpdateRequest request) {
+        Address address = addressRepository.findById(addressId)
+                .filter(a -> a.getUser().getId().equals(userId))
+                .orElseThrow(() -> new RuntimeException("Address not found"));
 
-        AddressEntity addressEntity = new AddressEntity();
-        addressEntity.setProvince(addressDTO.getProvince());
-        addressEntity.setDistrict(addressDTO.getDistrict());
-        addressEntity.setCommune(addressDTO.getCommune());
-        addressEntity.setDetail(addressDTO.getDetail());
+        if (Boolean.TRUE.equals(request.isDefault())) {
+            addressRepository.findByUser_Id(userId)
+                    .forEach(a -> {
+                        if (a.isDefault()) {
+                            a.setDefault(false);
+                            addressRepository.save(a);
+                        }
+                    });
+            address.setDefault(true);
+        }
 
-        AddressEntity savedAddress = addressRepository.save(addressEntity);
-        logger.info("Đã lưu địa chỉ: {}", savedAddress);
+        address.setRecipientName(request.recipientName());
+        address.setPhoneNumber(request.phoneNumber());
+        address.setStreet(request.street());
+        address.setWard(request.ward());
+        address.setDistrict(request.district());
+        address.setCity(request.city());
+        address.setCountry(request.country());
 
-        AddressDTO result = new AddressDTO();
-        result.setId(savedAddress.getId());
-        result.setProvince(savedAddress.getProvince());
-        result.setDistrict(savedAddress.getDistrict());
-        result.setCommune(savedAddress.getCommune());
-        result.setDetail(savedAddress.getDetail());
-
-        return result;
+        Address saved = addressRepository.save(address);
+        return toResponse(saved);
     }
 
-    public List<AddressDTO> getAllAddresses() {
-        logger.info("Lấy danh sách tất cả địa chỉ");
-        return addressRepository.findAll().stream().map(address -> {
-            AddressDTO dto = new AddressDTO();
-            dto.setId(address.getId());
-            dto.setProvince(address.getProvince());
-            dto.setDistrict(address.getDistrict());
-            dto.setCommune(address.getCommune());
-            dto.setDetail(address.getDetail());
-            return dto;
-        }).collect(Collectors.toList());
+    @Override
+    public void deleteAddress(UUID userId, UUID addressId) {
+        Address address = addressRepository.findById(addressId)
+                .filter(a -> a.getUser().getId().equals(userId))
+                .orElseThrow(() -> new RuntimeException("Address not found"));
+        addressRepository.delete(address);
     }
 
-    public AddressDTO updateAddress(Long id, AddressDTO addressDTO) {
-        logger.info("Đang cập nhật địa chỉ ID: {}", id);
-        AddressEntity addressEntity = addressRepository.findById(id)
-                .orElseThrow(() -> {
-                    logger.error("Không tìm thấy địa chỉ với ID: {}", id);
-                    return new RuntimeException("Address not found");
+    @Override
+    public List<AddressResponse> getUserAddresses(UUID userId) {
+        return addressRepository.findByUser_Id(userId)
+                .stream().map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public AddressResponse setDefaultAddress(UUID userId, UUID addressId) {
+        addressRepository.findByUser_Id(userId)
+                .forEach(a -> {
+                    if (a.isDefault()) {
+                        a.setDefault(false);
+                        addressRepository.save(a);
+                    }
                 });
 
-        addressEntity.setProvince(addressDTO.getProvince());
-        addressEntity.setDistrict(addressDTO.getDistrict());
-        addressEntity.setCommune(addressDTO.getCommune());
-        addressEntity.setDetail(addressDTO.getDetail());
+        Address address = addressRepository.findById(addressId)
+                .filter(a -> a.getUser().getId().equals(userId))
+                .orElseThrow(() -> new RuntimeException("Address not found"));
 
-        AddressEntity updatedAddress = addressRepository.save(addressEntity);
-        logger.info("Đã cập nhật địa chỉ: {}", updatedAddress);
-
-        AddressDTO result = new AddressDTO();
-        result.setId(updatedAddress.getId());
-        result.setProvince(updatedAddress.getProvince());
-        result.setDistrict(updatedAddress.getDistrict());
-        result.setCommune(updatedAddress.getCommune());
-        result.setDetail(updatedAddress.getDetail());
-
-        return result;
+        address.setDefault(true);
+        Address saved = addressRepository.save(address);
+        return toResponse(saved);
     }
 
-    public void deleteAddress(Long id) {
-        logger.info("Đang xóa địa chỉ ID: {}", id);
-        if (!addressRepository.existsById(id)) {
-            logger.error("Không tìm thấy địa chỉ với ID: {}", id);
-            throw new RuntimeException("Address not found");
-        }
-        addressRepository.deleteById(id);
-        logger.info("Đã xóa địa chỉ ID: {}", id);
+    @Override
+    public AddressResponse getDefaultAddress(UUID userId) {
+        return addressRepository.findByUser_IdAndIsDefaultTrue(userId)
+                .map(this::toResponse)
+                .orElseThrow(() -> new RuntimeException("Default address not found"));
+    }
+
+    private AddressResponse toResponse(Address a) {
+        return new AddressResponse(
+                a.getId(),
+                a.getRecipientName(),
+                a.getPhoneNumber(),
+                a.getStreet(),
+                a.getWard(),
+                a.getDistrict(),
+                a.getCity(),
+                a.getCountry(),
+                a.isDefault()
+        );
     }
 }

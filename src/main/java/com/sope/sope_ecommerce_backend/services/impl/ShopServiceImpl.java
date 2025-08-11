@@ -1,16 +1,22 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.dto.response.ShopDTO;
-import com.sope.sope_ecommerce_backend.entities.ShopEntity;
+import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
+import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
+import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
+import com.sope.sope_ecommerce_backend.entities.Shop;
 import com.sope.sope_ecommerce_backend.entities.User;
+import com.sope.sope_ecommerce_backend.enums.ShopStatus;
+import com.sope.sope_ecommerce_backend.mapper.ShopMapper;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
+import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import com.sope.sope_ecommerce_backend.services.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -20,93 +26,103 @@ public class ShopServiceImpl implements ShopService {
 
     private final ShopRepository shopRepository;
 
-    @Transactional
-    public ShopDTO createShop(ShopDTO shopDTO, User user) {
-        if (shopRepository.existsByName(shopDTO.getName())) {
-            throw new RuntimeException("Shop name already exists");
-        }
-        if (shopRepository.existsByEmail(shopDTO.getEmail())) {
-            throw new RuntimeException("Shop email already exists");
-        }
+    private final ShopMapper shopMapper;
 
-        ShopEntity shop = new ShopEntity();
-        shop.setId(UUID.randomUUID());
+    private final UserRepository userRepository;
+
+    @Override
+    public ShopResponse createShop(ShopCreateRequest request, UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại: " + userId));
+
+        Shop shop = shopMapper.toEntity(request);
         shop.setUser(user);
-        shop.setName(shopDTO.getName());
-        shop.setPhone(shopDTO.getPhone());
-        shop.setEmail(shopDTO.getEmail());
-        shop.setAddress(shopDTO.getAddress());
-        shop.setDescription(shopDTO.getDescription());
-        shop.setLogoUrl(shopDTO.getLogoUrl());
-        shop.setMall(shopDTO.isMall());
-        shop.setStatus(ShopEntity.Status.valueOf(shopDTO.getStatus() != null ? shopDTO.getStatus() : "ACTIVE"));
-        shop.setCreatedAt(LocalDateTime.now());
-        shop.setUpdatedAt(LocalDateTime.now());
 
-        shop = shopRepository.save(shop);
-        return convertToDTO(shop);
+        Shop savedShop = shopRepository.save(shop);
+
+        return shopMapper.toResponse(savedShop);
     }
 
-    @Transactional(readOnly = true)
-    public ShopDTO getShopById(UUID id) {
-        ShopEntity shop = shopRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Shop not found"));
-        return convertToDTO(shop);
+    @Override
+    public ShopResponse getShop(UUID userId) {
+        Shop shop = shopRepository.findByUser_Id(userId)
+                .orElseThrow(() -> new RuntimeException("Shop không tồn tại" + userId));
+
+        return shopMapper.toResponse(shop);
     }
 
-    @Transactional(readOnly = true)
-    public List<ShopDTO> getAllShops() {
-        return shopRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Override
+    public  List<ShopResponse> getAllShops() {
+        List<Shop> shops = shopRepository.findAll();
+        return shops.stream().map(shopMapper::toResponse).collect(Collectors.toList());
     }
 
-    @Transactional
-    public ShopDTO updateShop(UUID id, ShopDTO shopDTO) {
-        ShopEntity shop = shopRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Shop not found"));
+    @Override
+    public  ShopResponse getShopById(UUID shopId) {
+        Optional<Shop> shop = shopRepository.findById(shopId);
+        return shopMapper.toResponse(shop.orElse(null));
+    }
 
-        if (!shop.getName().equals(shopDTO.getName()) && shopRepository.existsByName(shopDTO.getName())) {
-            throw new RuntimeException("Shop name already exists");
-        }
-        if (!shop.getEmail().equals(shopDTO.getEmail()) && shopRepository.existsByEmail(shopDTO.getEmail())) {
-            throw new RuntimeException("Shop email already exists");
+    @Override
+    public ShopResponse updateShop(ShopUpdateRequest request, UUID currentUserId) {
+        Shop shop = shopRepository.findByUser_Id(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Shop không tồn tại: " + currentUserId));
+
+        if (!shop.getUser().getId().equals(currentUserId)) {
+            throw new RuntimeException("Bạn không có quyền sửa shop này");
         }
 
-        shop.setName(shopDTO.getName());
-        shop.setPhone(shopDTO.getPhone());
-        shop.setEmail(shopDTO.getEmail());
-        shop.setAddress(shopDTO.getAddress());
-        shop.setDescription(shopDTO.getDescription());
-        shop.setLogoUrl(shopDTO.getLogoUrl());
-        shop.setMall(shopDTO.isMall());
-        shop.setStatus(ShopEntity.Status.valueOf(shopDTO.getStatus() != null ? shopDTO.getStatus() : "ACTIVE"));
+        if (request.name() != null) {
+            shop.setName(request.name());
+        }
+
+        if (request.phone() != null) {
+            shop.setPhone(request.phone());
+        }
+
+        if (request.email() != null) {
+            shop.setEmail(request.email());
+        }
+
+        if (request.address() != null) {
+            shop.setAddress(request.address());
+        }
+
+        if (request.description() != null) {
+            shop.setDescription(request.description());
+        }
+
+        if (request.logoUrl() != null) {
+            shop.setLogoUrl(request.logoUrl());
+        }
+
+        if (request.isMall() != null) {
+            shop.setMall(request.isMall());
+        }
+
+        shopMapper.updateShopFromDTO(request, shop);
         shop.setUpdatedAt(LocalDateTime.now());
 
-        shop = shopRepository.save(shop);
-        return convertToDTO(shop);
+        return shopMapper.toResponse(shopRepository.save(shop));
     }
 
-    @Transactional
-    public void deleteShop(UUID id) {
-        ShopEntity shop = shopRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Shop not found"));
-        shop.setStatus(ShopEntity.Status.DELETED);
+    @Override
+    public ShopResponse changeShopStatus(UUID shopId, Shop.Status shopStatus) {
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy shop với id: " + shopId));
+
+        shop.setStatus(shopStatus);
         shop.setUpdatedAt(LocalDateTime.now());
-        shopRepository.save(shop);
+
+        Shop savedShop = shopRepository.save(shop);
+
+        return shopMapper.toResponse(savedShop);
     }
 
-    private ShopDTO convertToDTO(ShopEntity shop) {
-        ShopDTO dto = new ShopDTO();
-        dto.setId(shop.getId());
-        dto.setName(shop.getName());
-        dto.setPhone(shop.getPhone());
-        dto.setEmail(shop.getEmail());
-        dto.setAddress(shop.getAddress());
-        dto.setDescription(shop.getDescription());
-        dto.setLogoUrl(shop.getLogoUrl());
-        dto.setMall(shop.isMall());
-        dto.setStatus(shop.getStatus().name());
-        return dto;
+    @Override
+    public List<ShopSearchResult> searchShopsByName(String name) {
+        return shopRepository.searchShopsByName(name);
     }
+
+
 }

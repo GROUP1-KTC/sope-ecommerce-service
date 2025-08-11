@@ -29,7 +29,7 @@ public class OrderEntity {
 
     @ManyToOne
     @JoinColumn(name = "address_id", nullable = false)
-    private AddressEntity shippingAddress;
+    private Address shippingAddress;
 
     @Column(nullable = false)
     private LocalDateTime orderDate;

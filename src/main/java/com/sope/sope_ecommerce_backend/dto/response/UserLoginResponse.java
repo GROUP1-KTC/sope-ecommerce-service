@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 public record UserLoginResponse (
      String username,
-     String jwt,
+     String access_token,
+     String refresh_token,
      List<String> roles
 
 ){}

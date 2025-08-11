@@ -14,9 +14,9 @@ public class RoleSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        createRoleIfNotExists("admin");
-        createRoleIfNotExists("user");
-        createRoleIfNotExists("seller");
+        createRoleIfNotExists("ADMIN");
+        createRoleIfNotExists("USER");
+        createRoleIfNotExists("SELLER");
     }
 
     private void createRoleIfNotExists(String roleNameStr) {

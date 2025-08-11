@@ -23,7 +23,6 @@ public interface UserMapper {
                 .toList();
     }
 
-
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "name", source = "name")
@@ -36,7 +35,8 @@ public interface UserMapper {
 
     @Mappings({
             @Mapping(target = "roles", expression = "java(mapRoles(user.getRoles()))"),
-            @Mapping(target = "jwt", source = "jwt")
+            @Mapping(target = "access_token", source = "access_token"),
+            @Mapping(target = "refresh_token", source = "refresh_token")
     })
-    UserLoginResponse toLoginResponse(User user, String jwt);
+    UserLoginResponse toLoginResponse(User user, String access_token, String refresh_token);
 }
