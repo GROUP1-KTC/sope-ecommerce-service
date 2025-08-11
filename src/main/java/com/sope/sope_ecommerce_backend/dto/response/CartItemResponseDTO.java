@@ -6,7 +6,8 @@ import java.util.UUID;
 
 public record CartItemResponseDTO(
     UUID id,
-   ProductVariantEntity product,
+   String productName,
+   ProductVariantEntity productVariant,
     Integer quantity
 ) {
 }

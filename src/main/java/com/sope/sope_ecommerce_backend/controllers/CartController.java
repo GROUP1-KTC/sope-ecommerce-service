@@ -2,6 +2,7 @@ package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.AddToCartRequestDTO;
+import com.sope.sope_ecommerce_backend.dto.request.UpdateCartItemRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
 import com.sope.sope_ecommerce_backend.services.CartService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.sope.sope_ecommerce_backend.security.SecurityUtil.getCurrentUserId;
+import static com.sope.sope_ecommerce_backend.security.SecurityUtil.requireCurrentUserId;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -21,36 +23,82 @@ public class CartController {
 
     private final CartService cartService;
 
-    @PostMapping("/add")
+    // ===== USER LOGIN =====
+
+    /**
+     * Adds an item to the user's cart.
+     *
+     * @param request the request containing product variant ID and quantity
+     * @return a response indicating success or failure
+     */
+    @PostMapping()
     public ResponseEntity<ApiResponse<Object>> addToCart(@RequestBody AddToCartRequestDTO request) {
         try {
             if ( request.productVariantId() == null || request.quantity() <= 0) {
                 return ApiResponseUtil.badRequest(List.of("Invalid input: userId, productVariantId, or quantity"));
             }
 
-            cartService.addToCart(getCurrentUserId(), request.productVariantId(), request.quantity());
+            cartService.addToCart(requireCurrentUserId(), request.productVariantId(), request.quantity());
             return ApiResponseUtil.success(null, "Added to cart successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to add item to cart", List.of(e.getMessage()));
         }
     }
 
-    @GetMapping("/user")
+    /**
+     * Retrieves the items in the user's cart.
+     *
+     * @return a response containing the list of cart items
+     */
+    @GetMapping()
     public  ResponseEntity<ApiResponse<List<CartItemResponseDTO>>> getCart() {
         try {
-            UUID userId = getCurrentUserId();
+            UUID userId = requireCurrentUserId();
+
             if (userId == null) {
                 return ApiResponseUtil.badRequest(List.of("User ID must not be null"));
             }
 
-            List<CartItemResponseDTO> items = cartService.getCartItemsByUser(userId);
+            List<CartItemResponseDTO> items = cartService.getCartByUser(userId);
             return ApiResponseUtil.success(items, "Cart fetched successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to fetch cart items", List.of(e.getMessage()));
         }
     }
 
-    @DeleteMapping("/remove/{cartItemId}")
+    /**
+     * Updates the quantity of an item in the user's cart.
+     *
+     * @param itemId  the ID of the cart item to update
+     * @param request the request containing the new quantity
+     * @return a response indicating success or failure
+     */
+
+    @PatchMapping("/items/{itemId}")
+    public ResponseEntity<ApiResponse<Object>> updateCartItem(
+            @PathVariable Long itemId,
+            @RequestBody UpdateCartItemRequestDTO request
+    ) {
+        try {
+            UUID userId = getCurrentUserId();
+            if (userId == null) {
+                return ApiResponseUtil.badRequest(List.of("User ID must not be null"));
+            }
+
+            cartService.updateCartItem(userId, itemId, request);
+            return ApiResponseUtil.success(null, "Cart item updated successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to update cart item", List.of(e.getMessage()));
+        }
+    }
+
+    /**
+     * Removes an item from the user's cart.
+     *
+     * @param cartItemId the ID of the cart item to remove
+     * @return a response indicating success or failure
+     */
+    @DeleteMapping("/{cartItemId}")
     public ResponseEntity<ApiResponse<Object>> removeItem(@PathVariable Long cartItemId) {
         try {
             UUID userId = getCurrentUserId();
@@ -65,4 +113,16 @@ public class CartController {
             return ApiResponseUtil.internalError("Failed to remove cart item", List.of(e.getMessage()));
         }
     }
+
+
+    // ===== GUEST =====
+    @PostMapping("/guest/validate")
+    public ResponseEntity<ApiResponse<List<CartItemResponseDTO>>> validateGuestCart(@RequestBody List<AddToCartRequestDTO> items) {
+        List<CartItemResponseDTO> validatedItems = cartService.validateGuestCart(items);
+        return ApiResponseUtil.success(validatedItems, "Guest cart validated successfully.");
+    }
+
+
+
+
 }
