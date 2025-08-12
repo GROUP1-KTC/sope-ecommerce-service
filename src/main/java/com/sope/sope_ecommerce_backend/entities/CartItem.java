@@ -17,14 +17,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 @Builder
-public class CartItemEntity {
+public class CartItem {
     @Id
     @GeneratedValue
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", nullable = false)
-    private CartEntity cart;
+    private Cart cart;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_variant_id", nullable = false)
