@@ -14,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderItemIdEntity {
+public class OrderItemId {
     @Column(name = "order_id")
     private UUID orderId;
 

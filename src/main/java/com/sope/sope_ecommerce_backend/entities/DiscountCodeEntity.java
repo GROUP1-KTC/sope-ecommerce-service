@@ -56,7 +56,7 @@ public class DiscountCodeEntity {
     private LocalDateTime endDate; // End of discount validity
 
     @OneToMany(mappedBy = "discountCode", cascade = CascadeType.ALL)
-    private List<OrderEntity> orders;
+    private List<Order> orders;
 
     @OneToMany(mappedBy = "discountCode", cascade = CascadeType.ALL)
     private List<DiscountCodeScopeEntity> scopes;

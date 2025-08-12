@@ -116,6 +116,12 @@ public class CartController {
 
 
     // ===== GUEST =====
+    /**
+     * Validates the guest cart items.
+     *
+     * @param items the list of items to validate
+     * @return a response containing the validated cart items
+     */
     @PostMapping("/guest/validate")
     public ResponseEntity<ApiResponse<List<CartItemResponseDTO>>> validateGuestCart(@RequestBody List<AddToCartRequestDTO> items) {
         List<CartItemResponseDTO> validatedItems = cartService.validateGuestCart(items);

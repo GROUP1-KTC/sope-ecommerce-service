@@ -18,7 +18,6 @@ import java.util.UUID;
 
 public class CartServiceImpl implements CartService {
 
-
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
     private final UserRepository userRepository;
@@ -26,6 +25,14 @@ public class CartServiceImpl implements CartService {
     private final CartMapper cartMapper;
 
 
+    /**
+     * Adds an item to the user's cart. If the cart does not exist, it creates a new one.
+     * If the item already exists in the cart, it updates the quantity.
+     *
+     * @param userId            the ID of the user
+     * @param productVariantId  the ID of the product variant to add
+     * @param quantity          the quantity of the product variant to add
+     */
     @Override
     public void addToCart(UUID userId, UUID productVariantId, int quantity) {
         User user = userRepository.findById(userId)
@@ -54,6 +61,13 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
+    /**
+     * Updates an existing cart item with a new variant or quantity.
+     *
+     * @param userId        the ID of the user
+     * @param cartItemId    the ID of the cart item to update
+     * @param request       the request containing new variant ID and/or quantity
+     */
     @Override
     public void updateCartItem(UUID userId, Long cartItemId, UpdateCartItemRequestDTO request) {
         User user = userRepository.findById(userId)
@@ -98,6 +112,12 @@ public class CartServiceImpl implements CartService {
 
 
 
+    /**
+     * Removes an item from the user's cart.
+     *
+     * @param userId        the ID of the user
+     * @param cartItemId    the ID of the cart item to remove
+     */
     @Override
     public void removeItemFromCart(UUID userId, Long cartItemId) {
         User user = userRepository.findById(userId)
@@ -118,6 +138,13 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
+
+    /**
+     * Retrieves the items in the user's cart.
+     *
+     * @param userId the ID of the user
+     * @return a list of CartItemResponseDTO representing the items in the cart
+     */
     @Override
     public List<CartItemResponseDTO> getCartByUser(UUID userId) {
         User user = userRepository.findById(userId)
@@ -134,6 +161,12 @@ public class CartServiceImpl implements CartService {
     }
 
 
+    /**
+     * Validates the items in a guest cart, ensuring that each item has sufficient stock.
+     *
+     * @param items the list of items to validate
+     * @return a list of CartItemResponseDTO with validated quantities
+     */
     @Override
     public List<CartItemResponseDTO> validateGuestCart(List<AddToCartRequestDTO> items) {
         return items.stream().map(item -> {
@@ -143,7 +176,12 @@ public class CartServiceImpl implements CartService {
         }).toList();
     }
 
-
+    /**
+     * Validates a single cart item, ensuring that the quantity does not exceed available stock.
+     *
+     * @param dto the CartItemResponseDTO to validate
+     * @return a validated CartItemResponseDTO with adjusted quantity if necessary
+     */
     private CartItemResponseDTO validateItem(CartItemResponseDTO dto) {
         // Check tồn kho
         int availableStock = dto.productVariant().getStock();

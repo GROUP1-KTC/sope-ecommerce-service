@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "payments")
-public class PaymentEntity {
+public class Payment {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
@@ -28,7 +29,7 @@ public class PaymentEntity {
 
     @OneToOne
     @JoinColumn(name = "order_id", nullable = false, unique = true)
-    private OrderEntity order;
+    private Order order;
 
     @Column(nullable = false)
     private BigDecimal amount;
@@ -38,10 +39,16 @@ public class PaymentEntity {
     private PaymentMethod paymentMethod;
 
     @Column(name = "payment_time", nullable = false)
+    @CreationTimestamp
     private LocalDateTime paymentTime;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
+    private String provider; // "MOMO", "VNPAY", "STRIPE"
+    private String providerPaymentId; // id by provider return
+    private String providerPayUrl; // redirect/qr url
+
+    private String idempotencyKey; // Unique key to prevent duplicate payments
 }
