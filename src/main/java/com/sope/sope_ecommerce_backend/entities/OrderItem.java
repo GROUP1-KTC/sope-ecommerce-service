@@ -11,14 +11,14 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Entity
 @Table(name = "order_items")
-public class OrderItemEntity {
+public class OrderItem {
     @EmbeddedId
-    private OrderItemIdEntity orderItemId;
+    private OrderItemId orderItemId;
 
     @ManyToOne
     @MapsId("orderId")
     @JoinColumn(name = "order_id", nullable = false)
-    private OrderEntity order;
+    private Order order;
 
     @ManyToOne
     @MapsId("productVariantId")

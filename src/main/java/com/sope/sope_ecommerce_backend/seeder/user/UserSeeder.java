@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.Optional;
 
 @Component
-@Profile("dev")
+@Profile("local")
 @AllArgsConstructor
 public class UserSeeder implements CommandLineRunner {
 

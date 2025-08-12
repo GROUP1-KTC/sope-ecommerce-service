@@ -22,7 +22,7 @@ public class CommissionEntity {
 
     @OneToOne
     @JoinColumn(name = "order_id", referencedColumnName = "order_id", nullable = false, unique = true)
-    private OrderEntity order;
+    private Order order;
 
     @Column(name = "commission_rate", precision = 5, scale = 4, nullable = false)
     private BigDecimal commissionRate;

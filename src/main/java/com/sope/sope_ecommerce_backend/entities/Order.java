@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 
 @Data
@@ -16,14 +18,17 @@ import org.hibernate.annotations.GenericGenerator;
 @AllArgsConstructor
 @Entity
 @Table(name = "orders")
-public class OrderEntity {
+public class Order {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "order_id", columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID orderId;
 
-    @ManyToOne
+//    @Column(unique = true, nullable = false)
+//    private String orderNumber; // human-readable code
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
@@ -31,10 +36,10 @@ public class OrderEntity {
     @JoinColumn(name = "address_id", nullable = false)
     private Address shippingAddress;
 
-    @Column(nullable = false)
+    @CreationTimestamp
     private LocalDateTime orderDate;
 
-    private BigDecimal total;
+    private BigDecimal subtotal;
 
     @Column(name = "shipping_charges")
     private BigDecimal shippingCharges;
@@ -44,27 +49,27 @@ public class OrderEntity {
 
     private String note;
 
-    @Builder.Default
-    private OrderStatus status =OrderStatus.PENDING;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderItemEntity> orderItems;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems;
 
-    @ManyToOne
+    private String idempotencyKey;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "discount_code_id")
     private DiscountCodeEntity discountCode;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<OrderStatusHistoryEntity> statusHistory;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderStatusHistory> statusHistory;
 
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
-    private PaymentEntity payment;
+    @OneToOne(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    private Payment payment;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private CommissionEntity commission;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private TransactionFeeEntity transactionFee;
-
-
 }

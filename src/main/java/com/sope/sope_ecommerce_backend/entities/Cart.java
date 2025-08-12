@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "cart", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "product_variant_id"})
+        @UniqueConstraint(columnNames = {"user_id"})
 })
 public class Cart {
     @Id
