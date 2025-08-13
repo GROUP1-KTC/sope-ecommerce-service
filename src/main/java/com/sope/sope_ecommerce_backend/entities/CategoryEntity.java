@@ -2,7 +2,6 @@ package com.sope.sope_ecommerce_backend.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,8 +13,7 @@ import java.util.UUID;
 @Table(name = "categories")
 public class CategoryEntity {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID id;
 

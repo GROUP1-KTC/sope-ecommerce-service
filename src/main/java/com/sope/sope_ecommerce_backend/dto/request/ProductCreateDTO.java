@@ -1,12 +1,13 @@
 package com.sope.sope_ecommerce_backend.dto.request;
 
-import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -20,18 +21,19 @@ public class ProductCreateDTO {
 
       private String brand;
 
+      @Min(value = 0, message = "Stock cannot be negative")
+      private int stock;
+
       private String description;
 
-      @NotBlank(message = "Default image cannot be blank")
-      private String defaultImage;
-
-      private boolean hidden = false;
-
-      private StatusProduct status = StatusProduct.PENDING;
+      private boolean hidden;
 
       @NotNull(message = "Category ID cannot be null")
       private UUID categoryId;
 
       @NotNull(message = "Shop ID cannot be null")
       private UUID shopId;
+
+      private List<ProductVariantRequestDTO> variants;
+
 }

@@ -21,8 +21,4 @@ public class AttributeEntity {
     private String name;
 
     private String value;
-
-    @ManyToOne
-    @JoinColumn(name = "image_id")
-    private ImageEntity image;
 }
