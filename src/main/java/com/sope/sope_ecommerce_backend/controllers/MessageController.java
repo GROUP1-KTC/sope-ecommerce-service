@@ -1,38 +1,35 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
-import com.sope.sope_ecommerce_backend.dto.response.ConversationDTO;
-import com.sope.sope_ecommerce_backend.dto.response.MessageDTO;
-import com.sope.sope_ecommerce_backend.services.impl.ConversationServiceImpl;
-import com.sope.sope_ecommerce_backend.services.impl.MessageServiceImpl;
+import com.sope.sope_ecommerce_backend.dto.request.MessageSendRequest;
+import com.sope.sope_ecommerce_backend.dto.response.MessageResponse;
+import com.sope.sope_ecommerce_backend.services.MessageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/messages")
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@RequiredArgsConstructor
 public class MessageController {
-    private final MessageServiceImpl messageService;
-    private final ConversationServiceImpl conversationService;
 
-    public MessageController(MessageServiceImpl messageService, ConversationServiceImpl conversationService) {
-        this.messageService = messageService;
-        this.conversationService = conversationService;
-    }
+    private final MessageService messageService;
 
     @PostMapping
-    public ResponseEntity<MessageDTO> createMessage(@RequestBody MessageDTO messageDTO) {
-        return ResponseEntity.ok(messageService.createMessage(messageDTO));
+    public ResponseEntity<MessageResponse> sendMessage(@RequestBody MessageSendRequest request) {
+        return ResponseEntity.ok(messageService.sendMessage(request));
     }
 
     @GetMapping("/conversation/{conversationId}")
-    public ResponseEntity<List<MessageDTO>> getMessagesByConversationId(@PathVariable String conversationId) {
-        return ResponseEntity.ok(messageService.getMessagesByConversationId(conversationId));
+    public ResponseEntity<List<MessageResponse>> getMessagesByConversation(@PathVariable String conversationId) {
+        return ResponseEntity.ok(messageService.getMessagesByConversation(conversationId));
     }
 
-    @GetMapping("/conversations")
-    public ResponseEntity<List<ConversationDTO>> getAllConversations() {
-        return ResponseEntity.ok(conversationService.getAllConversations());
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<Void> deleteMessage(@PathVariable UUID messageId) {
+        messageService.deleteMessage(messageId);
+        return ResponseEntity.noContent().build();
     }
 }

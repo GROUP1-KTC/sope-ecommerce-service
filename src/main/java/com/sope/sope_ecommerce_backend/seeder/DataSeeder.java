@@ -1,6 +1,5 @@
 package com.sope.sope_ecommerce_backend.seeder;
 
-import com.sope.sope_ecommerce_backend.seeder.chat.ChatDataSeeder;
 import com.sope.sope_ecommerce_backend.seeder.user.RoleSeeder;
 import com.sope.sope_ecommerce_backend.seeder.user.UserSeeder;
 import lombok.AllArgsConstructor;
@@ -12,12 +11,10 @@ import org.springframework.stereotype.Component;
 public class DataSeeder implements CommandLineRunner {
     private RoleSeeder roleSeeder;
     private UserSeeder userSeeder;
-    private ChatDataSeeder chatDataSeeder;
 
     @Override
     public void run(String... args) throws Exception {
         roleSeeder.run(args);
         userSeeder.run(args);
-        chatDataSeeder.run(args);
     }
 }
