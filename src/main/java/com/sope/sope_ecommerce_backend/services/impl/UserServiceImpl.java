@@ -1,19 +1,16 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.dto.request.UserRegisterRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
-import com.sope.sope_ecommerce_backend.entities.User;
+import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.security.JwtUtil;
 import com.sope.sope_ecommerce_backend.services.UserService;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
@@ -47,18 +44,18 @@ public class UserServiceImpl implements UserService {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        User user = userRepository.findById(userDetails.getUserId())
+        AppUser appUser = userRepository.findById(userDetails.getUserId())
                 .orElseThrow(() -> new RuntimeException("User không tồn tại: " + userDetails.getUserId()));
 
-        return userMapper.toInfoResponse(user);
+        return userMapper.toInfoResponse(appUser);
     }
 
 
     @Override
     public UserResponse getUserById(UUID id) {
-        User user = userRepository.findById(id)
+        AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return userMapper.toResponse(user);
+        return userMapper.toResponse(appUser);
     }
 
     @Override
@@ -70,42 +67,42 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserInformationResponse updateUser(UUID id, UserUpdateRecord request) {
-        User user = userRepository.findById(id)
+        AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (request.username() != null) {
-            user.setUsername(request.username());
+            appUser.setUsername(request.username());
         }
         if (request.email() != null) {
-            user.setEmail(request.email());
+            appUser.setEmail(request.email());
         }
         if (request.name() != null) {
-            user.setName(request.name());
+            appUser.setName(request.name());
         }
         if (request.phone() != null) {
-            user.setPhone(request.phone());
+            appUser.setPhone(request.phone());
         }
         if (request.address() != null) {
-            user.setAddress(request.address());
+            appUser.setAddress(request.address());
         }
         if (request.note() != null) {
-            user.setNote(request.note());
+            appUser.setNote(request.note());
         }
         if (request.status() != null) {
-            user.setStatus(request.status());
+            appUser.setStatus(request.status());
         }
 
-        user = userRepository.save(user);
-        return userMapper.toInfoResponse(user);
+        appUser = userRepository.save(appUser);
+        return userMapper.toInfoResponse(appUser);
     }
 
 
     @Override
     public void changeUserStatus(UUID id, UserStatusRequest request) {
-        User user = userRepository.findById(id)
+        AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setStatus(request.status());
-        userRepository.save(user);
+        appUser.setStatus(request.status());
+        userRepository.save(appUser);
     }
 }

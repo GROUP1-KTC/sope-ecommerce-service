@@ -35,15 +35,15 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void addToCart(UUID userId, UUID productVariantId, int quantity) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         ProductVariantEntity productVariant = productVariantRepository.findById(productVariantId)
                 .orElseThrow(() -> new RuntimeException("ProductVariant not found"));
 
-        Cart cart = cartRepository.findByUser(user).orElseGet(() -> {
+        Cart cart = cartRepository.findByAppUser(appUser).orElseGet(() -> {
             Cart newCart = new Cart();
-            newCart.setUser(user);
+            newCart.setAppUser(appUser);
             return cartRepository.save(newCart);
         });
 
@@ -70,10 +70,10 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void updateCartItem(UUID userId, Long cartItemId, UpdateCartItemRequestDTO request) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUser(user)
+        Cart cart = cartRepository.findByAppUser(appUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         CartItem item = cartItemRepository.findById(cartItemId)
@@ -120,10 +120,10 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void removeItemFromCart(UUID userId, Long cartItemId) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUser(user)
+        Cart cart = cartRepository.findByAppUser(appUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         CartItem item = cartItemRepository.findById(cartItemId)
@@ -147,10 +147,10 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public List<CartItemResponseDTO> getCartByUser(UUID userId) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUser(user)
+        Cart cart = cartRepository.findByAppUser(appUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         if (cart.getItems().isEmpty()) {
