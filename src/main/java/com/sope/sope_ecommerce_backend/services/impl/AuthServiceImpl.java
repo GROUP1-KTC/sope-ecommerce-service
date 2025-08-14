@@ -7,7 +7,7 @@ import com.sope.sope_ecommerce_backend.dto.response.TokenRefreshResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.Role;
-import com.sope.sope_ecommerce_backend.entities.User;
+import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
@@ -46,8 +46,8 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Email already exists");
         }
 
-        User user = userMapper.toEntity(request);
-        user.setPassword(passwordEncoder.encode(request.password()));
+        AppUser appUser = userMapper.toEntity(request);
+        appUser.setPassword(passwordEncoder.encode(request.password()));
 
         Role userRole = roleRepository.findByRoleName(RoleName.USER)
                 .orElseGet(() -> {
@@ -56,10 +56,10 @@ public class AuthServiceImpl implements AuthService {
                 });
 
 
-        user.getRoles().add(userRole);
+        appUser.getRoles().add(userRole);
 
-        user = userRepository.save(user);
-        return userMapper.toResponse(user);
+        appUser = userRepository.save(appUser);
+        return userMapper.toResponse(appUser);
     }
 
 
@@ -79,14 +79,14 @@ public class AuthServiceImpl implements AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.username());
 
-        User user = userRepository.findByUsername(request.username())
+        AppUser appUser = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String access_token = jwtUtil.generateToken(userDetails, user.getId());
+        String access_token = jwtUtil.generateToken(userDetails, appUser.getId());
 
-        String refresh_token = jwtUtil.generateRefreshToken(userDetails, user.getId());
+        String refresh_token = jwtUtil.generateRefreshToken(userDetails, appUser.getId());
 
-        UserLoginResponse response = userMapper.toLoginResponse(user, access_token, refresh_token);
+        UserLoginResponse response = userMapper.toLoginResponse(appUser, access_token, refresh_token);
 
         return response;
     }

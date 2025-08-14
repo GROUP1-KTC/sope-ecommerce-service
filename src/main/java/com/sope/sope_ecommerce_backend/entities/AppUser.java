@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,7 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Table(name = "users")
-public class User {
+public class AppUser {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;

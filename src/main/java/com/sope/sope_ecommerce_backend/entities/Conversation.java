@@ -25,7 +25,7 @@ public class Conversation {
             joinColumns = @JoinColumn(name = "conversation_id"),
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private List<User> participants = new ArrayList<>();
+    private List<AppUser> participants = new ArrayList<>();
 
     @OneToOne
     @JoinColumn(name = "last_message_id")

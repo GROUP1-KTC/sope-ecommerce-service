@@ -1,7 +1,7 @@
 package com.sope.sope_ecommerce_backend.seeder.user;
 
+import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.Role;
-import com.sope.sope_ecommerce_backend.entities.User;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
@@ -37,18 +37,18 @@ public class UserSeeder {
                 throw new RuntimeException("Role not found: " + roleName);
             }
 
-            User user = new User();
-            user.setUsername(username);
-            user.setName(name);
-            user.setEmail(email);
-            user.setPassword(passwordEncoder.encode(rawPassword));
-            user.setAddress("Default Address");
-            user.setPhone("0123456789");
-            user.setNote(null);
-            user.setStatus("ACTIVE");
-            user.setRoles(Collections.singleton(roleOpt.get()));
+            AppUser appUser = new AppUser();
+            appUser.setUsername(username);
+            appUser.setName(name);
+            appUser.setEmail(email);
+            appUser.setPassword(passwordEncoder.encode(rawPassword));
+            appUser.setAddress("Default Address");
+            appUser.setPhone("0123456789");
+            appUser.setNote(null);
+            appUser.setStatus("ACTIVE");
+            appUser.setRoles(Collections.singleton(roleOpt.get()));
 
-            userRepository.save(user);
+            userRepository.save(appUser);
             System.out.println("✅ Seeded user: " + username);
         }
     }
