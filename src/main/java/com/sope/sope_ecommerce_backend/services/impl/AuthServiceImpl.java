@@ -8,6 +8,7 @@ import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.Role;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
+import com.sope.sope_ecommerce_backend.entities.UserRole;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
@@ -49,16 +50,19 @@ public class AuthServiceImpl implements AuthService {
         AppUser appUser = userMapper.toEntity(request);
         appUser.setPassword(passwordEncoder.encode(request.password()));
 
-        Role userRole = roleRepository.findByRoleName(RoleName.USER)
-                .orElseGet(() -> {
-                    Role newRole = new Role(RoleName.USER);
-                    return roleRepository.save(newRole);
-                });
+        Role userRoleEntity = roleRepository.findByRoleName(RoleName.USER)
+                .orElseGet(() -> roleRepository.save(new Role(RoleName.USER)));
 
+        UserRole userRole = UserRole.builder()
+                .user(appUser)
+                .role(userRoleEntity)
+                .grantedBy("SYSTEM")
+                .build();
 
-        appUser.getRoles().add(userRole);
+        appUser.getUserRoles().add(userRole);
 
         appUser = userRepository.save(appUser);
+
         return userMapper.toResponse(appUser);
     }
 
