@@ -3,20 +3,20 @@ package com.sope.sope_ecommerce_backend.mapper;
 import java.util.List;
 import java.util.Set;
 
+import com.sope.sope_ecommerce_backend.entities.Attribute;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import com.sope.sope_ecommerce_backend.dto.response.AttributeDTO;
-import com.sope.sope_ecommerce_backend.entities.AttributeEntity;
 
 @Mapper(componentModel = "spring")
 public interface AttributeMapper {
       @Mapping(target = "attributeId", ignore = true)
-      AttributeEntity toEntity(AttributeDTO dto);
+      Attribute toEntity(AttributeDTO dto);
 
-      AttributeDTO toDto(AttributeEntity entity);
+      AttributeDTO toDto(Attribute entity);
 
-      Set<AttributeEntity> toEntitySet(List<AttributeDTO> dtoList);
+      Set<Attribute> toEntitySet(List<AttributeDTO> dtoList);
 
-      List<AttributeDTO> toDtoList(Set<AttributeEntity> entitySet);
+      List<AttributeDTO> toDtoList(Set<Attribute> entitySet);
 }

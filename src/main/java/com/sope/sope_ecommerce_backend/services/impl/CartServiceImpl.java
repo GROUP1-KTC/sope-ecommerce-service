@@ -38,7 +38,7 @@ public class CartServiceImpl implements CartService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        ProductVariantEntity productVariant = productVariantRepository.findById(productVariantId)
+        ProductVariant productVariant = productVariantRepository.findById(productVariantId)
                 .orElseThrow(() -> new RuntimeException("ProductVariant not found"));
 
         Cart cart = cartRepository.findByUser(user).orElseGet(() -> {
@@ -85,7 +85,7 @@ public class CartServiceImpl implements CartService {
 
         // Change varriant
         if (request.newVariantId() != null) {
-            ProductVariantEntity newVariant = productVariantRepository.findById(request.newVariantId())
+            ProductVariant newVariant = productVariantRepository.findById(request.newVariantId())
                     .orElseThrow(() -> new RuntimeException("Variant not found"));
 
             if (newVariant.getStock() <= 0) {
@@ -170,7 +170,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public List<CartItemResponseDTO> validateGuestCart(List<AddToCartRequestDTO> items) {
         return items.stream().map(item -> {
-            ProductVariantEntity product = productVariantRepository.findById(item.productVariantId())
+            ProductVariant product = productVariantRepository.findById(item.productVariantId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
             return validateItem(cartMapper.toCartItemResponseDTO(product, item.quantity()));
         }).toList();

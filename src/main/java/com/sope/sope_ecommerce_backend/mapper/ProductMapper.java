@@ -11,14 +11,14 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 import com.sope.sope_ecommerce_backend.dto.request.ProductCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductUpdateDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
-import com.sope.sope_ecommerce_backend.entities.ProductEntity;
+import com.sope.sope_ecommerce_backend.entities.Product;
 
 @Mapper(componentModel = "spring", uses = { ProductVariantMapper.class, ImageMapper.class, MultipartFileMapper.class })
 public interface ProductMapper {
 
-      ProductDTO toDto(ProductEntity productEntity); // GET
+      ProductDTO toDto(Product product); // GET
 
-      List<ProductDTO> toDtoList(List<ProductEntity> productEntities);
+      List<ProductDTO> toDtoList(List<Product> productEntities);
 
       // POST PUT
       @Mapping(target = "productId", ignore = true)
@@ -36,7 +36,7 @@ public interface ProductMapper {
       @Mapping(target = "defaultVideoIntro", ignore = true) // File xử lý trong service
       @Mapping(target = "status", ignore = true)
       @Mapping(target = "variants", source = "variants")
-      ProductEntity toEntity(ProductCreateDTO productCreateDTO); // POST
+      Product toEntity(ProductCreateDTO productCreateDTO); // POST
 
       @Mapping(target = "shop", ignore = true)
       @Mapping(target = "createdAt", ignore = true)
@@ -56,6 +56,6 @@ public interface ProductMapper {
       @Mapping(target = "brand", ignore = true)
       @Mapping(target = "variants", ignore = true)
       @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-      void updateEntityFromDto(ProductUpdateDTO productUpdateDTO, @MappingTarget ProductEntity entity);
+      void updateEntityFromDto(ProductUpdateDTO productUpdateDTO, @MappingTarget Product entity);
 
 }

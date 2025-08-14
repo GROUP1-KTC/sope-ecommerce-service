@@ -2,7 +2,7 @@ package com.sope.sope_ecommerce_backend.mapper;
 
 import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
 import com.sope.sope_ecommerce_backend.entities.CartItem;
-import com.sope.sope_ecommerce_backend.entities.ProductVariantEntity;
+import com.sope.sope_ecommerce_backend.entities.ProductVariant;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -20,5 +20,5 @@ public interface CartMapper {
     @Mapping(source = "productVariant.product.name", target = "productName")
     @Mapping(target = "id", ignore = true)
     @Mapping(source = "quantity", target = "quantity")
-    CartItemResponseDTO toCartItemResponseDTO(ProductVariantEntity productVariant, int quantity);
+    CartItemResponseDTO toCartItemResponseDTO(ProductVariant productVariant, int quantity);
 }

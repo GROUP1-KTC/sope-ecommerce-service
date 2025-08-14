@@ -6,12 +6,8 @@ import com.sope.sope_ecommerce_backend.dto.request.ProductVariantRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductBasicWithVariantsDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductVariantDetailDTO;
-import com.sope.sope_ecommerce_backend.entities.AttributeEntity;
-import com.sope.sope_ecommerce_backend.entities.CategoryEntity;
-import com.sope.sope_ecommerce_backend.entities.ImageEntity;
-import com.sope.sope_ecommerce_backend.entities.ProductEntity;
-import com.sope.sope_ecommerce_backend.entities.ProductVariantEntity;
-import com.sope.sope_ecommerce_backend.entities.Shop;
+import com.sope.sope_ecommerce_backend.entities.*;
+import com.sope.sope_ecommerce_backend.entities.Attribute;
 import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import com.sope.sope_ecommerce_backend.exception.ResourceNotFoundException;
 import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
@@ -66,14 +62,14 @@ public class ProductServiceImpl implements ProductService {
       @Override
       @Transactional(readOnly = true)
       public List<ProductDTO> getAllProducts() {
-            List<ProductEntity> products = productRepository.findAll();
+            List<Product> products = productRepository.findAll();
             return productMapper.toDtoList(products);
       }
 
       @Override
       @Transactional(readOnly = true)
       public ProductBasicWithVariantsDTO getProductWithVariants(UUID productId) {
-            ProductEntity product = productRepository.findById(productId)
+            Product product = productRepository.findById(productId)
                         .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
 
             List<Map<String, String>> variantObjects = product.getVariants().stream()
@@ -93,7 +89,7 @@ public class ProductServiceImpl implements ProductService {
       @Override
       @Transactional(readOnly = true)
       public ProductVariantDetailDTO getProductVariantDetail(UUID productVariantId) {
-            ProductVariantEntity variant = productVariantRepository.findById(productVariantId)
+            ProductVariant variant = productVariantRepository.findById(productVariantId)
                         .orElseThrow(() -> new ResourceNotFoundException(
                                     "ProductVariant not found with id: " + productVariantId));
             return productVariantMapper.toProductVariantDetailDTO(variant);
@@ -106,10 +102,10 @@ public class ProductServiceImpl implements ProductService {
                   MultipartFile defaultVideoIntro,
                   List<MultipartFile> productImages,
                   List<MultipartFile> variantFiles) {
-            ProductEntity entity = productMapper.toEntity(dto);
+            Product entity = productMapper.toEntity(dto);
 
             // category and shop
-            CategoryEntity category = categoryRepository.findById(dto.getCategoryId())
+            Category category = categoryRepository.findById(dto.getCategoryId())
                         .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
             Shop shop = shopRepository.findById(dto.getShopId())
                         .orElseThrow(() -> new ResourceNotFoundException("Shop not found"));
@@ -137,7 +133,7 @@ public class ProductServiceImpl implements ProductService {
 
             // Nếu không có variants -> tạo variant mặc định
             if (entity.getVariants() == null || entity.getVariants().isEmpty()) {
-                  ProductVariantEntity defaultVariant = new ProductVariantEntity();
+                  ProductVariant defaultVariant = new ProductVariant();
                   defaultVariant.setPrice(entity.getDefaultPrice());
                   defaultVariant.setStock(entity.getStock());
                   defaultVariant.setSold(0);
@@ -149,11 +145,11 @@ public class ProductServiceImpl implements ProductService {
             }
 
             // Xử lý attributes cho từng variant
-            for (ProductVariantEntity variant : entity.getVariants()) {
-                  Set<AttributeEntity> managedAttributes = new HashSet<>();
+            for (ProductVariant variant : entity.getVariants()) {
+                  Set<Attribute> managedAttributes = new HashSet<>();
                   if (variant.getAttributes() != null) {
-                        for (AttributeEntity attr : variant.getAttributes()) {
-                              Optional<AttributeEntity> existingAttr = attributeRepository
+                        for (Attribute attr : variant.getAttributes()) {
+                              Optional<Attribute> existingAttr = attributeRepository
                                           .findByNameAndValue(attr.getName(), attr.getValue());
                               managedAttributes.add(existingAttr.orElseGet(() -> attributeRepository.save(attr)));
                         }
@@ -171,7 +167,7 @@ public class ProductServiceImpl implements ProductService {
                                     (a, b) -> a))
                         : Collections.emptyMap();
 
-            for (ProductVariantEntity variant : entity.getVariants()) {
+            for (ProductVariant variant : entity.getVariants()) {
                   if (variant.getImageVariant() != null && variant.getImageVariant().startsWith("http")) {
                         continue;
                   }
@@ -206,7 +202,7 @@ public class ProductServiceImpl implements ProductService {
             Slugify slugify = Slugify.builder().build();
             entity.setSlug(slugify.slugify(dto.getName()) + "-" + first8ProductId + "-" + first8ShopId);
 
-            ProductEntity savedEntity = productRepository.save(entity);
+            Product savedEntity = productRepository.save(entity);
 
             return productMapper.toDto(savedEntity);
       }
@@ -220,7 +216,7 @@ public class ProductServiceImpl implements ProductService {
                   List<MultipartFile> productImages,
                   List<MultipartFile> variantFiles) {
 
-            ProductEntity entity = productRepository.findBySlug(slug)
+            Product entity = productRepository.findBySlug(slug)
                         .orElseThrow(() -> new ResourceNotFoundException("Product not found with slug: " + slug));
 
             if (dto.getDefaultPrice() != null) {
@@ -275,11 +271,11 @@ public class ProductServiceImpl implements ProductService {
             }
 
             if (dto.getVariants() != null) {
-                  Map<UUID, ProductVariantEntity> existingVariants = entity.getVariants().stream()
-                              .collect(Collectors.toMap(ProductVariantEntity::getProductVariantId, v -> v));
+                  Map<UUID, ProductVariant> existingVariants = entity.getVariants().stream()
+                              .collect(Collectors.toMap(ProductVariant::getProductVariantId, v -> v));
 
                   for (ProductVariantRequestDTO variantDTO : dto.getVariants()) {
-                        ProductVariantEntity variantEntity;
+                        ProductVariant variantEntity;
                         if (variantDTO.getProductVariantId() != null
                                     && existingVariants.containsKey(variantDTO.getProductVariantId())) {
                               // --- Variant cũ ---
@@ -287,7 +283,7 @@ public class ProductServiceImpl implements ProductService {
                               updateVariantFromDTO(variantEntity, variantDTO);
                         } else {
                               // --- Variant mới ---
-                              variantEntity = new ProductVariantEntity();
+                              variantEntity = new ProductVariant();
                               variantEntity.setProduct(entity);
                               updateVariantFromDTO(variantEntity, variantDTO);
                               entity.getVariants().add(variantEntity);
@@ -304,7 +300,7 @@ public class ProductServiceImpl implements ProductService {
 
                   Map<String, String> uploadedUrls = new HashMap<>();
 
-                  for (ProductVariantEntity variant : entity.getVariants()) {
+                  for (ProductVariant variant : entity.getVariants()) {
                         String fileName = normalizeFileName(variant.getImageVariant());
                         if (fileName != null && variantFileMap.containsKey(fileName)) {
                               if (!uploadedUrls.containsKey(fileName)) {
@@ -323,14 +319,14 @@ public class ProductServiceImpl implements ProductService {
             return productMapper.toDto(entity);
       }
 
-      private void updateVariantFromDTO(ProductVariantEntity entity, ProductVariantRequestDTO dto) {
+      private void updateVariantFromDTO(ProductVariant entity, ProductVariantRequestDTO dto) {
             if (dto.getPrice() != null)
                   entity.setPrice(dto.getPrice());
             if (dto.getStock() != null)
                   entity.setStock(dto.getStock());
 
             if (dto.getAttributes() != null && !dto.getAttributes().isEmpty()) {
-                  Set<AttributeEntity> updatedAttributes = dto.getAttributes().stream()
+                  Set<Attribute> updatedAttributes = dto.getAttributes().stream()
                               .map(attrDTO -> getOrCreateAttribute(attrDTO.getName(), attrDTO.getValue()))
                               .collect(Collectors.toSet());
                   entity.setAttributes(updatedAttributes);
@@ -339,10 +335,10 @@ public class ProductServiceImpl implements ProductService {
                   entity.setImageVariant(dto.getImageVariant());
       }
 
-      private AttributeEntity getOrCreateAttribute(String name, String value) {
+      private Attribute getOrCreateAttribute(String name, String value) {
             return attributeRepository.findByNameAndValue(name, value)
                         .orElseGet(() -> {
-                              AttributeEntity newAttr = new AttributeEntity();
+                              Attribute newAttr = new Attribute();
                               newAttr.setName(name);
                               newAttr.setValue(value);
                               return attributeRepository.save(newAttr);

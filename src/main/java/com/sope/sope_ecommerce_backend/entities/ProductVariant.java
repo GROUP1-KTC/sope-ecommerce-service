@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "product_variants")
-public class ProductVariantEntity {
+public class ProductVariant {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "product_variant_id", columnDefinition = "UUID", updatable = false, nullable = false)
@@ -31,10 +31,11 @@ public class ProductVariantEntity {
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
-    private ProductEntity product;
+    private Product product;
 
     @ManyToMany(cascade = { CascadeType.PERSIST })
     @JoinTable(name = "product_variant_attributes", joinColumns = @JoinColumn(name = "product_variant_id"), inverseJoinColumns = @JoinColumn(name = "attribute_id"))
     @Builder.Default
-    private Set<AttributeEntity> attributes = new HashSet<>();
+    private Set<Attribute> attributes = new HashSet<>();
+
 }
