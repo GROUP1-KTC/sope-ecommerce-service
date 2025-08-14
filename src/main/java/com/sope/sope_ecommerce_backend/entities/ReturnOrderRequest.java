@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -18,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "return_request")
-public class ReturnRequest {
+public class ReturnOrderRequest {
       @Id
       @GeneratedValue(strategy = GenerationType.UUID)
       @Column(name = "return_request_id")
@@ -30,7 +29,7 @@ public class ReturnRequest {
 
       @ManyToOne(fetch = FetchType.LAZY)
       @JoinColumn(name = "user_id", nullable = false)
-      private User user;
+      private AppUser user;
 
       @Column(nullable = false, columnDefinition = "TEXT")
       private String reason;
@@ -50,9 +49,6 @@ public class ReturnRequest {
 
       @Column(name = "updated_at")
       private LocalDateTime updatedAt;
-
-      @OneToMany(mappedBy = "returnRequest", cascade = CascadeType.ALL, orphanRemoval = true)
-      private List<ReturnItem> returnItems;
 
       @PreUpdate
       protected void onUpdate() {

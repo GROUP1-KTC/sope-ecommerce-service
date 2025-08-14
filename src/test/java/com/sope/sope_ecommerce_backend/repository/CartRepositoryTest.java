@@ -1,6 +1,5 @@
 package com.sope.sope_ecommerce_backend.repository;
 
-
 import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.Cart;
 import com.sope.sope_ecommerce_backend.repositories.CartRepository;
@@ -51,12 +50,11 @@ public class CartRepositoryTest {
 
     @Test
     void findByUser_shouldReturnCart_whenUserExists() {
-        Optional<Cart> foundCart = cartRepository.findByUser(appUser1);
+        Optional<Cart> foundCart = cartRepository.findByAppUser(appUser1);
 
         assertThat(foundCart).isPresent();
         assertThat(foundCart.get().getAppUser()).isEqualTo(appUser1);
     }
-
 
     @Test
     void findByUser_shouldReturnEmpty_whenUserDoesNotExist() {
@@ -66,7 +64,7 @@ public class CartRepositoryTest {
                 .build();
         testEntityManager.persist(anotherAppUser);
 
-        Optional<Cart> foundCart = cartRepository.findByUser(anotherAppUser);
+        Optional<Cart> foundCart = cartRepository.findByAppUser(anotherAppUser);
 
         assertThat(foundCart).isEmpty();
     }

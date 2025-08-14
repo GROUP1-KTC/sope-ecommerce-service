@@ -1,7 +1,7 @@
 package com.sope.sope_ecommerce_backend.seeder.user;
 
 import com.sope.sope_ecommerce_backend.entities.Shop;
-import com.sope.sope_ecommerce_backend.entities.User;
+import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import lombok.AllArgsConstructor;
@@ -33,17 +33,17 @@ public class ShopSeeder {
       private void createShopIfNotExists(String username, String name, String phone, String email,
                   String address, String description, String logoUrl, boolean isMall) {
             // Tìm user theo username
-            Optional<User> userOpt = userRepository.findByUsername(username);
+            Optional<AppUser> userOpt = userRepository.findByUsername(username);
             if (userOpt.isEmpty()) {
                   throw new RuntimeException("User not found with username: " + username);
             }
 
-            User user = userOpt.get();
+            AppUser user = userOpt.get();
 
             // Kiểm tra shop của user đã tồn tại chưa
-            if (shopRepository.findByUser_Id(user.getId()).isEmpty()) {
+            if (shopRepository.findByAppUser_Id(user.getId()).isEmpty()) {
                   Shop shop = new Shop();
-                  shop.setUser(user); // Lấy id tự động của user
+                  shop.setAppUser(user); // Lấy id tự động của user
                   shop.setName(name);
                   shop.setPhone(phone);
                   shop.setEmail(email);
