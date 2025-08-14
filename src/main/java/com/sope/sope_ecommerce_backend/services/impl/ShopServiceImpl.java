@@ -5,8 +5,7 @@ import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
 import com.sope.sope_ecommerce_backend.entities.Shop;
-import com.sope.sope_ecommerce_backend.entities.User;
-import com.sope.sope_ecommerce_backend.enums.ShopStatus;
+import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.mapper.ShopMapper;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
@@ -32,11 +31,11 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public ShopResponse createShop(ShopCreateRequest request, UUID userId) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User không tồn tại: " + userId));
 
         Shop shop = shopMapper.toEntity(request);
-        shop.setUser(user);
+        shop.setAppUser(appUser);
 
         Shop savedShop = shopRepository.save(shop);
 
@@ -45,7 +44,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public ShopResponse getShop(UUID userId) {
-        Shop shop = shopRepository.findByUser_Id(userId)
+        Shop shop = shopRepository.findByAppUser_Id(userId)
                 .orElseThrow(() -> new RuntimeException("Shop không tồn tại" + userId));
 
         return shopMapper.toResponse(shop);
@@ -65,10 +64,10 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public ShopResponse updateShop(ShopUpdateRequest request, UUID currentUserId) {
-        Shop shop = shopRepository.findByUser_Id(currentUserId)
+        Shop shop = shopRepository.findByAppUser_Id(currentUserId)
                 .orElseThrow(() -> new RuntimeException("Shop không tồn tại: " + currentUserId));
 
-        if (!shop.getUser().getId().equals(currentUserId)) {
+        if (!shop.getAppUser().getId().equals(currentUserId)) {
             throw new RuntimeException("Bạn không có quyền sửa shop này");
         }
 

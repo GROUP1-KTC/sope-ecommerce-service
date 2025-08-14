@@ -1,8 +1,8 @@
 package com.sope.sope_ecommerce_backend.repository;
 
 
+import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.Cart;
-import com.sope.sope_ecommerce_backend.entities.User;
 import com.sope.sope_ecommerce_backend.repositories.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,12 +24,12 @@ public class CartRepositoryTest {
     @Autowired
     CartRepository cartRepository;
 
-    private User user1;
+    private AppUser appUser1;
     private Cart cart1;
 
     @BeforeEach
     void setUp() {
-        user1 = User.builder()
+        appUser1 = AppUser.builder()
                 .email("test@example.com")
                 .password("password123")
                 .username("testuser")
@@ -40,10 +40,10 @@ public class CartRepositoryTest {
                 .status("ACTIVE")
                 .roles(Set.of())
                 .build();
-        testEntityManager.persist(user1);
+        testEntityManager.persist(appUser1);
 
         cart1 = Cart.builder()
-                .user(user1)
+                .appUser(appUser1)
                 .build();
         testEntityManager.persist(cart1);
         testEntityManager.flush();
@@ -51,22 +51,22 @@ public class CartRepositoryTest {
 
     @Test
     void findByUser_shouldReturnCart_whenUserExists() {
-        Optional<Cart> foundCart = cartRepository.findByUser(user1);
+        Optional<Cart> foundCart = cartRepository.findByUser(appUser1);
 
         assertThat(foundCart).isPresent();
-        assertThat(foundCart.get().getUser()).isEqualTo(user1);
+        assertThat(foundCart.get().getAppUser()).isEqualTo(appUser1);
     }
 
 
     @Test
     void findByUser_shouldReturnEmpty_whenUserDoesNotExist() {
-        User anotherUser = User.builder()
+        AppUser anotherAppUser = AppUser.builder()
                 .email("nouser@example.com")
                 .password("pass")
                 .build();
-        testEntityManager.persist(anotherUser);
+        testEntityManager.persist(anotherAppUser);
 
-        Optional<Cart> foundCart = cartRepository.findByUser(anotherUser);
+        Optional<Cart> foundCart = cartRepository.findByUser(anotherAppUser);
 
         assertThat(foundCart).isEmpty();
     }

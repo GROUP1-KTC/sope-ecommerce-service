@@ -7,7 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,7 +27,7 @@ public class Cart {
     @JoinColumn(name = "user_id", nullable = false)
 
     @JsonBackReference("user-carts")
-    private User user;
+    private AppUser appUser;
 
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)

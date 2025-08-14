@@ -20,7 +20,7 @@ public class Shop {
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private AppUser appUser;
 
     @Column(nullable = false)
     private String name;

@@ -31,7 +31,7 @@ public class ReviewEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
-    private User user;
+    private AppUser appUser;
 
     private Integer rating;
 

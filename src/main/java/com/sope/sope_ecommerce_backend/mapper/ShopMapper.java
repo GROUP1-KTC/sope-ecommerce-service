@@ -10,7 +10,7 @@ import org.mapstruct.*;
 public interface ShopMapper {
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "appUser", ignore = true)
     @Mapping(target = "status", constant = "ACTIVE")
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
@@ -18,7 +18,7 @@ public interface ShopMapper {
 
     ShopResponse toResponse(Shop shop);
 
-    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "appUser", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "status", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
