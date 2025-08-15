@@ -26,12 +26,12 @@ public class ReviewEntity {
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
-    private ProductEntity product;
+    private Product product;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
-    private User user;
+    private AppUser appUser;
 
     private Integer rating;
 

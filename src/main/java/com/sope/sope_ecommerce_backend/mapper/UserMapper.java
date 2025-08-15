@@ -4,15 +4,14 @@ import com.sope.sope_ecommerce_backend.dto.request.UserRegisterRequest;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
+import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.Role;
-import com.sope.sope_ecommerce_backend.entities.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
@@ -26,17 +25,17 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "name", source = "name")
-    User toEntity(UserRegisterRequest request);
+    AppUser toEntity(UserRegisterRequest request);
 
 
-    UserResponse toResponse(User user);
+    UserResponse toResponse(AppUser appUser);
 
-    UserInformationResponse toInfoResponse(User user);
+    UserInformationResponse toInfoResponse(AppUser appUser);
 
     @Mappings({
-            @Mapping(target = "roles", expression = "java(mapRoles(user.getRoles()))"),
+            @Mapping(target = "roles", expression = "java(mapRoles(appUser.getRoles()))"),
             @Mapping(target = "access_token", source = "access_token"),
             @Mapping(target = "refresh_token", source = "refresh_token")
     })
-    UserLoginResponse toLoginResponse(User user, String access_token, String refresh_token);
+    UserLoginResponse toLoginResponse(AppUser appUser, String access_token, String refresh_token);
 }

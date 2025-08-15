@@ -23,6 +23,6 @@ public class ImageEntity {
     private String url;
 
     @ManyToOne
-    @JoinColumn(name = "product_variant_id")
-    private ProductVariantEntity productVariant;
+    @JoinColumn(name = "product_id")
+    private Product product;
 }

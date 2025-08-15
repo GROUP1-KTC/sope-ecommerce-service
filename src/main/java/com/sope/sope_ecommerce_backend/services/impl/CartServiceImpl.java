@@ -24,26 +24,26 @@ public class CartServiceImpl implements CartService {
     private final ProductVariantRepository productVariantRepository;
     private final CartMapper cartMapper;
 
-
     /**
-     * Adds an item to the user's cart. If the cart does not exist, it creates a new one.
+     * Adds an item to the user's cart. If the cart does not exist, it creates a new
+     * one.
      * If the item already exists in the cart, it updates the quantity.
      *
-     * @param userId            the ID of the user
-     * @param productVariantId  the ID of the product variant to add
-     * @param quantity          the quantity of the product variant to add
+     * @param userId           the ID of the user
+     * @param productVariantId the ID of the product variant to add
+     * @param quantity         the quantity of the product variant to add
      */
     @Override
     public void addToCart(UUID userId, UUID productVariantId, int quantity) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        ProductVariantEntity productVariant = productVariantRepository.findById(productVariantId)
+        ProductVariant productVariant = productVariantRepository.findById(productVariantId)
                 .orElseThrow(() -> new RuntimeException("ProductVariant not found"));
 
-        Cart cart = cartRepository.findByUser(user).orElseGet(() -> {
+        Cart cart = cartRepository.findByAppUser(appUser).orElseGet(() -> {
             Cart newCart = new Cart();
-            newCart.setUser(user);
+            newCart.setAppUser(appUser);
             return cartRepository.save(newCart);
         });
 
@@ -64,16 +64,16 @@ public class CartServiceImpl implements CartService {
     /**
      * Updates an existing cart item with a new variant or quantity.
      *
-     * @param userId        the ID of the user
-     * @param cartItemId    the ID of the cart item to update
-     * @param request       the request containing new variant ID and/or quantity
+     * @param userId     the ID of the user
+     * @param cartItemId the ID of the cart item to update
+     * @param request    the request containing new variant ID and/or quantity
      */
     @Override
     public void updateCartItem(UUID userId, Long cartItemId, UpdateCartItemRequestDTO request) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUser(user)
+        Cart cart = cartRepository.findByAppUser(appUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         CartItem item = cartItemRepository.findById(cartItemId)
@@ -85,7 +85,7 @@ public class CartServiceImpl implements CartService {
 
         // Change varriant
         if (request.newVariantId() != null) {
-            ProductVariantEntity newVariant = productVariantRepository.findById(request.newVariantId())
+            ProductVariant newVariant = productVariantRepository.findById(request.newVariantId())
                     .orElseThrow(() -> new RuntimeException("Variant not found"));
 
             if (newVariant.getStock() <= 0) {
@@ -110,20 +110,18 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.save(item);
     }
 
-
-
     /**
      * Removes an item from the user's cart.
      *
-     * @param userId        the ID of the user
-     * @param cartItemId    the ID of the cart item to remove
+     * @param userId     the ID of the user
+     * @param cartItemId the ID of the cart item to remove
      */
     @Override
     public void removeItemFromCart(UUID userId, Long cartItemId) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUser(user)
+        Cart cart = cartRepository.findByAppUser(appUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         CartItem item = cartItemRepository.findById(cartItemId)
@@ -138,7 +136,6 @@ public class CartServiceImpl implements CartService {
         cartRepository.save(cart);
     }
 
-
     /**
      * Retrieves the items in the user's cart.
      *
@@ -147,10 +144,10 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public List<CartItemResponseDTO> getCartByUser(UUID userId) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Cart cart = cartRepository.findByUser(user)
+        Cart cart = cartRepository.findByAppUser(appUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
         if (cart.getItems().isEmpty()) {
@@ -160,34 +157,40 @@ public class CartServiceImpl implements CartService {
         return cartMapper.toCartItemResponseDTOs(cart.getItems());
     }
 
-
     /**
-     * Validates the items in a guest cart, ensuring that each item has sufficient stock.
+     * Validates the items in a guest cart, ensuring that each item has sufficient
+     * stock.
      *
      * @param items the list of items to validate
      * @return a list of CartItemResponseDTO with validated quantities
      */
     @Override
     public List<CartItemResponseDTO> validateGuestCart(List<AddToCartRequestDTO> items) {
-        return items.stream().map(item -> {
-            ProductVariantEntity product = productVariantRepository.findById(item.productVariantId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
-            return validateItem(cartMapper.toCartItemResponseDTO(product, item.quantity()));
-        }).toList();
+        // return items.stream().map(item -> {
+        // ProductVariant product =
+        // productVariantRepository.findById(item.productVariantId())
+        // .orElseThrow(() -> new RuntimeException("Product not found"));
+        // return
+        // validateItem(cartMapper.toCartItemResponseDTO(product.getProductVariantId(),
+        // item.quantity()));
+        // }).toList();
+        return null;
     }
 
     /**
-     * Validates a single cart item, ensuring that the quantity does not exceed available stock.
+     * Validates a single cart item, ensuring that the quantity does not exceed
+     * available stock.
      *
      * @param dto the CartItemResponseDTO to validate
      * @return a validated CartItemResponseDTO with adjusted quantity if necessary
      */
-    private CartItemResponseDTO validateItem(CartItemResponseDTO dto) {
-        // Check tồn kho
-        int availableStock = dto.productVariant().getStock();
-        int quantity = Math.min(dto.quantity(), availableStock);
+    // private CartItemResponseDTO validateItem(CartItemResponseDTO dto) {
+    // // Check tồn kho
+    // int availableStock = dto.productVariant().getStock();
+    // int quantity = Math.min(dto.quantity(), availableStock);
 
-        return new CartItemResponseDTO(dto.id(), dto.productName(), dto.productVariant(), quantity);
-    }
+    // return new CartItemResponseDTO(dto.id(), dto.productName(),
+    // dto.productVariant(), quantity);
+    // }
 
 }

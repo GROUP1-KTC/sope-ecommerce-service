@@ -4,7 +4,7 @@ import com.sope.sope_ecommerce_backend.dto.request.AddressCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.AddressUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.AddressResponse;
 import com.sope.sope_ecommerce_backend.entities.Address;
-import com.sope.sope_ecommerce_backend.entities.User;
+import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.repositories.AddressRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import com.sope.sope_ecommerce_backend.services.AddressService;
@@ -25,11 +25,11 @@ public class AddressServiceImpl implements AddressService {
     @Override
     @Transactional
     public AddressResponse addAddress(UUID userId, AddressCreateRequest request) {
-        User user = userRepository.findById(userId)
+        AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (request.isDefault()) {
-            addressRepository.findByUser_Id(userId)
+            addressRepository.findByAppUser_Id(userId)
                     .forEach(a -> {
                         if (a.isDefault()) {
                             a.setDefault(false);
@@ -39,7 +39,7 @@ public class AddressServiceImpl implements AddressService {
         }
 
         Address address = new Address();
-        address.setUser(user);
+        address.setAppUser(appUser);
         address.setRecipientName(request.recipientName());
         address.setPhoneNumber(request.phoneNumber());
         address.setStreet(request.street());
@@ -57,11 +57,11 @@ public class AddressServiceImpl implements AddressService {
     @Transactional
     public AddressResponse updateAddress(UUID userId, UUID addressId, AddressUpdateRequest request) {
         Address address = addressRepository.findById(addressId)
-                .filter(a -> a.getUser().getId().equals(userId))
+                .filter(a -> a.getAppUser().getId().equals(userId))
                 .orElseThrow(() -> new RuntimeException("Address not found"));
 
         if (Boolean.TRUE.equals(request.isDefault())) {
-            addressRepository.findByUser_Id(userId)
+            addressRepository.findByAppUser_Id(userId)
                     .forEach(a -> {
                         if (a.isDefault()) {
                             a.setDefault(false);
@@ -86,14 +86,14 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public void deleteAddress(UUID userId, UUID addressId) {
         Address address = addressRepository.findById(addressId)
-                .filter(a -> a.getUser().getId().equals(userId))
+                .filter(a -> a.getAppUser().getId().equals(userId))
                 .orElseThrow(() -> new RuntimeException("Address not found"));
         addressRepository.delete(address);
     }
 
     @Override
     public List<AddressResponse> getUserAddresses(UUID userId) {
-        return addressRepository.findByUser_Id(userId)
+        return addressRepository.findByAppUser_Id(userId)
                 .stream().map(this::toResponse)
                 .toList();
     }
@@ -101,7 +101,7 @@ public class AddressServiceImpl implements AddressService {
     @Override
     @Transactional
     public AddressResponse setDefaultAddress(UUID userId, UUID addressId) {
-        addressRepository.findByUser_Id(userId)
+        addressRepository.findByAppUser_Id(userId)
                 .forEach(a -> {
                     if (a.isDefault()) {
                         a.setDefault(false);
@@ -110,7 +110,7 @@ public class AddressServiceImpl implements AddressService {
                 });
 
         Address address = addressRepository.findById(addressId)
-                .filter(a -> a.getUser().getId().equals(userId))
+                .filter(a -> a.getAppUser().getId().equals(userId))
                 .orElseThrow(() -> new RuntimeException("Address not found"));
 
         address.setDefault(true);
@@ -120,7 +120,7 @@ public class AddressServiceImpl implements AddressService {
 
     @Override
     public AddressResponse getDefaultAddress(UUID userId) {
-        return addressRepository.findByUser_IdAndIsDefaultTrue(userId)
+        return addressRepository.findByAppUser_IdAndIsDefaultTrue(userId)
                 .map(this::toResponse)
                 .orElseThrow(() -> new RuntimeException("Default address not found"));
     }

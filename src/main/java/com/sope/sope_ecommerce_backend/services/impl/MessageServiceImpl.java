@@ -1,91 +1,131 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.dto.response.MessageDTO;
-import com.sope.sope_ecommerce_backend.entities.ConversationEntity;
-import com.sope.sope_ecommerce_backend.entities.MessageEntity;
+import com.sope.sope_ecommerce_backend.dto.request.MessageSendRequest;
+import com.sope.sope_ecommerce_backend.dto.response.MessageResponse;
+import com.sope.sope_ecommerce_backend.entities.Conversation;
+import com.sope.sope_ecommerce_backend.entities.Message;
+import com.sope.sope_ecommerce_backend.entities.message_entity.FileMessage;
+import com.sope.sope_ecommerce_backend.entities.message_entity.ImageMessage;
+import com.sope.sope_ecommerce_backend.entities.message_entity.TextMessage;
+import com.sope.sope_ecommerce_backend.mapper.MessageMapper;
 import com.sope.sope_ecommerce_backend.repositories.ConversationRepository;
 import com.sope.sope_ecommerce_backend.repositories.MessageRepository;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.sope.sope_ecommerce_backend.services.MessageService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
-public class MessageServiceImpl {
+@RequiredArgsConstructor
+public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final ConversationRepository conversationRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final MessageMapper messageMapper;
 
-    public MessageServiceImpl(MessageRepository messageRepository, ConversationRepository conversationRepository, SimpMessagingTemplate messagingTemplate) {
-        this.messageRepository = messageRepository;
-        this.conversationRepository = conversationRepository;
-        this.messagingTemplate = messagingTemplate;
-    }
-
-    public MessageDTO createMessage(MessageDTO messageDTO) {
-        System.out.println("Nhận tin nhắn: content=" + messageDTO.getContent() + ", conversationId=" + messageDTO.getConversationId());
-        ConversationEntity conversation = conversationRepository.findById(messageDTO.getConversationId())
+    @Override
+    public MessageResponse sendMessage(MessageSendRequest request) {
+        Conversation conversation = conversationRepository.findById(request.conversationId())
                 .orElseThrow(() -> new RuntimeException("Conversation not found"));
-        System.out.println("Tìm thấy cuộc hội thoại: id=" + conversation.getId());
 
-        MessageEntity messageEntity = new MessageEntity();
-        messageEntity.setContent(messageDTO.getContent());
-        messageEntity.setSender(messageDTO.getSender());
-        messageEntity.setSentAt(LocalDateTime.now());
-        messageEntity.setConversation(conversation);
-        if (messageDTO.getFile() != null) {
-            MessageEntity.FileInfo fileInfo = new MessageEntity.FileInfo(
-                    messageDTO.getFile().getUrl(),
-                    messageDTO.getFile().getName(),
-                    messageDTO.getFile().getType()
-            );
-            messageEntity.setFile(fileInfo);
+        Message message;
+        String type = request.type().toLowerCase();
+
+        switch (type) {
+            case "text" -> {
+                TextMessage textMsg = new TextMessage();
+                textMsg.setContent(request.content());
+                message = textMsg;
+            }
+            case "image" -> {
+                ImageMessage imgMsg = new ImageMessage();
+                imgMsg.setImageUrl(request.imageUrl());
+                imgMsg.setWidth(request.width());
+                imgMsg.setHeight(request.height());
+                message = imgMsg;
+            }
+            case "file" -> {
+                FileMessage fileMsg = new FileMessage();
+                fileMsg.setFileUrl(request.fileUrl());
+                fileMsg.setFileName(request.fileName());
+                fileMsg.setFileType(request.fileType());
+                fileMsg.setFileSize(request.fileSize());
+                message = fileMsg;
+            }
+            default -> throw new IllegalArgumentException("Invalid message type: " + type);
         }
 
-        MessageEntity savedMessage = messageRepository.save(messageEntity);
-        System.out.println("Đã lưu tin nhắn: id=" + savedMessage.getId());
+        message.setSender(request.senderId());
+        message.setConversation(conversation);
 
-        MessageDTO result = new MessageDTO();
-        result.setId(savedMessage.getId());
-        result.setContent(savedMessage.getContent());
-        result.setSender(savedMessage.getSender());
-        result.setTimestamp(savedMessage.getSentAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        result.setConversationId(savedMessage.getConversation().getId());
-        if (savedMessage.getFile() != null) {
-            result.setFile(new MessageDTO.FileInfo(
-                    savedMessage.getFile().getUrl(),
-                    savedMessage.getFile().getName(),
-                    savedMessage.getFile().getType()
-            ));
-        }
+        Message saved = messageRepository.save(message);
 
-        System.out.println("Gửi tin nhắn qua WebSocket đến /topic/conversation/" + messageDTO.getConversationId());
-        messagingTemplate.convertAndSend("/topic/conversation/" + messageDTO.getConversationId(), result);
+        conversation.setLastMessage(saved);
+        conversation.setLastSenderId(request.senderId());
+        conversationRepository.save(conversation);
 
-        return result;
+        return messageMapper.toDto(saved);
     }
 
-    public List<MessageDTO> getMessagesByConversationId(String conversationId) {
-        return messageRepository.findByConversationId(conversationId).stream()
-                .sorted(Comparator.comparing(MessageEntity::getSentAt)).map(message -> {
-            MessageDTO dto = new MessageDTO();
-            dto.setId(message.getId());
-            dto.setContent(message.getContent());
-            dto.setSender(message.getSender());
-            dto.setTimestamp(message.getSentAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            dto.setConversationId(message.getConversation().getId());
-            if (message.getFile() != null) {
-                dto.setFile(new MessageDTO.FileInfo(
-                        message.getFile().getUrl(),
-                        message.getFile().getName(),
-                        message.getFile().getType()
-                ));
-            }
-            return dto;
-        }).collect(Collectors.toList());
+
+    @Override
+    public List<MessageResponse> getMessagesByConversation(String id) {
+        UUID conversationId = UUID.fromString(id);
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new RuntimeException("Conversation not found"));
+        return messageRepository.findByConversationOrderBySentAtAsc(conversation)
+                .stream()
+                .map(messageMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public void deleteMessage(UUID messageId) {
+        if (!messageRepository.existsById(messageId)) {
+            throw new RuntimeException("Message not found");
+        }
+        messageRepository.deleteById(messageId);
+    }
+
+    private MessageResponse toResponse(Message msg) {
+        String type;
+        String content = null, imageUrl = null, fileUrl = null, fileName = null, fileType = null;
+        Integer width = null, height = null;
+        Long fileSize = null;
+
+        if (msg instanceof TextMessage tm) {
+            type = "text";
+            content = tm.getContent();
+        } else if (msg instanceof ImageMessage im) {
+            type = "image";
+            imageUrl = im.getImageUrl();
+            width = im.getWidth();
+            height = im.getHeight();
+        } else if (msg instanceof FileMessage fm) {
+            type = "file";
+            fileUrl = fm.getFileUrl();
+            fileName = fm.getFileName();
+            fileType = fm.getFileType();
+            fileSize = fm.getFileSize();
+        } else {
+            throw new IllegalStateException("Unknown message type");
+        }
+
+        return new MessageResponse(
+                msg.getId(),
+                msg.getSender(),
+                type,
+                content,
+                imageUrl,
+                width,
+                height,
+                fileUrl,
+                fileName,
+                fileType,
+                fileSize,
+                msg.getSentAt().format(DateTimeFormatter.ISO_DATE_TIME)
+        );
     }
 }

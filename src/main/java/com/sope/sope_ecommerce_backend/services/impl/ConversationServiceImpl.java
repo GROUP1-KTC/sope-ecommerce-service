@@ -1,70 +1,75 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.dto.response.ConversationDTO;
-import com.sope.sope_ecommerce_backend.dto.response.MessageDTO;
-import com.sope.sope_ecommerce_backend.entities.ConversationEntity;
+import com.sope.sope_ecommerce_backend.dto.request.ConversationCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.response.ConversationResponse;
+import com.sope.sope_ecommerce_backend.entities.Conversation;
+import com.sope.sope_ecommerce_backend.entities.AppUser;
+import com.sope.sope_ecommerce_backend.mapper.ConversationMapper;
+import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.ConversationRepository;
+import com.sope.sope_ecommerce_backend.repositories.UserRepository;
+import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.services.ConversationService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 @Service
-public class ConversationServiceImpl {
+public class ConversationServiceImpl implements ConversationService {
+
     private final ConversationRepository conversationRepository;
-    private final MessageServiceImpl messageService;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final ConversationMapper conversationMapper;
 
-    public ConversationServiceImpl(ConversationRepository conversationRepository, MessageServiceImpl messageService) {
+    public ConversationServiceImpl(ConversationRepository conversationRepository,
+                                   UserRepository userRepository, UserMapper userMapper, ConversationMapper conversationMapper) {
         this.conversationRepository = conversationRepository;
-        this.messageService = messageService;
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.conversationMapper = conversationMapper;
     }
 
-    public List<ConversationDTO> getAllConversations() {
-        return conversationRepository.findAll().stream().map(conversation -> {
-            ConversationDTO dto = new ConversationDTO();
-            dto.setId(conversation.getId());
-            dto.setName(conversation.getName());
-            dto.setCreatedAt(conversation.getCreatedAt());
-            dto.setAvatar(conversation.getAvatar());
+    @Override
+    public ConversationResponse createConversation(ConversationCreateRequest request) {
+        AppUser u1 = userRepository.findById(request.user1())
+                .orElseThrow(() -> new RuntimeException("User 1 not found"));
+        AppUser u2 = userRepository.findById(request.user2())
+                .orElseThrow(() -> new RuntimeException("User 2 not found"));
 
-            // Lấy lastMessage từ tin nhắn mới nhất
-            List<MessageDTO> messages = messageService.getMessagesByConversationId(conversation.getId());
-            if (!messages.isEmpty()) {
-                MessageDTO lastMessage = messages.get(messages.size() - 1);
-                dto.setLastMessage(lastMessage.getContent());
-                dto.setMessages(messages);
-            }
-
-            return dto;
-        }).collect(Collectors.toList());
+        return conversationRepository.findByParticipants(u1.getId(), u2.getId())
+                .map(conversationMapper::toResponse)
+                .orElseGet(() -> {
+                    Conversation newConversation = new Conversation();
+                    newConversation.setParticipants(List.of(u1, u2));
+                    return conversationMapper.toResponse(conversationRepository.save(newConversation));
+                });
     }
 
-    public ConversationDTO createConversation(ConversationDTO conversationDTO) {
-        try {
-            System.out.println("Tạo cuộc hội thoại: name=" + conversationDTO.getName());
-            ConversationEntity conversation = new ConversationEntity();
-            conversation.setName(conversationDTO.getName());
-            conversation.setCreatedAt(LocalDateTime.now());
-            conversation.setAvatar(conversationDTO.getAvatar());
+    @Override
+    public List<ConversationResponse> getUserConversations() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-            ConversationEntity savedConversation = conversationRepository.save(conversation);
-            System.out.println("Đã lưu cuộc hội thoại: id=" + savedConversation.getId());
-
-            ConversationDTO result = new ConversationDTO();
-            result.setId(savedConversation.getId());
-            result.setName(savedConversation.getName());
-            result.setCreatedAt(savedConversation.getCreatedAt());
-            result.setAvatar(savedConversation.getAvatar());
-            // lastMessage và messages sẽ được cập nhật khi có tin nhắn
-            result.setLastMessage(null);
-            result.setMessages(List.of());
-
-            return result;
-        } catch (Exception e) {
-            System.err.println("Lỗi khi tạo cuộc hội thoại: " + e.getMessage());
-            e.printStackTrace();
-            throw e;
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User chưa đăng nhập");
         }
+
+        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
+
+        return conversationRepository.findByParticipants_Id(user.getUserId())
+                .stream()
+                .map(conversationMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<ConversationResponse> getConversationById(UUID conversationId) {
+        return conversationRepository.findById(conversationId)
+                .stream()
+                .map(conversationMapper::toResponse)
+                .toList();
     }
 }

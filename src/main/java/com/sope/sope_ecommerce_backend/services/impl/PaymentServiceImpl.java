@@ -78,30 +78,30 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void handlePaymentCallback(String providerStr, String providerPaymentId, String callbackStatus, String otherParamsJsonOrQuery) {
         // 1) tìm payment
-        Payment payment = paymentRepository.findByProviderPaymentId(providerPaymentId)
-                .orElseThrow(() -> new CustomException("Payment not found"));
-        if (payment.getStatus() != PaymentStatus.PENDING) return; // idempotent
-
-        // 2) parse params → Map<String,String>
-        Map<String, String> params = CallbackParser.parse(otherParamsJsonOrQuery); // tự cài: nếu query -> parse querystring; nếu JSON -> parse Jackson
-
-        // 3) verify chữ ký bởi từng gateway
-        PaymentProvider provider = PaymentProvider.valueOf(providerStr);
-        PaymentGateway gw = gatewayFactory.getGateway(provider);
-        if (!gw.verifyCallback(params)) throw new CustomException("Invalid callback signature");
-
-        // 4) map status provider → domain status
-        PaymentStatus newStatus = gw.mapStatus(callbackStatus);
-        payment.setStatus(newStatus);
-
-        // 5) cập nhật đơn
-        if (newStatus == PaymentStatus.SUCCESS) {
-            payment.setPaymentTime(LocalDateTime.now());
-            orderService.updateOrderStatus(new UpdateOrderStatusRequest(payment.getOrder().getOrderId(), OrderStatus.CONFIRMED));
-        } else {
-            orderService.updateOrderStatus(new UpdateOrderStatusRequest(payment.getOrder().getOrderId(), OrderStatus.PAYMENT_FAILED));
-        }
-        paymentRepository.save(payment);
+//        Payment payment = paymentRepository.findByProviderPaymentId(providerPaymentId)
+//                .orElseThrow(() -> new CustomException("Payment not found"));
+//        if (payment.getStatus() != PaymentStatus.PENDING) return; // idempotent
+//
+//        // 2) parse params → Map<String,String>
+//        Map<String, String> params = CallbackParser.parse(otherParamsJsonOrQuery); // tự cài: nếu query -> parse querystring; nếu JSON -> parse Jackson
+//
+//        // 3) verify chữ ký bởi từng gateway
+//        PaymentProvider provider = PaymentProvider.valueOf(providerStr);
+//        PaymentGateway gw = gatewayFactory.getGateway(provider);
+//        if (!gw.verifyCallback(params)) throw new CustomException("Invalid callback signature");
+//
+//        // 4) map status provider → domain status
+//        PaymentStatus newStatus = gw.mapStatus(callbackStatus);
+//        payment.setStatus(newStatus);
+//
+//        // 5) cập nhật đơn
+//        if (newStatus == PaymentStatus.SUCCESS) {
+//            payment.setPaymentTime(LocalDateTime.now());
+//            orderService.updateOrderStatus(new UpdateOrderStatusRequest(payment.getOrder().getOrderId(), OrderStatus.CONFIRMED));
+//        } else {
+//            orderService.updateOrderStatus(new UpdateOrderStatusRequest(payment.getOrder().getOrderId(), OrderStatus.PAYMENT_FAILED));
+//        }
+//        paymentRepository.save(payment);
     }
 
 }

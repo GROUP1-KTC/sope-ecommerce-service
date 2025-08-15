@@ -4,16 +4,14 @@ import com.sope.sope_ecommerce_backend.entities.Role;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
-public class RoleSeeder implements CommandLineRunner {
+public class RoleSeeder {
     private RoleRepository roleRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
+    public void run() throws Exception {
         createRoleIfNotExists("ADMIN");
         createRoleIfNotExists("USER");
         createRoleIfNotExists("SELLER");
