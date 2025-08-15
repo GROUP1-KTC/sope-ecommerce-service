@@ -9,12 +9,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +29,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService userDetailsService;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
     // Các route không cần filter
     private static final List<String> EXCLUDED_PATHS = List.of(
@@ -59,8 +62,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     })
                     .filter(data -> SecurityContextHolder.getContext().getAuthentication() == null)
                     .ifPresent(data -> setAuthentication(data[0], data[1], data[2], request));
-        } catch (Exception ex) {
-            log.error("JWT authentication failed: {}", ex.getMessage());
+        } catch (AuthenticationException ex) { // 401 Unauthorized
+        SecurityContextHolder.clearContext();
+        log.error("Unauthorized error: {}", ex.getMessage());
+
+    } catch (Exception ex) {
+            SecurityContextHolder.clearContext();
+            log.error("Internal error: {}", ex.getMessage());
+            handlerExceptionResolver.resolveException(request, response, null, ex);
+            return;
         }
 
         filterChain.doFilter(request, response);
