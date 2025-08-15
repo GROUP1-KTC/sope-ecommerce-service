@@ -18,13 +18,13 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    @Value("${spring.jwt.secret}")
+    @Value("${app.jwt.secret}")
     private String secret;
 
-    @Value("${spring.jwt.expiration}")
+    @Value("${app.jwt.expiration}")
     private Long expiration;
 
-    @Value("${spring.jwt.refresh-expiration}")
+    @Value("${app.jwt.refresh-expiration}")
     private Long refreshExpiration;
 
     public String extractUserId(String token) {

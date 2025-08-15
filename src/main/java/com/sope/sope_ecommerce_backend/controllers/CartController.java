@@ -4,17 +4,17 @@ import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.AddToCartRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.request.UpdateCartItemRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
+import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.CartService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
-import static com.sope.sope_ecommerce_backend.security.SecurityUtil.getCurrentUserId;
-import static com.sope.sope_ecommerce_backend.security.SecurityUtil.requireCurrentUserId;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -32,13 +32,19 @@ public class CartController {
      * @return a response indicating success or failure
      */
     @PostMapping()
-    public ResponseEntity<ApiResponse<Object>> addToCart(@RequestBody AddToCartRequestDTO request) {
+    public ResponseEntity<ApiResponse<Object>> addToCart(@RequestBody AddToCartRequestDTO request,
+         @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
         try {
+            if (currentUser == null) {
+                return ApiResponseUtil.unauthorized("User is not logged in");
+            }
+
             if ( request.productVariantId() == null || request.quantity() <= 0) {
                 return ApiResponseUtil.badRequest(List.of("Invalid input: userId, productVariantId, or quantity"));
             }
 
-            cartService.addToCart(requireCurrentUserId(), request.productVariantId(), request.quantity());
+            cartService.addToCart(currentUser.getUserId(), request.productVariantId(), request.quantity());
             return ApiResponseUtil.success(null, "Added to cart successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to add item to cart", List.of(e.getMessage()));
@@ -51,15 +57,14 @@ public class CartController {
      * @return a response containing the list of cart items
      */
     @GetMapping()
-    public  ResponseEntity<ApiResponse<List<CartItemResponseDTO>>> getCart() {
+    public ResponseEntity<ApiResponse<List<CartItemResponseDTO>>> getCart(
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
-            UUID userId = requireCurrentUserId();
-
-            if (userId == null) {
-                return ApiResponseUtil.badRequest(List.of("User ID must not be null"));
+            if (currentUser == null) {
+                return ApiResponseUtil.unauthorized("User is not logged in");
             }
 
-            List<CartItemResponseDTO> items = cartService.getCartByUser(userId);
+            List<CartItemResponseDTO> items = cartService.getCartByUser(currentUser.getUserId());
             return ApiResponseUtil.success(items, "Cart fetched successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to fetch cart items", List.of(e.getMessage()));
@@ -77,10 +82,15 @@ public class CartController {
     @PatchMapping("/items/{itemId}")
     public ResponseEntity<ApiResponse<Object>> updateCartItem(
             @PathVariable Long itemId,
-            @RequestBody UpdateCartItemRequestDTO request
+            @RequestBody UpdateCartItemRequestDTO request,
+            @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
         try {
-            UUID userId = getCurrentUserId();
+            if (currentUser == null) {
+                return ApiResponseUtil.unauthorized("User is not logged in");
+            }
+
+            UUID userId = currentUser.getUserId();
             if (userId == null) {
                 return ApiResponseUtil.badRequest(List.of("User ID must not be null"));
             }
@@ -99,15 +109,18 @@ public class CartController {
      * @return a response indicating success or failure
      */
     @DeleteMapping("/{cartItemId}")
-    public ResponseEntity<ApiResponse<Object>> removeItem(@PathVariable Long cartItemId) {
+    public ResponseEntity<ApiResponse<Object>> removeItem(@PathVariable Long cartItemId,
+                                                          @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
-            UUID userId = getCurrentUserId();
+            if (currentUser == null) {
+                return ApiResponseUtil.unauthorized("User is not logged in");
+            }
 
-            if (cartItemId == null || userId == null) {
+            if (cartItemId == null) {
                 return ApiResponseUtil.badRequest(List.of("cartItemId and userId must not be null"));
             }
 
-            cartService.removeItemFromCart(userId, cartItemId);
+            cartService.removeItemFromCart(currentUser.getUserId(), cartItemId);
             return ApiResponseUtil.success(null, "Item removed from cart.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to remove cart item", List.of(e.getMessage()));
@@ -127,8 +140,4 @@ public class CartController {
         List<CartItemResponseDTO> validatedItems = cartService.validateGuestCart(items);
         return ApiResponseUtil.success(validatedItems, "Guest cart validated successfully.");
     }
-
-
-
-
 }

@@ -57,6 +57,9 @@ public class Order {
 
     private String idempotencyKey;
 
+    @Column(unique = true, nullable = false)
+    private String orderNumber;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "discount_code_id")
     private DiscountCodeEntity discountCode;
