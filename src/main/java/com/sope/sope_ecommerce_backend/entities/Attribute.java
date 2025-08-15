@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "attributes")
-public class AttributeEntity {
+public class Attribute {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "attribute_id")
@@ -21,8 +21,4 @@ public class AttributeEntity {
     private String name;
 
     private String value;
-
-    @ManyToOne
-    @JoinColumn(name = "image_id")
-    private ImageEntity image;
 }

@@ -1,15 +1,13 @@
 package com.sope.sope_ecommerce_backend.repositories;
 
-import com.sope.sope_ecommerce_backend.entities.ProductEntity;
+import com.sope.sope_ecommerce_backend.entities.Product;
+
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.sope.sope_ecommerce_backend.entities.CategoryEntity;
-import java.util.UUID;
-import java.util.List;
+
 import java.util.Optional;
+import java.util.UUID;
 
-public interface ProductRepository extends JpaRepository<ProductEntity, UUID> {
-      List<ProductEntity> findByCategoryIn(List<CategoryEntity> categories);
-
-      Optional<ProductEntity> findBySlug(String slug);
+public interface ProductRepository extends JpaRepository<Product, UUID> {
+      Optional<Product> findBySlug(String slug);
 
 }

@@ -7,8 +7,6 @@ import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -16,9 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-@Profile("local")
 @AllArgsConstructor
-public class UserSeeder implements CommandLineRunner {
+public class UserSeeder {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
