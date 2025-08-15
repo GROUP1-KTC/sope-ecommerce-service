@@ -13,7 +13,7 @@ import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
-import com.sope.sope_ecommerce_backend.security.JwtUtil;
+import com.sope.sope_ecommerce_backend.security.jwt.JwtProvider;
 import com.sope.sope_ecommerce_backend.services.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,7 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
-    private final JwtUtil jwtUtil;
+    private final JwtProvider jwtProvider;
 
 
     @Override
@@ -86,9 +86,9 @@ public class AuthServiceImpl implements AuthService {
         AppUser appUser = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String access_token = jwtUtil.generateToken(userDetails, appUser.getId());
+        String access_token = jwtProvider.generateToken(userDetails, appUser.getId());
 
-        String refresh_token = jwtUtil.generateRefreshToken(userDetails, appUser.getId());
+        String refresh_token = jwtProvider.generateRefreshToken(userDetails, appUser.getId());
 
         UserLoginResponse response = userMapper.toLoginResponse(appUser, access_token, refresh_token);
 
@@ -99,13 +99,13 @@ public class AuthServiceImpl implements AuthService {
     public TokenRefreshResponse refreshAccessToken(TokenRefreshRequest request) {
         String refreshToken = request.refreshToken();
 
-        String username = jwtUtil.extractUsername(refreshToken);
-        String userId = jwtUtil.extractUserId(refreshToken);
+        String username = jwtProvider.extractUsername(refreshToken);
+        String userId = jwtProvider.extractUserId(refreshToken);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-        if (jwtUtil.validateToken(refreshToken, userDetails, userId)) {
-            String newAccessToken = jwtUtil.generateToken(userDetails, UUID.fromString(userId));
+        if (jwtProvider.validateTokenWithUser(refreshToken, userDetails, userId)) {
+            String newAccessToken = jwtProvider.generateToken(userDetails, UUID.fromString(userId));
             return new TokenRefreshResponse(newAccessToken);
         } else {
             throw new RuntimeException("Invalid refresh token");

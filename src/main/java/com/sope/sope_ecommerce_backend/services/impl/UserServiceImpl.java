@@ -8,8 +8,8 @@ import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
-import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
-import com.sope.sope_ecommerce_backend.security.JwtUtil;
+import com.sope.sope_ecommerce_backend.security.jwt.JwtProvider;
+import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +32,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
-    private final JwtUtil jwtUtil;
+    private final JwtProvider jwtProvider;
 
     @Override
     public UserInformationResponse getCurrentUserInfo() {

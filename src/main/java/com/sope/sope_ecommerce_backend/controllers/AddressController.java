@@ -3,7 +3,7 @@ package com.sope.sope_ecommerce_backend.controllers;
 import com.sope.sope_ecommerce_backend.dto.request.AddressCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.AddressUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.AddressResponse;
-import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.AddressService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

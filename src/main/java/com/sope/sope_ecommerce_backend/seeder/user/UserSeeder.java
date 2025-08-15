@@ -12,7 +12,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 @Profile("local")
@@ -25,16 +26,14 @@ public class UserSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", "ADMIN");
-        createUserIfNotExists("user", "Regular User", "user@example.com", "user123", "USER");
-        createUserIfNotExists("seller", "Shop Seller", "seller@example.com", "seller123", "SELLER");
+        // Mỗi user có nhiều role để test
+        createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", Arrays.asList("ADMIN", "USER"));
+        createUserIfNotExists("user", "Regular User", "user@example.com", "user123", Arrays.asList("USER", "SELLER"));
+        createUserIfNotExists("seller", "Shop Seller", "seller@example.com", "seller123", Arrays.asList("SELLER", "USER"));
     }
 
-    private void createUserIfNotExists(String username, String name, String email, String rawPassword, String roleNamestr) {
+    private void createUserIfNotExists(String username, String name, String email, String rawPassword, List<String> roleNames) {
         if (userRepository.findByUsername(username).isEmpty()) {
-            RoleName roleName = RoleName.valueOf(roleNamestr.toUpperCase());
-            Role role = roleRepository.findByRoleName(roleName)
-                    .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
 
             AppUser appUser = AppUser.builder()
                     .username(username)
@@ -46,17 +45,23 @@ public class UserSeeder implements CommandLineRunner {
                     .status("ACTIVE")
                     .build();
 
-            UserRole userRole = UserRole.builder()
-                    .user(appUser)
-                    .role(role)
-                    .grantedBy("SYSTEM")
-                    .build();
+            // Thêm nhiều role
+            roleNames.forEach(roleStr -> {
+                RoleName roleName = RoleName.valueOf(roleStr.toUpperCase());
+                Role role = roleRepository.findByRoleName(roleName)
+                        .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
 
-            appUser.getUserRoles().add(userRole);
+                UserRole userRole = UserRole.builder()
+                        .user(appUser)
+                        .role(role)
+                        .grantedBy("SYSTEM")
+                        .build();
+
+                appUser.getUserRoles().add(userRole);
+            });
 
             userRepository.save(appUser);
-
-            System.out.println("✅ Seeded user: " + username);
+            System.out.println("✅ Seeded user: " + username + " with roles: " + roleNames);
         }
     }
 
