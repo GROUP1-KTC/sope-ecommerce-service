@@ -7,9 +7,8 @@ spring:
       enabled: true
       additional-paths: src/main/java
 
-
   jwt:
-    secret: '284dd6c8bceeacfa2559a1ca7ef3e4c25099bea3d6a7f3e9cb2470e39a46106f1379b3b61aedbaf5299126211f663aef6c79aac2fc3913752b5ae63e06c7a592='
+    secret: "284dd6c8bceeacfa2559a1ca7ef3e4c25099bea3d6a7f3e9cb2470e39a46106f1379b3b61aedbaf5299126211f663aef6c79aac2fc3913752b5ae63e06c7a592="
     expiration: 900000
     refresh-expiration: 604800000
 
@@ -18,7 +17,6 @@ spring:
     username: postgres
     password: postgres123
     driver-class-name: org.postgresql.Driver
-
 
   data:
     redis:
@@ -86,12 +84,13 @@ logging:
 
 server:
   port: 8082
+  tomcat:
+    max-part-count: 50
+    max-part-header-size: 2048
 
 api:
-
 
 cloudinary:
   cloud-name: dybo8zd4y123
   api-key: 111854312673546
   api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
-

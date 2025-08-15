@@ -3,7 +3,7 @@ package com.sope.sope_ecommerce_backend.services.impl;
 import com.github.slugify.Slugify;
 import com.sope.sope_ecommerce_backend.dto.request.CategoryCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.response.CategoryDTO;
-import com.sope.sope_ecommerce_backend.entities.CategoryEntity;
+import com.sope.sope_ecommerce_backend.entities.Category;
 import com.sope.sope_ecommerce_backend.repositories.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,11 +19,11 @@ public class CategoryServiceImpl {
       private CategoryRepository categoryRepository;
 
       public CategoryDTO createCategory(CategoryCreateDTO request) {
-            CategoryEntity category = new CategoryEntity();
+            Category category = new Category();
             category.setName(request.getName());
 
             // Bước 1: Xử lý parent nếu có
-            CategoryEntity parent = null;
+            Category parent = null;
             if (request.getParentId() != null) {
                   parent = categoryRepository.findById(request.getParentId())
                               .orElseThrow(() -> new RuntimeException("Parent not found"));
@@ -63,18 +63,18 @@ public class CategoryServiceImpl {
                         .collect(Collectors.toList());
       }
 
-      public List<CategoryEntity> getAllDescendantCategories(CategoryEntity parent) {
-            List<CategoryEntity> result = new ArrayList<>();
+      public List<Category> getAllDescendantCategories(Category parent) {
+            List<Category> result = new ArrayList<>();
             result.add(parent); // bao gồm chính nó
 
-            List<CategoryEntity> allCategories = categoryRepository.findAll();
+            List<Category> allCategories = categoryRepository.findAll();
             findChildrenRecursive(parent, allCategories, result);
 
             return result;
       }
 
-      private void findChildrenRecursive(CategoryEntity parent, List<CategoryEntity> allCategories, List<CategoryEntity> result) {
-            for (CategoryEntity category : allCategories) {
+      private void findChildrenRecursive(Category parent, List<Category> allCategories, List<Category> result) {
+            for (Category category : allCategories) {
                   if (category.getParent() != null && category.getParent().getId().equals(parent.getId())) {
                         result.add(category);
                         findChildrenRecursive(category, allCategories, result);
@@ -82,7 +82,7 @@ public class CategoryServiceImpl {
             }
       }
 
-      private CategoryDTO toResponse(CategoryEntity category) {
+      private CategoryDTO toResponse(Category category) {
             CategoryDTO res = new CategoryDTO();
             res.setId(category.getId());
             res.setName(category.getName());

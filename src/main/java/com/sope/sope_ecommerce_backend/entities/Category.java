@@ -2,7 +2,8 @@ package com.sope.sope_ecommerce_backend.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.GenericGenerator;
+
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,10 +13,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "categories")
-public class CategoryEntity {
+public class Category {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID id;
 
@@ -27,11 +27,14 @@ public class CategoryEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private CategoryEntity parent;
-
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    private List<CategoryEntity> children;
+    private Category parent;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private List<ProductEntity> products;
+    private List<Product> products;
+
+    @Column(name = "commission_fee", precision = 5, scale = 2)
+    private BigDecimal commissionFee; // % hoa hồng
+
+    @Column(name = "payment_fee", precision = 5, scale = 2)
+    private BigDecimal paymentFee; // % phí thanh toán
 }

@@ -25,7 +25,7 @@ public class WishlistEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("productId")
     @JoinColumn(name = "product_id", nullable = false)
-    private ProductEntity product;
+    private Product product;
 
     @Column(name = "add_at")
     private LocalDateTime createdAt;

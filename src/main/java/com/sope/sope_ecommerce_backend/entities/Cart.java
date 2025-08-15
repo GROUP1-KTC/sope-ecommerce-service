@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Table(name = "cart", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id"})
+        @UniqueConstraint(columnNames = { "user_id" })
 })
 public class Cart {
     @Id
@@ -29,8 +30,6 @@ public class Cart {
     @JsonBackReference("user-carts")
     private AppUser appUser;
 
-
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CartItem> items;
+    private List<CartItem> items = new ArrayList<>();
 }
-
