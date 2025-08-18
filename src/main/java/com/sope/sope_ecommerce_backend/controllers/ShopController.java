@@ -5,7 +5,7 @@ import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
 import com.sope.sope_ecommerce_backend.entities.Shop;
-import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

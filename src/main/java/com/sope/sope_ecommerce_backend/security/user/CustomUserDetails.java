@@ -1,4 +1,4 @@
-package com.sope.sope_ecommerce_backend.security;
+package com.sope.sope_ecommerce_backend.security.user;
 
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

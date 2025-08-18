@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-import static com.sope.sope_ecommerce_backend.security.SecurityUtil.getCurrentUserId;
-import static com.sope.sope_ecommerce_backend.security.SecurityUtil.requireCurrentUserId;
+import static com.sope.sope_ecommerce_backend.security.user.SecurityUtil.getCurrentUserId;
+import static com.sope.sope_ecommerce_backend.security.user.SecurityUtil.requireCurrentUserId;
 
 @RestController
 @RequestMapping("/api/cart")

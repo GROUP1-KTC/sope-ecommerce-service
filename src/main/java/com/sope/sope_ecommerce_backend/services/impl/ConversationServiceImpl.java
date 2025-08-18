@@ -8,7 +8,7 @@ import com.sope.sope_ecommerce_backend.mapper.ConversationMapper;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.ConversationRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
-import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.ConversationService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

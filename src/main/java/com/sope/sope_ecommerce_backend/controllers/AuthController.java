@@ -8,22 +8,19 @@ import com.sope.sope_ecommerce_backend.dto.response.TokenRefreshResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.services.AuthService;
-import com.sope.sope_ecommerce_backend.services.UserService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@AllArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
-    private UserService userService;
-
-    @Autowired
     private AuthService authService;
 
     @PostMapping("/register")
@@ -51,6 +48,12 @@ public class AuthController {
     public ResponseEntity<TokenRefreshResponse> refreshAccessToken(@RequestBody TokenRefreshRequest request) {
         TokenRefreshResponse response = authService.refreshAccessToken(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@Valid @RequestBody TokenRefreshRequest request) {
+        authService.logout(request.refreshToken());
+        return ResponseEntity.ok("Logout successful");
     }
 
 

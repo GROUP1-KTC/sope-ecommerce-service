@@ -8,12 +8,14 @@ import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.Role;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
+import com.sope.sope_ecommerce_backend.entities.UserRole;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
-import com.sope.sope_ecommerce_backend.security.JwtUtil;
+import com.sope.sope_ecommerce_backend.security.jwt.JwtProvider;
 import com.sope.sope_ecommerce_backend.services.AuthService;
+import com.sope.sope_ecommerce_backend.services.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -24,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +37,8 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final UserDetailsService userDetailsService;
-    private final JwtUtil jwtUtil;
+    private final JwtProvider jwtProvider;
+    private final RedisService redisService;
 
 
     @Override
@@ -49,16 +53,19 @@ public class AuthServiceImpl implements AuthService {
         AppUser appUser = userMapper.toEntity(request);
         appUser.setPassword(passwordEncoder.encode(request.password()));
 
-        Role userRole = roleRepository.findByRoleName(RoleName.USER)
-                .orElseGet(() -> {
-                    Role newRole = new Role(RoleName.USER);
-                    return roleRepository.save(newRole);
-                });
+        Role userRoleEntity = roleRepository.findByRoleName(RoleName.USER)
+                .orElseGet(() -> roleRepository.save(new Role(RoleName.USER)));
 
+        UserRole userRole = UserRole.builder()
+                .user(appUser)
+                .role(userRoleEntity)
+                .grantedBy("SYSTEM")
+                .build();
 
-        appUser.getRoles().add(userRole);
+        appUser.getUserRoles().add(userRole);
 
         appUser = userRepository.save(appUser);
+
         return userMapper.toResponse(appUser);
     }
 
@@ -82,29 +89,42 @@ public class AuthServiceImpl implements AuthService {
         AppUser appUser = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String access_token = jwtUtil.generateToken(userDetails, appUser.getId());
+        String accessToken = jwtProvider.generateToken(userDetails, appUser.getId());
 
-        String refresh_token = jwtUtil.generateRefreshToken(userDetails, appUser.getId());
+        String refreshToken = jwtProvider.generateRefreshToken(userDetails, appUser.getId());
 
-        UserLoginResponse response = userMapper.toLoginResponse(appUser, access_token, refresh_token);
+        redisService.set("refresh:" + refreshToken, appUser.getId().toString(), 7, TimeUnit.DAYS);
 
-        return response;
+        return userMapper.toLoginResponse(appUser, accessToken, refreshToken);
     }
+
 
     @Override
     public TokenRefreshResponse refreshAccessToken(TokenRefreshRequest request) {
-        String refreshToken = request.refreshToken();
+        String oldRefreshToken = request.refreshToken();
 
-        String username = jwtUtil.extractUsername(refreshToken);
-        String userId = jwtUtil.extractUserId(refreshToken);
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-        if (jwtUtil.validateToken(refreshToken, userDetails, userId)) {
-            String newAccessToken = jwtUtil.generateToken(userDetails, UUID.fromString(userId));
-            return new TokenRefreshResponse(newAccessToken);
-        } else {
-            throw new RuntimeException("Invalid refresh token");
+        String redisKey = "refresh:" + oldRefreshToken;
+        Object userIdObj = redisService.get(redisKey);
+        if (userIdObj == null) {
+            throw new RuntimeException("Refresh token invalid or expired");
         }
+        String userId = (String) userIdObj;
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(jwtProvider.extractUsername(oldRefreshToken));
+
+        String newAccessToken = jwtProvider.generateToken(userDetails, UUID.fromString(userId));
+
+        String newRefreshToken = jwtProvider.generateRefreshToken(userDetails, UUID.fromString(userId));
+
+        redisService.set("refresh:" + newRefreshToken, userId, 7, TimeUnit.DAYS);
+        redisService.delete(redisKey);
+
+        return new TokenRefreshResponse(newAccessToken, newRefreshToken);
+    }
+
+    @Override
+    public void logout(String refreshToken) {
+        String redisKey = "refresh:" + refreshToken;
+        redisService.delete(redisKey);
     }
 }
