@@ -19,14 +19,12 @@ public class RevenueController {
 
       private final RevenueService revenueService;
 
-      // Doanh thu của shop theo shopId
       @GetMapping("/{shopId}")
       public ResponseEntity<RevenueResponse> getShopRevenue(@PathVariable UUID shopId) {
             RevenueResponse revenueShop = revenueService.calculateShopRevenue(shopId);
             return ResponseEntity.ok(revenueShop);
       }
 
-      // Doanh thu admin (tổng phí hoa hồng)
       @GetMapping
       public ResponseEntity<RevenueResponse> getAdminRevenue() {
             RevenueResponse revenueAdmin = revenueService.calculateAdminRevenue();

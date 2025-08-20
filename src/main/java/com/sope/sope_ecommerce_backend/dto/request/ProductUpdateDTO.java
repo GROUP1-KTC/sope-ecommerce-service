@@ -4,17 +4,15 @@ import java.util.List;
 
 import com.sope.sope_ecommerce_backend.dto.response.ProductDetailDTO;
 
-import lombok.Data;
+public record ProductUpdateDTO(
+		Boolean hidden,
+		String description,
 
-@Data
-public class ProductUpdateDTO {
-      private Boolean hidden;
-      private String description;
+		List<String> imageUrlsToKeep,
 
-      private List<String> imageUrlsToKeep;
+		List<ProductVariantRequestDTO> variants,
 
-      private List<ProductVariantRequestDTO> variants;
+		List<ProductDetailDTO> productDetails
 
-      private List<ProductDetailDTO> productDetails;
-
+) {
 }

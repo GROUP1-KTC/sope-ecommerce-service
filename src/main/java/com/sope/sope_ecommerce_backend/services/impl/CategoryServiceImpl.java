@@ -25,12 +25,12 @@ public class CategoryServiceImpl implements CategoryService {
       @Transactional
       public CategoryDTO createCategory(CategoryCreateDTO request) {
             Category category = new Category();
-            category.setName(request.getName());
+            category.setName(request.name());
 
             // Bước 1: Xử lý parent nếu có
             Category parent = null;
-            if (request.getParentId() != null) {
-                  parent = categoryRepository.findById(request.getParentId())
+            if (request.parentId() != null) {
+                  parent = categoryRepository.findById(request.parentId())
                               .orElseThrow(() -> new RuntimeException("Parent not found"));
                   category.setParent(parent);
             }

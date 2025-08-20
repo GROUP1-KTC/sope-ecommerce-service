@@ -6,18 +6,14 @@ import java.util.UUID;
 
 import com.sope.sope_ecommerce_backend.entities.Dimension;
 
-import lombok.Data;
-
-@Data
-public class ProductVariantDTO {
-      private UUID productVariantId;
-      private BigDecimal price;
-      private int stock;
-      private int sold;
-      private UUID productId;
-      private List<AttributeDTO> attributes;
-      private String imageVariant;
-      private Dimension dimension;
-      private BigDecimal weight;
-
+public record ProductVariantDTO(
+            UUID productVariantId,
+            BigDecimal price,
+            int stock,
+            int sold,
+            UUID productId,
+            List<AttributeDTO> attributes,
+            String imageVariant,
+            Dimension dimension,
+            BigDecimal weight) {
 }

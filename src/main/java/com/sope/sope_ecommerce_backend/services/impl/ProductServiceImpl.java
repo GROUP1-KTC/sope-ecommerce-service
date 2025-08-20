@@ -105,9 +105,9 @@ public class ProductServiceImpl implements ProductService {
             Product entity = productMapper.toEntity(dto);
 
             // category and shop
-            Category category = categoryRepository.findById(dto.getCategoryId())
+            Category category = categoryRepository.findById(dto.categoryId())
                         .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-            Shop shop = shopRepository.findById(dto.getShopId())
+            Shop shop = shopRepository.findById(dto.shopId())
                         .orElseThrow(() -> new ResourceNotFoundException("Shop not found"));
             entity.setCategory(category);
             entity.setShop(shop);
@@ -181,13 +181,13 @@ public class ProductServiceImpl implements ProductService {
                   }
             }
 
-            if (dto.getProductDetails() != null && !dto.getProductDetails().isEmpty()) {
-                  List<ProductDetailEntity> details = dto.getProductDetails().stream()
+            if (dto.productDetails() != null && !dto.productDetails().isEmpty()) {
+                  List<ProductDetailEntity> details = dto.productDetails().stream()
                               .map(detailDTO -> {
                                     ProductDetailEntity detail = new ProductDetailEntity();
-                                    detail.setLabel(detailDTO.getLabel());
-                                    detail.setData(detailDTO.getData());
-                                    detail.setPriority(detailDTO.getPriority());
+                                    detail.setLabel(detailDTO.label());
+                                    detail.setData(detailDTO.data());
+                                    detail.setPriority(detailDTO.priority());
                                     detail.setProduct(entity); // liên kết với Product
                                     return detail;
                               })
@@ -200,7 +200,7 @@ public class ProductServiceImpl implements ProductService {
             String first8ShopId = shop.getId().toString().substring(0, 8);
 
             Slugify slugify = Slugify.builder().build();
-            entity.setSlug(slugify.slugify(dto.getName()) + "-" + first8ProductId + "-" + first8ShopId);
+            entity.setSlug(slugify.slugify(dto.name()) + "-" + first8ProductId + "-" + first8ShopId);
 
             Product savedEntity = productRepository.save(entity);
 
@@ -219,20 +219,20 @@ public class ProductServiceImpl implements ProductService {
             Product entity = productRepository.findBySlug(slug)
                         .orElseThrow(() -> new ResourceNotFoundException("Product not found with slug: " + slug));
 
-            if (dto.getHidden() != null) {
-                  entity.setHidden(dto.getHidden());
+            if (dto.hidden() != null) {
+                  entity.setHidden(dto.hidden());
             }
-            if (dto.getDescription() != null) {
-                  entity.setDescription(dto.getDescription());
+            if (dto.description() != null) {
+                  entity.setDescription(dto.description());
             }
 
-            if (dto.getProductDetails() != null && !dto.getProductDetails().isEmpty()) {
-                  List<ProductDetailEntity> updatedDetails = dto.getProductDetails().stream()
+            if (dto.productDetails() != null && !dto.productDetails().isEmpty()) {
+                  List<ProductDetailEntity> updatedDetails = dto.productDetails().stream()
                               .map(detailDTO -> {
                                     ProductDetailEntity detail = new ProductDetailEntity();
-                                    detail.setLabel(detailDTO.getLabel());
-                                    detail.setData(detailDTO.getData());
-                                    detail.setPriority(detailDTO.getPriority());
+                                    detail.setLabel(detailDTO.label());
+                                    detail.setData(detailDTO.data());
+                                    detail.setPriority(detailDTO.priority());
                                     detail.setProduct(entity);
                                     return detail;
                               })
@@ -246,7 +246,7 @@ public class ProductServiceImpl implements ProductService {
                   entity.setDefaultVideoIntro(uploadFileToCloudinary(defaultVideoIntro, "video"));
             }
 
-            if (dto.getImageUrlsToKeep() != null || productImages != null) {
+            if (dto.imageUrlsToKeep() != null || productImages != null) {
                   List<ImageEntity> currentImages = entity.getImagesList();
                   if (currentImages == null) {
                         currentImages = new ArrayList<>();
@@ -254,8 +254,8 @@ public class ProductServiceImpl implements ProductService {
                   }
 
                   // 1. Xóa ảnh nào không còn trong danh sách giữ lại
-                  if (dto.getImageUrlsToKeep() != null) {
-                        currentImages.removeIf(img -> !dto.getImageUrlsToKeep().contains(img.getUrl()));
+                  if (dto.imageUrlsToKeep() != null) {
+                        currentImages.removeIf(img -> !dto.imageUrlsToKeep().contains(img.getUrl()));
                   }
 
                   // 2. Thêm ảnh mới
@@ -278,16 +278,16 @@ public class ProductServiceImpl implements ProductService {
                   }
             }
 
-            if (dto.getVariants() != null) {
+            if (dto.variants() != null) {
                   Map<UUID, ProductVariant> existingVariants = entity.getVariants().stream()
                               .collect(Collectors.toMap(ProductVariant::getProductVariantId, v -> v));
 
-                  for (ProductVariantRequestDTO variantDTO : dto.getVariants()) {
+                  for (ProductVariantRequestDTO variantDTO : dto.variants()) {
                         ProductVariant variantEntity;
-                        if (variantDTO.getProductVariantId() != null
-                                    && existingVariants.containsKey(variantDTO.getProductVariantId())) {
+                        if (variantDTO.productVariantId() != null
+                                    && existingVariants.containsKey(variantDTO.productVariantId())) {
                               // --- Variant cũ ---
-                              variantEntity = existingVariants.get(variantDTO.getProductVariantId());
+                              variantEntity = existingVariants.get(variantDTO.productVariantId());
                               updateVariantFromDTO(variantEntity, variantDTO);
                         } else {
                               // --- Variant mới ---
@@ -328,30 +328,30 @@ public class ProductServiceImpl implements ProductService {
       }
 
       private void updateVariantFromDTO(ProductVariant entity, ProductVariantRequestDTO dto) {
-            if (dto.getPrice() != null)
-                  entity.setPrice(dto.getPrice());
-            if (dto.getStock() != null)
-                  entity.setStock(dto.getStock());
+            if (dto.price() != null)
+                  entity.setPrice(dto.price());
+            if (dto.stock() != null)
+                  entity.setStock(dto.stock());
 
-            if (dto.getWeight() != null)
-                  entity.setWeight(dto.getWeight());
+            if (dto.weight() != null)
+                  entity.setWeight(dto.weight());
             else if (entity.getWeight() == null)
                   entity.setWeight(BigDecimal.ZERO); // mặc định 0 nếu chưa có
 
             // Kích thước
-            if (dto.getDimension() != null)
-                  entity.setDimension(dto.getDimension());
+            if (dto.dimension() != null)
+                  entity.setDimension(dto.dimension());
             else if (entity.getDimension() == null)
                   entity.setDimension(new Dimension(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
 
-            if (dto.getAttributes() != null && !dto.getAttributes().isEmpty()) {
-                  Set<Attribute> updatedAttributes = dto.getAttributes().stream()
-                              .map(attrDTO -> getOrCreateAttribute(attrDTO.getName(), attrDTO.getValue()))
+            if (dto.attributes() != null && !dto.attributes().isEmpty()) {
+                  Set<Attribute> updatedAttributes = dto.attributes().stream()
+                              .map(attrDTO -> getOrCreateAttribute(attrDTO.name(), attrDTO.value()))
                               .collect(Collectors.toSet());
                   entity.setAttributes(updatedAttributes);
             }
-            if (dto.getImageVariant() != null)
-                  entity.setImageVariant(dto.getImageVariant());
+            if (dto.imageVariant() != null)
+                  entity.setImageVariant(dto.imageVariant());
       }
 
       private Attribute getOrCreateAttribute(String name, String value) {
