@@ -7,7 +7,6 @@ import com.sope.sope_ecommerce_backend.dto.response.ProductBasicWithVariantsDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductVariantDetailDTO;
 import com.sope.sope_ecommerce_backend.entities.*;
-import com.sope.sope_ecommerce_backend.entities.Attribute;
 import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import com.sope.sope_ecommerce_backend.exception.ResourceNotFoundException;
 import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
@@ -19,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,19 +131,6 @@ public class ProductServiceImpl implements ProductService {
                   }).collect(Collectors.toList()));
             }
 
-            // Nếu không có variants -> tạo variant mặc định
-            if (entity.getVariants() == null || entity.getVariants().isEmpty()) {
-                  ProductVariant defaultVariant = new ProductVariant();
-                  defaultVariant.setPrice(entity.getDefaultPrice());
-                  defaultVariant.setStock(entity.getStock());
-                  defaultVariant.setSold(0);
-                  defaultVariant.setImageVariant(entity.getDefaultImage()); // URL ảnh mặc định
-                  defaultVariant.setProduct(entity);
-                  defaultVariant.setAttributes(new HashSet<>());
-
-                  entity.setVariants(new ArrayList<>(List.of(defaultVariant)));
-            }
-
             // Xử lý attributes cho từng variant
             for (ProductVariant variant : entity.getVariants()) {
                   Set<Attribute> managedAttributes = new HashSet<>();
@@ -194,6 +181,19 @@ public class ProductServiceImpl implements ProductService {
                   }
             }
 
+            if (dto.getProductDetails() != null && !dto.getProductDetails().isEmpty()) {
+                  List<ProductDetailEntity> details = dto.getProductDetails().stream()
+                              .map(detailDTO -> {
+                                    ProductDetailEntity detail = new ProductDetailEntity();
+                                    detail.setLabel(detailDTO.getLabel());
+                                    detail.setData(detailDTO.getData());
+                                    detail.setPriority(detailDTO.getPriority());
+                                    detail.setProduct(entity); // liên kết với Product
+                                    return detail;
+                              })
+                              .collect(Collectors.toList());
+                  entity.setProductDetails(details); // Product phải có field productDetails với @OneToMany
+            }
             productRepository.save(entity);
 
             String first8ProductId = entity.getProductId().toString().substring(0, 8);
@@ -219,17 +219,25 @@ public class ProductServiceImpl implements ProductService {
             Product entity = productRepository.findBySlug(slug)
                         .orElseThrow(() -> new ResourceNotFoundException("Product not found with slug: " + slug));
 
-            if (dto.getDefaultPrice() != null) {
-                  entity.setDefaultPrice(dto.getDefaultPrice());
-            }
-            if (dto.getStock() != null) {
-                  entity.setStock(dto.getStock());
-            }
             if (dto.getHidden() != null) {
                   entity.setHidden(dto.getHidden());
             }
             if (dto.getDescription() != null) {
                   entity.setDescription(dto.getDescription());
+            }
+
+            if (dto.getProductDetails() != null && !dto.getProductDetails().isEmpty()) {
+                  List<ProductDetailEntity> updatedDetails = dto.getProductDetails().stream()
+                              .map(detailDTO -> {
+                                    ProductDetailEntity detail = new ProductDetailEntity();
+                                    detail.setLabel(detailDTO.getLabel());
+                                    detail.setData(detailDTO.getData());
+                                    detail.setPriority(detailDTO.getPriority());
+                                    detail.setProduct(entity);
+                                    return detail;
+                              })
+                              .collect(Collectors.toList());
+                  entity.setProductDetails(updatedDetails);
             }
 
             productMapper.updateEntityFromDto(dto, entity);
@@ -324,6 +332,17 @@ public class ProductServiceImpl implements ProductService {
                   entity.setPrice(dto.getPrice());
             if (dto.getStock() != null)
                   entity.setStock(dto.getStock());
+
+            if (dto.getWeight() != null)
+                  entity.setWeight(dto.getWeight());
+            else if (entity.getWeight() == null)
+                  entity.setWeight(BigDecimal.ZERO); // mặc định 0 nếu chưa có
+
+            // Kích thước
+            if (dto.getDimension() != null)
+                  entity.setDimension(dto.getDimension());
+            else if (entity.getDimension() == null)
+                  entity.setDimension(new Dimension(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
 
             if (dto.getAttributes() != null && !dto.getAttributes().isEmpty()) {
                   Set<Attribute> updatedAttributes = dto.getAttributes().stream()

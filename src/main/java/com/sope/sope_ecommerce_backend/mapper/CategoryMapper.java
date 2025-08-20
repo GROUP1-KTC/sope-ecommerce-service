@@ -1,5 +1,19 @@
 package com.sope.sope_ecommerce_backend.mapper;
 
-public class CategoryMapper {
+import java.util.List;
+
+import org.mapstruct.Mapper;
+
+import com.sope.sope_ecommerce_backend.dto.request.CategoryCreateDTO;
+import com.sope.sope_ecommerce_backend.dto.response.CategoryDTO;
+import com.sope.sope_ecommerce_backend.entities.Category;
+
+@Mapper(componentModel = "spring")
+public interface CategoryMapper {
+      CategoryDTO toDto(Category category);
+
+      List<CategoryDTO> toDtoList(List<Category> categories);
+
+      Category toEntity(CategoryCreateDTO dto);
 
 }

@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.Builder;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.List;
@@ -19,7 +17,6 @@ import java.util.List;
 public class ProductDTO {
       private UUID productId;
       private String name;
-      private BigDecimal defaultPrice;
       private String brand;
       private String description;
       private String defaultImage;
@@ -30,10 +27,9 @@ public class ProductDTO {
       private LocalDateTime createdAt;
       private LocalDateTime updatedAt;
       private CategoryInfo category;
-      private int stock;
-      private int sold;
       private ShopInfo shop;
       private List<ProductVariantDTO> variants;
+      private List<ProductDetailDTO> productDetails;
       private List<ImageDTO> imagesList;
 
       @Data
