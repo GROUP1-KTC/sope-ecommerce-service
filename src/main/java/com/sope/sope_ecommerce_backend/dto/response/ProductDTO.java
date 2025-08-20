@@ -17,18 +17,9 @@ public record ProductDTO(
             String slug,
             LocalDateTime createdAt,
             LocalDateTime updatedAt,
-            CategoryInfo category,
+            CategoryParentInfo category,
             ShopInfo shop,
             List<ProductVariantDTO> variants,
             List<ProductDetailDTO> productDetails,
             List<ImageDTO> imagesList) {
-      public record CategoryInfo(
-                  UUID id,
-                  String name) {
-      }
-
-      public record ShopInfo(
-                  UUID id,
-                  String name) {
-      }
 }

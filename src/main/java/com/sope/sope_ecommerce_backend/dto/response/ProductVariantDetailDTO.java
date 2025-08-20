@@ -16,8 +16,5 @@ public record ProductVariantDetailDTO(
             ProductInfo product,
             Dimension dimension,
             BigDecimal weight) {
-      public record ProductInfo(
-                  UUID productId,
-                  String name) {
-      }
+
 }

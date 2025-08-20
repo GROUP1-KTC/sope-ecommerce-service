@@ -6,9 +6,5 @@ public record CategoryDTO(
             UUID id,
             String name,
             String slug,
-            ParentInfo parent) {
-      public record ParentInfo(
-                  UUID id,
-                  String name) {
-      }
+            CategoryParentInfo parent) {
 }
