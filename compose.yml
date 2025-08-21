@@ -4,6 +4,11 @@ services:
     container_name: api-product
     ports:
       - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=local 
+    volumes:
+      - ./application-local.yml:/app/src/main/resources/application-local.yml:ro
+      - ./.env.properties:/app/.env.properties:ro
     networks:
       - customer-network
 
