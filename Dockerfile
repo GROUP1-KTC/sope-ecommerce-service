@@ -5,11 +5,9 @@ WORKDIR /app
 # Copy file build.gradle / settings.gradle / gradle wrapper
 COPY settings.gradle.kts build.gradle.kts gradle.properties* ./
 COPY gradle ./gradle
-
+RUN gradle --no-daemon build -x test || true
 # Copy source code
 COPY . .
-
-# Build jar
 RUN gradle --no-daemon clean bootJar
 
 # ---------- Stage 2: Run ----------

@@ -23,6 +23,12 @@ repositories {
 	mavenCentral()
 }
 
+tasks.processResources {
+    from("src/main/resources") {
+        include("**/*.properties")
+    }
+}
+
 dependencies {
 	// ===== Spring Boot Core =====
 	implementation(libs.spring.boot.starter.data.jpa)
