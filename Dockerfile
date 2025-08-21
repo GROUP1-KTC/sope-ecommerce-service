@@ -1,5 +1,5 @@
 # ---------- Stage 1: Build ----------
-FROM gradle:8.14-jdk21-alpine AS builder
+FROM gradle:8.14-jdk17-alpine AS builder
 WORKDIR /app
 
 # Cache dependencies
@@ -12,7 +12,7 @@ COPY . .
 RUN gradle --no-daemon clean bootJar
 
 # ---------- Stage 2: Run ----------
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 ARG JAR_PATH=/app/build/libs
