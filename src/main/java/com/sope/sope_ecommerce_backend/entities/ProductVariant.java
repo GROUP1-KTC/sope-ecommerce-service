@@ -29,6 +29,11 @@ public class ProductVariant {
 
     private String imageVariant;
 
+    @Embedded
+    private Dimension dimension;
+
+    private BigDecimal weight;
+
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;

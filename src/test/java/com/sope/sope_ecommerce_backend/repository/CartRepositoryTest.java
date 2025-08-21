@@ -37,7 +37,7 @@ public class CartRepositoryTest {
                 .address("123 Test St")
                 .note("Test note")
                 .status("ACTIVE")
-                .roles(Set.of())
+                .userRoles(Set.of())
                 .build();
         testEntityManager.persist(appUser1);
 

@@ -4,28 +4,33 @@ import com.github.slugify.Slugify;
 import com.sope.sope_ecommerce_backend.dto.request.CategoryCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.response.CategoryDTO;
 import com.sope.sope_ecommerce_backend.entities.Category;
+import com.sope.sope_ecommerce_backend.mapper.CategoryMapper;
 import com.sope.sope_ecommerce_backend.repositories.CategoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.sope.sope_ecommerce_backend.services.CategoryService;
 
-import java.util.ArrayList;
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-public class CategoryServiceImpl {
+@RequiredArgsConstructor
+public class CategoryServiceImpl implements CategoryService {
+      private final CategoryRepository categoryRepository;
+      private final CategoryMapper categoryMapper;
 
-      @Autowired
-      private CategoryRepository categoryRepository;
-
+      @Override
+      @Transactional
       public CategoryDTO createCategory(CategoryCreateDTO request) {
             Category category = new Category();
-            category.setName(request.getName());
+            category.setName(request.name());
 
             // Bước 1: Xử lý parent nếu có
             Category parent = null;
-            if (request.getParentId() != null) {
-                  parent = categoryRepository.findById(request.getParentId())
+            if (request.parentId() != null) {
+                  parent = categoryRepository.findById(request.parentId())
                               .orElseThrow(() -> new RuntimeException("Parent not found"));
                   category.setParent(parent);
             }
@@ -52,51 +57,16 @@ public class CategoryServiceImpl {
             category.setSlug(slug);
 
             // Bước 4: lưu lại slug
-            category = categoryRepository.save(category);
+            categoryRepository.save(category);
 
-            return toResponse(category);
+            return categoryMapper.toDto(category);
+
       }
 
+      @Override
+      @Transactional(readOnly = true)
       public List<CategoryDTO> getAllCategories() {
-            return categoryRepository.findAll().stream()
-                        .map(this::toResponse)
-                        .collect(Collectors.toList());
+            return categoryMapper.toDtoList(categoryRepository.findAll());
       }
 
-      public List<Category> getAllDescendantCategories(Category parent) {
-            List<Category> result = new ArrayList<>();
-            result.add(parent); // bao gồm chính nó
-
-            List<Category> allCategories = categoryRepository.findAll();
-            findChildrenRecursive(parent, allCategories, result);
-
-            return result;
-      }
-
-      private void findChildrenRecursive(Category parent, List<Category> allCategories, List<Category> result) {
-            for (Category category : allCategories) {
-                  if (category.getParent() != null && category.getParent().getId().equals(parent.getId())) {
-                        result.add(category);
-                        findChildrenRecursive(category, allCategories, result);
-                  }
-            }
-      }
-
-      private CategoryDTO toResponse(Category category) {
-            CategoryDTO res = new CategoryDTO();
-            res.setId(category.getId());
-            res.setName(category.getName());
-            res.setSlug(category.getSlug());
-
-            if (category.getParent() != null) {
-                  CategoryDTO.ParentInfo parentDto = new CategoryDTO.ParentInfo();
-                  parentDto.setId(category.getParent().getId());
-                  parentDto.setName(category.getParent().getName());
-                  res.setParent(parentDto);
-            } else {
-                  res.setParent(null);
-            }
-
-            return res;
-      }
 }
