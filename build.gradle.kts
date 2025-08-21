@@ -67,6 +67,10 @@ dependencies {
 	implementation(libs.flyway.core)
 	runtimeOnly(libs.flyway.database.postgresql)
 
+	// ===== FeignClient =====
+	implementation(libs.spring.cloud.starter.openfeign)
+	implementation(platform(libs.spring.cloud.dependencies))
+
 	// ===== Test =====
 	testImplementation(libs.spring.boot.starter.test)
 	testImplementation(libs.spring.security.test)

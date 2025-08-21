@@ -8,6 +8,7 @@ java = "17"
 spring-websocket = "6.1.14"
 spring-messaging = "6.1.14"
 springdoc-openapi = "2.8.9"
+spring-cloud = "2025.0.0"
 
 
 # Database
@@ -30,6 +31,8 @@ lombokMapstructBinding = "0.2.0"
 
 # Flyway
 flyway = "11.11.0"
+
+
 
 # Test
 junit-platform-launcher = "1.11.3"
@@ -79,3 +82,9 @@ flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher" }
 mockito = { module = "org.mockito:mockito-junit-jupiter" }
 h2database = { module = "com.h2database:h2" }
+
+
+# FeignClient
+
+spring-cloud-starter-openfeign = { module = "org.springframework.cloud:spring-cloud-starter-openfeign" }
+spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }

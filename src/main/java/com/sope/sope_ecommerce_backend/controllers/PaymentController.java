@@ -1,13 +1,17 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
 
+import com.sope.sope_ecommerce_backend.constant.MomoVariable;
 import com.sope.sope_ecommerce_backend.dto.request.PaymentRequest;
 import com.sope.sope_ecommerce_backend.dto.response.PaymentResponse;
+import com.sope.sope_ecommerce_backend.exception.CustomException;
+import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.PaymentService;
 import com.sope.sope_ecommerce_backend.utils.ParamUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -20,31 +24,21 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/initiate")
-    public ResponseEntity<PaymentResponse> initiatePayment(@RequestBody PaymentRequest request) {
-        PaymentResponse response = paymentService.initiatePayment(request);
-        return ResponseEntity.ok(response); // Client redirect to response.providerPayUrl
+    public ResponseEntity<PaymentResponse> initiatePayment(@RequestBody PaymentRequest request,
+                                                            @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+        PaymentResponse response = paymentService.initiatePayment(request, currentUser.getUserId());
+        return ResponseEntity.ok(response);
     }
-
-    // Webhook endpoint (public, nhưng secure bằng signature)
-    @PostMapping("/callback/{provider}")
-    public ResponseEntity<Void> handleCallback(
-            @PathVariable String provider,
-            @RequestParam String providerPaymentId,
-            @RequestParam String callbackStatus,
-            @RequestParam(required = false) String otherParams) {
-        paymentService.handlePaymentCallback(provider, providerPaymentId, callbackStatus, otherParams);
-        return ResponseEntity.ok().build();
-    }
-
 
     @PostMapping("/webhook/momo")
-    public ResponseEntity<String> momoIpn(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<String> momoIpn(@RequestBody Map<String, String> request) {
         Map<String, String> flat = new HashMap<>();
-        body.forEach((k,v) -> flat.put(k, v == null ? "" : v.toString()));
+        request.forEach((k,v) -> flat.put(k, v == null ? "" : v.toString()));
         String providerPaymentId = flat.get("orderId");
-        String providerStatus = flat.get("resultCode"); // "0" success
-        paymentService.handlePaymentCallback("MOMO", providerPaymentId, providerStatus, /* serialize to query/json */ ParamUtil.toQueryString(flat, true));
-        return ResponseEntity.ok("0");
+        String providerStatus = flat.get(MomoVariable.RESULT_CODE);
+        paymentService.handlePaymentCallback("MOMO", providerPaymentId, providerStatus, ParamUtil.toQueryString(flat, true));
+        return ResponseEntity.ok(providerStatus.equals("0") ? "Payment success" : "Payment failed");
     }
 
     @RequestMapping(value="/webhook/vnpay", method={RequestMethod.GET, RequestMethod.POST})
@@ -55,4 +49,13 @@ public class PaymentController {
         paymentService.handlePaymentCallback("VNPAY", providerPaymentId, providerStatus, ParamUtil.toQueryString(flat, true));
         return ResponseEntity.ok("OK");
     }
+
+//    @GetMapping("/payment/resume")
+//    public PaymentInfo resumePayment(@RequestParam String token) {
+//        TempOrder tempOrder = tempOrderRepository.findByResumeToken(token)
+//                .orElseThrow(() -> new CustomException("Order not found or expired"));
+//
+//        // trả về thông tin order, tổng tiền, items, etc.
+//        return mapToPaymentInfo(tempOrder);
+//    }
 }

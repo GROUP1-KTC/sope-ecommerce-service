@@ -1,27 +1,23 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
+import com.sope.sope_ecommerce_backend.dto.request.GuestOrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
+import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
 import com.sope.sope_ecommerce_backend.repositories.OrderRepository;
 import com.sope.sope_ecommerce_backend.repositories.OrderStatusHistoryRepository;
-import com.sope.sope_ecommerce_backend.repositories.ProductVariantRepository;
-import com.sope.sope_ecommerce_backend.services.AddressService;
-import com.sope.sope_ecommerce_backend.services.CartService;
-import com.sope.sope_ecommerce_backend.services.OrderService;
-import com.sope.sope_ecommerce_backend.services.UserService;
+import com.sope.sope_ecommerce_backend.services.*;
+import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 
 @Service
@@ -31,117 +27,66 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderStatusHistoryRepository statusHistoryRepository;
     private final CartService cartService;
-    private final ProductVariantRepository productVariantService;
-//    private final DiscountCodeService discountCodeService;
     private final UserService userService;
     private final AddressService addressService;
+    private final OrderMapper orderMapper;
 
+    private final List<OrderCreationStrategy<?>> strategies;
+
+
+    /**
+     * Creates a new order based on the provided request.
+     *
+     * @param request the order creation request containing user ID, shipping address ID, and other details
+     * @return the created order response
+     */
     @Override
     @Transactional
-    public OrderResponse createOrder(OrderCreateRequest request) {
-//        // Get entities from IDs
-//        User user = userService.getUserById(request.userId());
-//        Address shippingAddress = addressService.getAddressById(request.shippingAddressId());
-//
-//        // Check idempotency
-//        Optional<Order> existingOrder = orderRepository.findByIdempotencyKey(request.idempotencyKey());
-//        if (existingOrder.isPresent()) {
-//            return dtoMapper.toOrderResponse(existingOrder.get());
-//        }
-//
-//        Cart cart = cartService.getCartByUser(user);
-//        if (cart.getItems().isEmpty()) {
-//            throw new CustomException("Cart is empty");
-//        }
-//
-//        // Calculate subtotal and orderItems (giống trước)
-//        BigDecimal subtotal = BigDecimal.ZERO;
-//        List<OrderItem> orderItems = new ArrayList<>();
-//        for (CartItem cartItem : cart.getItems()) {
-//            ProductVariantEntity variant = cartItem.getProductVariant();
-//            if (variant.getStock() < cartItem.getQuantity()) {
-//                throw new CustomException("Insufficient stock for " + variant.getProduct().getName());
-//            }
-//            BigDecimal itemPrice = variant.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity()));
-//            subtotal = subtotal.add(itemPrice);
-//
-//            OrderItem orderItem = OrderItem.builder()
-//                    .orderItemId(OrderItemId.builder()
-//                            .orderId(null)
-//                            .productVariantId(variant.getId())
-//                            .build())
-//                    .productVariant(variant)
-//                    .quantity(cartItem.getQuantity())
-//                    .price(variant.getPrice())
-//                    .build();
-//            orderItems.add(orderItem);
-//
-//            variant.setStock(variant.getStock() - cartItem.getQuantity());
-//            productVariantService.save(variant);
-//        }
-//
-//        // Apply discount
-//        BigDecimal discountAmount = BigDecimal.ZERO;
-//        DiscountCodeEntity discount = null;
-//        if (request.discountCodeId() != null) {
-//            discount = discountCodeService.getById(UUID.fromString(request.discountCodeId()));
-//            if (discount.isValid()) {
-//                discountAmount = discount.calculateDiscount(subtotal);
-//            } else {
-//                throw new CustomException("Invalid discount code");
-//            }
-//        }
-//
-//        BigDecimal shippingCharges = BigDecimal.valueOf(10.00); // Mock
-//        BigDecimal totalAmount = subtotal.subtract(discountAmount).add(shippingCharges);
-//
-//        Order order = Order.builder()
-//                .orderId(UUID.randomUUID())
-//                .user(user)
-//                .shippingAddress(shippingAddress)
-//                .orderDate(LocalDateTime.now())
-//                .subtotal(subtotal)
-//                .shippingCharges(shippingCharges)
-//                .totalAmount(totalAmount)
-//                .note(request.note())
-//                .status(OrderStatus.PENDING)
-//                .orderItems(orderItems)
-//                .idempotencyKey(request.idempotencyKey())
-//                .discountCode(discount)
-//                .statusHistory(new ArrayList<>())
-//                .build();
-//
-//        orderItems.forEach(item -> {
-//            item.setOrder(order);
-//            item.getOrderItemId().setOrderId(order.getOrderId());
-//        });
-//
-//        addStatusHistory(order, OrderStatus.PENDING);
-//
-//        order = orderRepository.save(order);
-//
-//        cartService.clearCart(cart);
-//
-//        return dtoMapper.toOrderResponse(order);
-        return null;
+    public OrderResponse createOrder(OrderCreateRequest request, UUID userId) {
+
+        Optional<Order> existing = orderRepository.findByIdempotencyKey(request.idempotencyKey());
+        if (existing.isPresent()) {
+            return orderMapper.toOrderResponseDTO(existing.get());
+        }
+
+        OrderCreationStrategy strategy = strategies.stream()
+                .filter(s -> s.supports(request))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported order request type"));
+
+
+        return strategy.createOrder(request, userId);
     }
 
     @Override
     public Iterable<OrderResponse> getAllOrders() {
-        return null;
+        List<Order> orders = orderRepository.findAll();
+        if (orders.isEmpty()) {
+            throw new CustomException("No orders found");
+        }
+
+        return orderMapper.toOrderResponseDTOs(orders);
     }
 
     @Override
     public Iterable<OrderResponse> getOrdersByUserId(UUID userId) {
-        return null;
+
+        AppUser appUser = userService.getUserEntityById(userId);
+
+        List<Order> orders = orderRepository.findByAppUser(appUser);
+        if (orders.isEmpty()) {
+            throw new CustomException("No orders found for user");
+        }
+
+
+        return orderMapper.toOrderResponseDTOs(orders);
     }
 
     @Override
-    public OrderResponse getOrderById(UUID id) {
-//        Order order = orderRepository.findById(orderId)
-//                .orElseThrow(() -> new CustomException("Order not found"));
-//        return dtoMapper.toOrderResponse(order);
-        return null;
+    public OrderResponse getOrderById(UUID orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new CustomException("Order not found"));
+        return orderMapper.toOrderResponseDTO(order);
     }
 
     @Override
@@ -176,6 +121,34 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
+
+
+    @Transactional
+    public void updateOrderStatus(UpdateOrderStatusRequest request) {
+        Order order = orderRepository.findById(request.orderId())
+                .orElseThrow(() -> new CustomException("Order not found"));
+
+        OrderStatus newStatus = request.status();
+
+        if (order.getStatus() == newStatus) {
+            return;
+        }
+
+        if (!isValidStatusTransition(order.getStatus(), newStatus)) {
+            throw new CustomException("Invalid status transition from " + order.getStatus() + " to " + newStatus);
+        }
+
+        order.setStatus(newStatus);
+        addStatusHistory(order, newStatus);
+        orderRepository.save(order);
+    }
+
+    /**
+     * Adds a status history entry for the given order.
+     *
+     * @param order  the order to which the status history will be added
+     * @param status the new status to be recorded
+     */
     private void addStatusHistory(Order order, OrderStatus status) {
         OrderStatusHistory history = OrderStatusHistory.builder()
                 .order(order)
@@ -183,5 +156,23 @@ public class OrderServiceImpl implements OrderService {
                 .timestamp(LocalDateTime.now())
                 .build();
         order.getStatusHistory().add(history);
+    }
+
+    private boolean isValidStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
+        // Define valid transitions here
+        switch (currentStatus) {
+            case PENDING:
+                return newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED;
+            case CONFIRMED:
+                return newStatus == OrderStatus.SHIPPING || newStatus == OrderStatus.CANCELLED;
+            case SHIPPING:
+                return newStatus == OrderStatus.DELIVERED;
+            case DELIVERED:
+                return newStatus == OrderStatus.REFUNDED;
+            case CANCELLED:
+                return false;
+            default:
+                throw new CustomException("Unknown order status: " + currentStatus);
+        }
     }
 }

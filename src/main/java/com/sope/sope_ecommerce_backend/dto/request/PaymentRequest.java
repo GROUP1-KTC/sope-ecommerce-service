@@ -12,8 +12,8 @@ public record PaymentRequest(
          PaymentMethod method,
         PaymentProvider provider,
          String currency,
-         String returnUrl, // redirect after pay (optional)
-         String notifyUrl, // webhook callback
-         String idempotencyKey
+         String orderInfo,
+         String idempotencyKey,
+        String tempOrderCode
 ) {
 }

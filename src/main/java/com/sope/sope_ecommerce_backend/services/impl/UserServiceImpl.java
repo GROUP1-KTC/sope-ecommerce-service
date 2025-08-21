@@ -5,6 +5,7 @@ import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
@@ -56,6 +57,37 @@ public class UserServiceImpl implements UserService {
         AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return userMapper.toResponse(appUser);
+    }
+
+
+    @Override
+    public AppUser getUserEntityById(UUID id) {
+        AppUser appUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return appUser;
+    }
+
+
+    @Override
+    public AppUser getUserEntityByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    @Override
+    public AppUser getOrCreateGuestUser(String email, String fullName, String phone) {
+        AppUser guestUser = userRepository.findByEmail(email).orElse(null);
+        if (guestUser == null) {
+            guestUser = AppUser.builder()
+                    .email(email)
+                    .name(fullName)
+                    .phone(phone)
+//                    .roles()
+                    .status("INACTIVE")
+                    .build();
+
+            userRepository.save(guestUser);
+        }
+        return guestUser;
     }
 
     @Override

@@ -81,7 +81,7 @@ public class CartController {
 
     @PatchMapping("/items/{itemId}")
     public ResponseEntity<ApiResponse<Object>> updateCartItem(
-            @PathVariable Long itemId,
+            @PathVariable UUID itemId,
             @RequestBody UpdateCartItemRequestDTO request,
             @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
@@ -109,7 +109,7 @@ public class CartController {
      * @return a response indicating success or failure
      */
     @DeleteMapping("/{cartItemId}")
-    public ResponseEntity<ApiResponse<Object>> removeItem(@PathVariable Long cartItemId,
+    public ResponseEntity<ApiResponse<Object>> removeItem(@PathVariable UUID cartItemId,
                                                           @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
             if (currentUser == null) {

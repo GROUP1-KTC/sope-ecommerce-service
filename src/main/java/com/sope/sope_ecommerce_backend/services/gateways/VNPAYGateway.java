@@ -1,9 +1,17 @@
 package com.sope.sope_ecommerce_backend.services.gateways;
 
+import com.sope.sope_ecommerce_backend.client.MomoApi;
+import com.sope.sope_ecommerce_backend.client.VnPayApi;
+import com.sope.sope_ecommerce_backend.dto.request.CreateMomoRequest;
+import com.sope.sope_ecommerce_backend.dto.request.CreateVNPayRequest;
+import com.sope.sope_ecommerce_backend.dto.request.PaymentRequest;
+import com.sope.sope_ecommerce_backend.dto.response.PaymentResponse;
 import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
 import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
 import com.sope.sope_ecommerce_backend.utils.HmacUtil;
 import com.sope.sope_ecommerce_backend.utils.ParamUtil;
+import com.sope.sope_ecommerce_backend.utils.RequestUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -18,52 +26,100 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.TreeMap;
 
-@Component("VNPAY")
-public class VNPAYGateway implements  PaymentGateway{
+import static com.sope.sope_ecommerce_backend.constant.VNPayVariable.DEFAULT_MULTIPLIER;
 
-    @Value("${vnpay.payUrl:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
+@Component("VNPAY")
+@RequiredArgsConstructor
+public class VNPAYGateway implements  PaymentGateway<PaymentResponse>{
+
+    @Value("${payment-gateway.vnpay.pay-url:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
     private String payUrl;
-    @Value("${vnpay.tmnCode}")
+    @Value("${payment-gateway.vnpay.tmnCode:your_tmn_code}")
     private String tmnCode;
-    @Value("${vnpay.secretKey}")
+    @Value("${payment-gateway.vnpay.secretKey:your_secret_key}")
     private String secretKey;
-    @Value("${vnpay.returnUrl}")
+    @Value("${payment-gateway.vnpay.returnUrl:http://your-site.com/api/payments/callback/VNPAY}")
     private String returnUrl;
-    @Value("${vnpay.locale:vn}")
+    @Value("${payment-gateway.vnpay.locale:vn:vi}")
     private String locale;
-    @Value("${vnpay.currCode:VND}")
+    @Value("${payment-gateway.vnpay.currCode:VND}")
     private String currCode;
-    @Value("${vnpay.command:pay}")
+    @Value("${payment-gateway.vnpay.vnp-command:pay}")
     private String command;
-    @Value("${vnpay.version:2.1.0}")
+    @Value("${payment-gateway.vnpay.vnp-version:2.1.0}")
     private String version;
+
+    private final VnPayApi vnPayApi;
+    private final RequestUtil requestUtil;
+
 
     @Override
     public PaymentProvider getProvider() { return PaymentProvider.VNPAY; }
 
     @Override
-    public String[] createPaymentIntent(BigDecimal amount, String idempotencyKey) {
-        Map<String, String> params = new TreeMap<>();
-        params.put("vnp_Version", version);
-        params.put("vnp_Command", command);
-        params.put("vnp_TmnCode", tmnCode);
-        params.put("vnp_Amount", amount.movePointRight(2).toPlainString()); // x100
-        params.put("vnp_CurrCode", currCode);
-        params.put("vnp_TxnRef", idempotencyKey);
-        params.put("vnp_OrderInfo", "Payment for order " + idempotencyKey);
-        params.put("vnp_OrderType", "billpayment");
-        params.put("vnp_Locale", locale);
-        params.put("vnp_ReturnUrl", returnUrl);
-        params.put("vnp_IpAddr", "0.0.0.0"); // TODO: lấy IP thực tế từ request
-        params.put("vnp_CreateDate", DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
+    public PaymentResponse createPaymentIntent(PaymentRequest request) {
+        String orderInfo = request.orderInfo();
 
-        // data để ký: query đã URL-encode value, sort key ASC, KHÔNG gồm vnp_SecureHash
-        String dataToSign = ParamUtil.toQueryString(params, true);
-        String secureHash = HmacUtil.hmacSha512Hex(dataToSign, secretKey);
+        String vnp_TxnRef = request.idempotencyKey();
+        String vnp_IpAddr = requestUtil.getClientIp();
 
-        String payRedirect = payUrl + "?" + dataToSign + "&vnp_SecureHash=" + secureHash;
-        return new String[]{payRedirect, idempotencyKey};
+        String vnpCurrCode = "VND";
+        String vnpLocale = "vn";
+        String vnpOrderType = "other";
+
+        String requestId =  request.idempotencyKey();
+        String amount = String.valueOf(request.amount().multiply(BigDecimal.valueOf(DEFAULT_MULTIPLIER)).longValue());
+
+//        data = vnp_RequestId + “|” + vnp_Version + “|” +
+//                vnp_Command + “|” + vnp_TmnCode + “|” +
+//                vnp_TxnRef + “|” + vnp_TransactionDate + “|” +
+//                vnp_CreateDate + “|” + vnp_IpAddr + “|” +
+//                vnp_OrderInfo;
+
+//        String rawSignature =
+//                "accessKey=" + accessKey +
+//                        "&amount=" + request.amount().longValue() +
+//                        "&extraData=" + (extraData == null ? "" : extraData) +
+//                        "&ipnUrl=" + ipnUrl +
+//                        "&orderId=" + orderId +
+//                        "&orderInfo=" + orderInfo +
+//                        "&partnerCode=" + partnerCode +
+//                        "&redirectUrl=" + redirectUrl +
+//                        "&requestId=" + requestId +
+//                        "&requestType=captureWallet";
+
+//        StringBuilder hashData = new StringBuilder();
+//        for (Map.Entry<String, String> e : req.toSortedParamMap(false).entrySet()) {
+//            if (e.getValue() == null || e.getValue().isEmpty()) continue;
+//            if (hashData.length() > 0) hashData.append('&');
+//            hashData.append(e.getKey()).append('=').append(e.getValue());
+//        }
+
+
+//        String secureHash = HmacUtil.hmacSha512Hex(rawSignature, secretKey);
+
+
+
+
+//        CreateVNPayRequest vnPayRequest = CreateVNPayRequest.builder()
+//                .partnerCode(partnerCode)
+//                .requestType("captureWallet")
+//                .ipnUrl(ipnUrl)
+//                .redirectUrl(redirectUrl)
+//                .orderId(orderId)
+//                .amount(amount)
+//                .orderInfo(orderInfo)
+//                .requestId(requestId)
+//                .extraData(extraData)
+//                .signature(secureHash)
+//                .lang("vi")
+//                .build();
+//
+//        return vnPayApi.createPaymentIntent(momoRequest);
+
+        return null;
     }
+
 
     @Override
     public PaymentStatus mapStatus(String code) {

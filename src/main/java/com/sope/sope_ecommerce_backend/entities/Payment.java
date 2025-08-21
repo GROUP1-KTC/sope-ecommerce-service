@@ -31,6 +31,8 @@ public class Payment {
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
+    private UUID tempOrderId;
+
     @Column(nullable = false)
     private BigDecimal amount;
 

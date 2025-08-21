@@ -126,17 +126,23 @@ server:
 
 payment-gateway:
   vnpay:
-    payUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-    tmnCode:
-    secretKey:
-    returnUrl: http://localhost:8082/api/v1/payment/vnpay/callback
+    pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+    secret-key: 4F3B2D1C6A7E8B9A0D1C2E3F4A5B6C7D
+    api-url:
+    return-url: http://localhost:8082/api/v1/payment/webhook/vnpay
+    vnp-version: 2.1.0
+    vnp-command: pay
+    vnp_tmn-code: 2QXUI4J4
+
 
   momo:
-    endpoint:
-    partnerCode:
-    accessKey:
-    secretKey:
-    redirectUrl: http://localhost:8082/api/v1/payment/momo/callback
+    partner-code: MOMO
+    endpoint: https://test-payment.momo.vn/v2/gateway/api
+    return-url: http://localhost:3000
+    ipn-url: http://localhost:8082/api/v1/payment/webhook/momo
+    access-key: F8BBA842ECF85
+    secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+    request-type: captureWallet
 
 
 
