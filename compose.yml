@@ -1,0 +1,12 @@
+services:
+  api-product:
+    image: hoangson3000/api-product:latest
+    container_name: api-product
+    ports:
+      - "8082:8082"
+    networks:
+      - customer-network
+
+networks:
+  customer-network:
+    external: true
