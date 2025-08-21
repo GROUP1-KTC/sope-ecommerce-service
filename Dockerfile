@@ -1,6 +1,8 @@
 # ---------- Stage 1: Build ----------
 FROM gradle:8.14-jdk17-alpine AS builder
 WORKDIR /app
+COPY target/app.jar app.jar
+ENTRYPOINT ["java","-jar","app.jar"]
 
 # Cache dependencies
 COPY settings.gradle.kts build.gradle.kts gradle.properties* ./
