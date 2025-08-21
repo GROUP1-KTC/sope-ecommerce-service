@@ -3,7 +3,7 @@ FROM gradle:8.14-jdk21-alpine AS builder
 WORKDIR /app
 
 # Cache dependencies
-COPY settings.gradle build.gradle gradle.properties* ./
+COPY settings.gradle.kts build.gradle.kts gradle.properties* ./
 COPY gradle ./gradle
 RUN gradle --no-daemon build -x test || true
 
