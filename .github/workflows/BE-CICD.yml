@@ -37,8 +37,8 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build --no-cache -t $DOCKER_IMAGE:$DOCKER_TAG .
-          docker push $DOCKER_IMAGE:$DOCKER_TAG
+          docker build --no-cache -t ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} .
+          docker push ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
 
 
       - name: Ensure remote dir exists
@@ -61,7 +61,7 @@ jobs:
 
       - name: check current directory
         run: |
-          cd $DEPLOY_DIR
+          cd ${{ env.DEPLOY_DIR }}
           
           echo "Current directory:"
           ls
@@ -98,18 +98,18 @@ jobs:
             cd $DEPLOY_DIR
             
             echo "Creating network (if not exists)..."
-            echo "Currently, we re-use $DOCKER_NETWORK"
-            docker network create $DOCKER_NETWORK || true
+            echo "Currently, we re-use ${{ env.DOCKER_NETWORK }}"
+            docker network create ${{ env.DOCKER_NETWORK }} || true
 
             echo "Stopping old container if exists..."
-            docker compose -f docker-compose.yaml stop $SERVICE_NAME || true
-            docker compose -f docker-compose.yaml rm -f $SERVICE_NAME || true
+            docker compose -f docker-compose.yaml stop ${{ env.SERVICE_NAME }} || true
+            docker compose -f docker-compose.yaml rm -f ${{ env.SERVICE_NAME }} || true
             
             
             echo "Pulling latest image..."
-            docker compose -f docker-compose.yaml pull $SERVICE_NAME || true
+            docker compose -f docker-compose.yaml pull ${{ env.SERVICE_NAME }} || true
             
             echo "Starting new container with correct name..."
-            docker compose -f docker-compose.yaml up -d --remove-orphans --build $SERVICE_NAME
+            docker compose -f docker-compose.yaml up -d --remove-orphans --build ${{ env.SERVICE_NAME }}
             
             echo "Deployment completed!"
