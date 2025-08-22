@@ -59,14 +59,23 @@ jobs:
           source: docker-compose.yaml
           target: ${{ env.DEPLOY_DIR }}
 
-      - name: check current directory
-        run: |
-          cd ${{ env.DEPLOY_DIR }}
-          
-          echo "Current directory:"
-          ls
-          cat docker-compose.yaml
-
+      - name: Copy .env file to server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cat > ${{ env.DEPLOY_DIR }}/.env << EOF
+            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
+            PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
+            EXPIRATION=${{ secrets.EXPIRATION }}
+            REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}
+        
+            DOCKER_IMAGE=${{ vars.DOCKER_IMAGE }}
+            DOCKER_IMAGE_VERSION=${{ vars.DOCKER_IMAGE_VERSION }}
+            EOF
+            chmod 600 ${{ env.DEPLOY_DIR }}/.env
 
 #  test:
 #    name: Run Tests
