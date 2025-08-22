@@ -67,13 +67,13 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cat > ${{ env.DEPLOY_DIR }}/.env << EOF
-            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
-            PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
-            EXPIRATION=${{ secrets.EXPIRATION }}
-            REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}
+            JWT_PRIVATE_KEY=${{ secrets.JWT_PRIVATE_KEY }}
+            JWT_PUBLIC_KEY=${{ secrets.JWT_PUBLIC_KEY }}
+            JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
+            JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
         
             DOCKER_IMAGE=${{ vars.DOCKER_IMAGE }}
-            DOCKER_IMAGE_VERSION=${{ vars.DOCKER_IMAGE_VERSION }}
+            DOCKER_TAG=${{ vars.DOCKER_TAG }}
             EOF
             chmod 600 ${{ env.DEPLOY_DIR }}/.env
 

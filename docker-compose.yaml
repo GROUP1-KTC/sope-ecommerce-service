@@ -28,7 +28,7 @@ services:
   server:
 #    build:
 #      context: .
-    image: ${DOCKER_IMAGE}:${DOCKER_IMAGE_VERSION}
+    image: ${DOCKER_IMAGE}:${DOCKER_TAG}
     container_name: sope-server
     ports:
       - "8080:8080"
