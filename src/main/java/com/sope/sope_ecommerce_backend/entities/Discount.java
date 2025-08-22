@@ -59,6 +59,7 @@ public class Discount {
     @Column(name = "end_date")
     private LocalDateTime endDate;
 
+    @Builder.Default
     @OneToMany(mappedBy = "discount", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderDiscount> orderDiscounts = new ArrayList<>();
 

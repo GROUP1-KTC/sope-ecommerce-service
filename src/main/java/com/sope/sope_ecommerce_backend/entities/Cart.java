@@ -30,6 +30,7 @@ public class Cart {
     @JsonBackReference("user-carts")
     private AppUser appUser;
 
+    @Builder.Default
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CartItem> items = new ArrayList<>();
 }

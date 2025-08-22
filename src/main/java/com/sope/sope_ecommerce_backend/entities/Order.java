@@ -62,7 +62,7 @@ public class Order {
     @Column(unique = true, nullable = false)
     private String orderNumber;
 
-
+    @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderDiscount> discounts = new HashSet<>();
 

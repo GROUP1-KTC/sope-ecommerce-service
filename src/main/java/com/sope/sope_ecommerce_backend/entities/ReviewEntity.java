@@ -32,6 +32,7 @@ public class ReviewEntity {
 
         private String content;
 
+        @Builder.Default
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<ImageEntity> imagesListReview = new ArrayList<>();
 
