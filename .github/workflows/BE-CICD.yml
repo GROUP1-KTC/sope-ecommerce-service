@@ -46,8 +46,13 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yaml"
-          target: $DEPLOY_DIR
+          script: |
+            mkdir -p $DEPLOY_DIR
+            
+            # Copy docker-compose.yaml
+            cat > $DEPLOY_DIR/docker-compose.yaml << EOF
+            $(cat docker-compose.yaml)
+            EOF
 
 
 #  test:
