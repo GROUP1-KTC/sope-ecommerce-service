@@ -77,29 +77,31 @@ jobs:
     runs-on: ubuntu-latest
     needs: ["build"]
 
-    steps:
-      - name: Deploy Backend Service
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            echo "Moving to dir to deployment..."
-            cd ~/${{vars.SERV_DIR}}
+steps:
+  - name: Deploy Backend Service
+    uses: appleboy/ssh-action@master
+    with:
+      host: ${{ secrets.SSH_HOST }}
+      username: ${{ secrets.SSH_USER }}
+      key: ${{ secrets.SSH_PRIVATE_KEY }}
+      script: |
+        echo "Moving to deployment directory..."
+        cd ~/${{ vars.SERV_DIR }}
 
-            echo "Creating network (if not exists)..."
-            echo "Currently, we re-use customer-network"
-            docker network create customer-network || true
+        echo "Ensuring customer-network exists..."
+        docker network inspect customer-network >/dev/null 2>&1 || \
+          docker network create customer-network
 
-            echo "Stopping old container if exists..."
-            docker compose -f compose.yml stop ${{ vars.DOCKER_CONTAINER }} || true
-            docker compose -f compose.yml rm -f ${{ vars.DOCKER_CONTAINER }} || true
+        echo "Stopping and removing old container if exists..."
+        if [ "$(docker ps -aq -f name=${{ vars.DOCKER_CONTAINER }})" ]; then
+          docker stop ${{ vars.DOCKER_CONTAINER }} || true
+          docker rm -f ${{ vars.DOCKER_CONTAINER }} || true
+        fi
 
-            echo "Pulling latest image..."
-            docker compose -f compose.yml pull ${{ vars.DOCKER_CONTAINER }} || true
+        echo "Pulling latest image..."
+        docker compose -f compose.yml pull ${{ vars.DOCKER_CONTAINER }}
 
-            echo "Starting new container with correct name..."
-            docker compose -f compose.yml up -d --remove-orphans
+        echo "Starting new container..."
+        docker compose -f compose.yml up -d --remove-orphans ${{ vars.DOCKER_CONTAINER }}
 
-            echo "Deployment completed!"
+        echo "Deployment completed!"
