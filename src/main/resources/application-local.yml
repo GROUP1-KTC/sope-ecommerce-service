@@ -98,8 +98,8 @@ cloudinary:
   api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
 
 jwt:
-  private-key: ${PRIVATE_KEY}
-  public-key: ${PUBLIC_KEY}
+  private-key: ${BASE64_PRIVATE_KEY}
+  public-key: ${BASE64_PUBLIC_KEY}
   expiration: ${EXPIRATION:3600000}
   refresh-expiration: ${REFRESH_EXPIRATION:604800000}
 

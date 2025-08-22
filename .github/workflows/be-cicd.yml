@@ -62,8 +62,8 @@ jobs:
             SERV_PORT=${{ vars.SERV_PORT }}
             SERV_DIR=${{ vars.SERV_DIR }}
             PROFILE=${{ vars.PROFILE }}
-            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
-            PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
+            BASE64_PUBLIC_KEY=${{ secrets.BASE64_PUBLIC_KEY }}
+            BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }}
             EXPIRATION=${{ secrets.EXPIRATION }}
             REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}
             DB_URL=${{ secrets.DB_URL }}
