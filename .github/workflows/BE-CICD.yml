@@ -40,25 +40,31 @@ jobs:
           docker build --no-cache -t $DOCKER_IMAGE:$DOCKER_TAG .
           docker push $DOCKER_IMAGE:$DOCKER_TAG
 
-      - name: Copy necessary files to server EC2
-        uses: appleboy/scp-action@v0.1.7
+
+      - name: Ensure remote dir exists
+        uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-
           script: |
-            echo "Preparing deployment directory..."
-            ls
             mkdir -p $DEPLOY_DIR
-            
-            echo "current directory..."
-            ls
-            
-#            # Copy docker-compose.yaml
-#            cat > $DEPLOY_DIR/docker-compose.yaml << EOF
-#            $(cat docker-compose.yaml)
-#            EOF
+
+      - name: Copy necessary files to server EC2
+        uses: appleboy/scp-action@v0.17
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: docker-compose.yaml
+          target: $DEPLOY_DIR/docker-compose.yaml
+
+      - name: check current directory
+        run: |
+          echo "Current directory:"
+          ls
+
+
 
 
 #  test:
