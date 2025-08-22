@@ -30,8 +30,8 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build --no-cache -t ${{vars.DOCKER_IMAGE}}:${{vars.DOCKER_TAG}} .
-          docker push ${{vars.DOCKER_IMAGE}}:${{vars.DOCKER_TAG}}
+          docker build --no-cache -t ${{vars.DOCKER_IMAGE_SON}}:${{vars.DOCKER_TAG}} .
+          docker push ${{vars.DOCKER_IMAGE_SON}}:${{vars.DOCKER_TAG}}
 
       - name: Ensure remote dir exists
         uses: appleboy/ssh-action@v0.1.7
@@ -69,7 +69,7 @@ jobs:
             DB_URL=${{ secrets.DB_URL }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            DOCKER_IMAGE=${{ vars.DOCKER_IMAGE }}
+            DOCKER_IMAGE_SON=${{ vars.DOCKER_IMAGE_SON }}
             DOCKER_TAG=${{ vars.DOCKER_TAG }}
             DOCKER_CONTAINER=${{ vars.DOCKER_CONTAINER }}
             CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}

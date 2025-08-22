@@ -1,6 +1,6 @@
 services:
   sope-ecommerce-backend:
-    image: ${DOCKER_IMAGE}:${DOCKER_TAG}
+    image: ${DOCKER_IMAGE_SON}:${DOCKER_TAG}
     container_name: ${DOCKER_CONTAINER}
     env_file:
       - .env
