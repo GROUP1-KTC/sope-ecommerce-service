@@ -2,18 +2,17 @@ package com.sope.sope_ecommerce_backend.security.jwt;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+// import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @ConfigurationProperties(prefix = "jwt")
-@PropertySource("classpath:env.properties")
+// @PropertySource("classpath:env.properties")
 public class JwtProperties {
     private String privateKey;
     private String publicKey;
     private long expiration;
     private long refreshExpiration;
 
-    // Getters và Setters
     public String getPrivateKey() {
         return privateKey;
     }

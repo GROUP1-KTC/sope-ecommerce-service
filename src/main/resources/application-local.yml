@@ -7,17 +7,17 @@ spring:
       enabled: true
       additional-paths: src/main/java
 
-  # datasource:
-  #   url: jdbc:postgresql://localhost:5432/sope
-  #   username: postgres
-  #   password: postgres123
-  #   driver-class-name: org.postgresql.Driver
-
   datasource:
-    url: jdbc:postgresql://172.31.28.251:5432/sope
+    url: jdbc:postgresql://localhost:5432/sope
     username: postgres
     password: postgres123
     driver-class-name: org.postgresql.Driver
+
+  # datasource:
+  #   url: jdbc:postgresql://172.31.28.251:5432/sope
+  #   username: postgres
+  #   password: postgres123
+  #   driver-class-name: org.postgresql.Driver
 
   data:
     redis:
@@ -96,6 +96,12 @@ cloudinary:
   cloud-name: dybo8zd4y123
   api-key: 111854312673546
   api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
+
+jwt:
+  private-key: ${PRIVATE_KEY}
+  public-key: ${PUBLIC_KEY}
+  expiration: ${EXPIRATION:3600000}
+  refresh-expiration: ${REFRESH_EXPIRATION:604800000}
 
 web:
   cors:

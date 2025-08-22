@@ -4,10 +4,6 @@ on:
   push:
     branches: [feature/api-product]
 
-env:
-  DOCKER_IMAGE: hoangson3000/api-product
-  DOCKER_TAG: latest
-
 jobs:
   build:
     name: Build Backend Service
@@ -17,18 +13,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up .env.properties in classpath
-        run: |
-          mkdir -p ~/api-product/src/main/resources
-          echo "jwt.private-key=${{ secrets.JWT_PRIVATE_KEY }}" > ~/api-product/src/main/resources/env.properties
-          echo "jwt.public-key=${{ secrets.JWT_PUBLIC_KEY }}" >> ~/api-product/src/main/resources/env.properties
-          echo "jwt.expiration=${{ secrets.JWT_EXPIRATION }}" >> ~/api-product/src/main/resources/env.properties
-          echo "jwt.refresh-expiration=${{ secrets.JWT_REFRESH_EXPIRATION }}" >> ~/api-product/src/main/resources/env.properties
-
-      - name: Set up JDK 21
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: "21"
+          java-version: "17"
           distribution: "temurin"
 
       - name: Set up Docker BuildX
@@ -37,22 +25,52 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: hoangson3000
-          password: dckr_pat_bAGoptTuF6dRJNueqzpyKjd68iA
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_TOKEN}}
 
       - name: Build and Push Docker Image
         run: |
-          docker build --no-cache -t $DOCKER_IMAGE:$DOCKER_TAG .
-          docker push $DOCKER_IMAGE:$DOCKER_TAG
+          docker build --no-cache -t ${{vars.DOCKER_IMAGE}}:${{vars.DOCKER_TAG}} .
+          docker push ${{vars.DOCKER_IMAGE}}:${{vars.DOCKER_TAG}}
+
+      - name: Ensure remote dir exists
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p ~/${{vars.SERV_DIR}}
 
       - name: Copy necessary files to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: 3.0.183.247
-          username: ec2-user
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "compose.yml"
-          target: "~/api-product"
+          source: compose.yml
+          target: ~/{{vars.SERV_DIR}}
+
+      - name: Copy .env file to server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cat > ~/${{ vars.SERV_DIR }}/.env << EOF
+            SERV_PORT=${{ vars.SERV_PORT }}
+            SERV_DIR=${{ vars.SERV_DIR }}
+            PROFILE=${{ vars.PROFILE }}
+            DB_URL=${{ secrets.DB_URL }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DOCKER_IMAGE=${{ vars.DOCKER_IMAGE }}
+            DOCKER_TAG=${{ vars.DOCKER_TAG }}
+            DOCKER_CONTAINER=${{ vars.DOCKER_CONTAINER }}
+            CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+            EOF
+            chmod 600 ~/${{ vars.SERV_DIR }}/.env
 
   deploy:
     name: Deploy Backend Service
@@ -63,23 +81,23 @@ jobs:
       - name: Deploy Backend Service
         uses: appleboy/ssh-action@master
         with:
-          host: 3.0.183.247
-          username: ec2-user
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "Moving to dir to deployment..."
-            cd ~/api-product
+            cd ~/${{vars.SERV_DIR}}
 
             echo "Creating network (if not exists)..."
             echo "Currently, we re-use customer-network"
             docker network create customer-network || true
 
             echo "Stopping old container if exists..."
-            docker-compose -f compose.yml stop api-product || true
-            docker-compose -f compose.yml rm -f api-product || true
+            docker-compose -f compose.yml stop ${{ vars.DOCKER_CONTAINER }} || true
+            docker-compose -f compose.yml rm -f ${{ vars.DOCKER_CONTAINER }} || true
 
             echo "Pulling latest image..."
-            docker-compose -f compose.yml pull api-product || true
+            docker-compose -f compose.yml pull ${{ vars.DOCKER_CONTAINER }} || true
 
             echo "Starting new container with correct name..."
             docker-compose -f compose.yml up -d --remove-orphans

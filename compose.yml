@@ -1,11 +1,11 @@
 services:
-  api-product:
-    image: hoangson3000/api-product:latest
-    container_name: api-product
+  customer-service:
+    image: ${DOCKER_IMAGE}:${DOCKER_TAG}
+    container_name: ${DOCKER_CONTAINER}
+    env_file:
+      - .env
     ports:
-      - "8082:8082"
-    environment:
-      - SPRING_PROFILES_ACTIVE=local
+      - "${SERV_PORT}:${SERV_PORT}"
     networks:
       - customer-network
 

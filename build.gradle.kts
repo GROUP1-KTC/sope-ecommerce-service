@@ -46,6 +46,8 @@ dependencies {
 	annotationProcessor(libs.lombok)
 	implementation(libs.cloudinary)
 	implementation(libs.slugify)
+	implementation(libs.spring.dotenv)
+
 
 	// ===== JWT =====
 	implementation(libs.jjwt.api)
