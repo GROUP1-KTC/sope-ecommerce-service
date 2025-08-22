@@ -57,12 +57,15 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: docker-compose.yaml
-          target: ${{ env.DEPLOY_DIR }}/docker-compose.yaml
+          target: ${{ env.DEPLOY_DIR }}
 
       - name: check current directory
         run: |
+          cd $DEPLOY_DIR
+          
           echo "Current directory:"
           ls
+          cat docker-compose.yaml
 
 
 #  test:
