@@ -62,10 +62,10 @@ jobs:
             SERV_PORT=${{ vars.SERV_PORT }}
             SERV_DIR=${{ vars.SERV_DIR }}
             PROFILE=${{ vars.PROFILE }}
-            JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}
-            JWT_PRIVATE_KEY=${{ secrets.JWT_PRIVATE_KEY }}
-            JWT_PUBLIC_KEY=${{ secrets.JWT_PUBLIC_KEY }}
-            JWT_REFRESH_EXPIRATION=${{ secrets.JWT_REFRESH_EXPIRATION }}
+            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
+            PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
+            EXPIRATION=${{ secrets.EXPIRATION }}
+            REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}
             DB_URL=${{ secrets.DB_URL }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
