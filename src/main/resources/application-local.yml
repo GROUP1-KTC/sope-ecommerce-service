@@ -7,11 +7,6 @@ spring:
       enabled: true
       additional-paths: src/main/java
 
-  #  jwt:
-  #    secret: '284dd6c8bceeacfa2559a1ca7ef3e4c25099bea3d6a7f3e9cb2470e39a46106f1379b3b61aedbaf5299126211f663aef6c79aac2fc3913752b5ae63e06c7a592='
-  #    expiration: 900000
-  #    refresh-expiration: 604800000
-
   # datasource:
   #   url: jdbc:postgresql://localhost:5432/sope
   #   username: postgres

@@ -17,6 +17,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up .env.properties in classpath
+        run: |
+          mkdir -p src/main/resources
+          echo "jwt.private-key=${{ secrets.JWT_PRIVATE_KEY }}" > src/main/resources/env.properties
+          echo "jwt.public-key=${{ secrets.JWT_PUBLIC_KEY }}" >> src/main/resources/env.properties
+          echo "jwt.expiration=${{ secrets.JWT_EXPIRATION }}" >> src/main/resources/env.properties
+          echo "jwt.refresh-expiration=${{ secrets.JWT_REFRESH_EXPIRATION }}" >> src/main/resources/env.properties
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
