@@ -92,9 +92,9 @@ jobs:
             echo "Moving to deployment directory..."
             cd ~/${{ vars.SERV_DIR }}
 
-            echo "Ensuring customer-network exists..."
-            docker network inspect customer-network >/dev/null 2>&1 || \
-              docker network create customer-network
+            echo "Ensuring sope-ecommerce-backend-network exists..."
+            docker network inspect sope-ecommerce-backend-network >/dev/null 2>&1 || \
+              docker network create sope-ecommerce-backend-network
 
             echo "Stopping and removing old container if exists..."
             if [ "$(docker ps -aq -f name=${{ vars.DOCKER_CONTAINER }})" ]; then

@@ -1,5 +1,5 @@
 services:
-  customer-service:
+  sope-ecommerce-backend:
     image: ${DOCKER_IMAGE}:${DOCKER_TAG}
     container_name: ${DOCKER_CONTAINER}
     env_file:
@@ -7,8 +7,8 @@ services:
     ports:
       - "${SERV_PORT}:${SERV_PORT}"
     networks:
-      - customer-network
+      - sope-ecommerce-backend-network
 
 networks:
-  customer-network:
+  sope-ecommerce-backend-network:
     external: true
