@@ -14,7 +14,7 @@ spring:
   #   driver-class-name: org.postgresql.Driver
 
   datasource:
-    url: jdbc:postgresql://172.31.28.251:5432/sope
+    url: jdbc:postgresql://3.0.183.247:5432/sope
     username: postgres
     password: postgres123
     driver-class-name: org.postgresql.Driver
