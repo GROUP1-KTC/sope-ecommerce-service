@@ -49,7 +49,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: compose.yml
-          target: ~/{{vars.SERV_DIR}}
+          target: ~/${{vars.SERV_DIR}}
 
       - name: Copy .env file to server
         uses: appleboy/ssh-action@v0.1.7
@@ -62,8 +62,8 @@ jobs:
             SERV_PORT=${{ vars.SERV_PORT }}
             SERV_DIR=${{ vars.SERV_DIR }}
             PROFILE=${{ vars.PROFILE }}
-            BASE64_PUBLIC_KEY=${{ secrets.BASE64_PUBLIC_KEY }}
-            BASE64_PRIVATE_KEY=${{ secrets.BASE64_PRIVATE_KEY }}
+            PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
+            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
             EXPIRATION=${{ secrets.EXPIRATION }}
             REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}
             DB_URL=${{ secrets.DB_URL }}
