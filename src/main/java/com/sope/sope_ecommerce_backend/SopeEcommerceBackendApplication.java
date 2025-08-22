@@ -12,9 +12,7 @@ import java.util.TimeZone;
 public class SopeEcommerceBackendApplication {
 
 	public static void main(String[] args) {
-//		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
-//		System.out.println("Default JVM TimeZone: " + TimeZone.getDefault().getID());
-//		System.out.println("Default ZoneId: " + ZoneId.systemDefault());
+		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
 		SpringApplication.run(SopeEcommerceBackendApplication.class, args);
 	}
 

@@ -2,14 +2,17 @@ name: CI/CD pipeline for Backend Service
 
 on:
   push:
-    branches: [main]
+    branches: [main, feature/implement-order-managerment]
 
 env:
-  DOCKER_IMAGE: [your-docker-image-name]
-  DOCKER_TAG: [your-docker-image-version]
+  DOCKER_IMAGE: ${{ vars.DOCKER_IMAGE }}
+  DOCKER_TAG: ${{ vars.DOCKER_TAG }}
+  DEPLOY_DIR: ${{ vars.DEPLOY_DIR }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  DOCKER_NETWORK: ${{ vars.DOCKER_NETWORK }}
 
 jobs:
-  build:
+  build-and-push:
     name: Build Backend Service
     runs-on: ubuntu-latest
 
@@ -30,7 +33,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Build and Push Docker Image
 #        run: |
@@ -44,14 +47,14 @@ jobs:
           -t $DOCKER_IMAGE:$DOCKER_TAG \
           --push .
 
-      - name: Copy necessary files to server
+      - name: Copy necessary files to server EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml"
-          target: "${{ env.DEPLOY_DIR }}"
+          source: "docker-compose.yaml"
+          target: $DEPLOY_DIR
 
 #  test:
 #    name: Run Tests
@@ -69,12 +72,11 @@ jobs:
   deploy:
     name: Deploy Backend Service
     runs-on: ubuntu-latest
-    needs: ["build"]
+    needs: ["build-and-push"]
 
     steps:
-      - name: Deploy Backend Service
+      - name: Deploy Backend Service to EC2
         uses: appleboy/ssh-action@master
-        need: [build]
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
@@ -88,14 +90,14 @@ jobs:
             docker network create $DOCKER_NETWORK || true
 
             echo "Stopping old container if exists..."
-            docker compose -f docker-compose.yml stop $SERVICE_NAME || true
-            docker compose -f docker-compose.yml rm -f $SERVICE_NAME || true
+            docker compose -f docker-compose.yaml stop $SERVICE_NAME || true
+            docker compose -f docker-compose.yaml rm -f $SERVICE_NAME || true
             
             
             echo "Pulling latest image..."
-            docker compose -f docker-compose.yml pull $SERVICE_NAME || true
+            docker compose -f docker-compose.yaml pull $SERVICE_NAME || true
             
             echo "Starting new container with correct name..."
-            docker-compose -f compose.yml up -d --remove-orphans
+            docker compose -f docker-compose.yaml up -d --remove-orphans --build $SERVICE_NAME
             
             echo "Deployment completed!"
