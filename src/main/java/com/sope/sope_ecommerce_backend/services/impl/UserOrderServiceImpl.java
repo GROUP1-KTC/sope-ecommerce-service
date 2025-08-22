@@ -7,6 +7,8 @@ import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.DiscountScope;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
+import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
+import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
 import com.sope.sope_ecommerce_backend.repositories.OrderRepository;
@@ -48,7 +50,6 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
         AppUser user = userService.getUserEntityById(userId);
         Address shippingAddress = addressService.getAddressEntityById(request.shippingAddressId());
 
-
         BigDecimal subtotal = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
         for (OrderItemRequest orderItemRequest : request.items()) {
@@ -67,11 +68,14 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                     .productVariant(variant)
                     .quantity(orderItemRequest.quantity())
                     .price(variant.getPrice())
+                    .commissionFeePercent(variant.getProduct().getCategory().getCommissionFeePercent())
                     .build();
             orderItems.add(orderItem);
         }
 
         BigDecimal shippingCharges = request.shippingCharge() != null ? request.shippingCharge() : BigDecimal.ZERO;
+
+
 
         Order order = Order.builder()
                 .appUser(user)
@@ -86,18 +90,15 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                 .statusHistory(new ArrayList<>())
                 .build();
 
+        CommissionEntity commission = CommissionEntity.builder()
+                .commissionRate(new BigDecimal("0.05")) // Example commission rate of 5%
+                .commissionAmount(subtotal.multiply(new BigDecimal("0.05"))) // Calculate commission amount
+                .recordedAt(LocalDateTime.now())
+                .order(order)
+                .build();
 
-        orderItems.forEach(item ->
-                {
-                    item.setOrder(order);
-                    item.getOrderItemId().setOrderId(order.getOrderId());
+        order.setCommission(commission);
 
-                    productVariantService.updateProductVariantStock(
-                            item.getProductVariant().getProductVariantId(),
-                            -item.getQuantity()
-                    );
-                }
-        );
 
         // Apply discount
         BigDecimal discountOnOrder = BigDecimal.ZERO;
@@ -140,9 +141,34 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
             totalAmount = BigDecimal.ZERO;
         }
 
+        Payment payment = Payment.builder()
+                .order(order)
+                .amount(totalAmount)
+                .paymentMethod(request.paymentMethod())
+                .status(PaymentStatus.PENDING)
+                .idempotencyKey(request.idempotencyKey())
+                .build();
+
+        if( request.paymentMethod() != PaymentMethod.COD ) {
+            order.setExpireAt(LocalDateTime.now().plusHours(24));
+        }
+
+        order.setPayment(payment);
         order.setDiscounts(discounts);
         order.setTotalAmount(totalAmount);
         order.setOrderNumber(generateKey("ORDER", userId.toString(), true));
+
+        orderItems.forEach(item ->
+                {
+                    item.setOrder(order);
+                    item.getOrderItemId().setOrderId(order.getOrderId());
+
+                    productVariantService.retrieveProductVariantStock(
+                            item.getProductVariant().getProductVariantId(),
+                            -item.getQuantity()
+                    );
+                }
+        );
 
         addStatusHistory(order, OrderStatus.PENDING);
 

@@ -4,7 +4,7 @@ import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.AddToCartRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.request.UpdateCartItemRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
-import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.CartService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
 import lombok.AllArgsConstructor;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+
 
 
 @RestController

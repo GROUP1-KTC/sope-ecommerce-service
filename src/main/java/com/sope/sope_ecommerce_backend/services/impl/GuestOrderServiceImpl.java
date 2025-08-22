@@ -10,6 +10,8 @@ import com.sope.sope_ecommerce_backend.entities.*;
 
 import com.sope.sope_ecommerce_backend.enums.DiscountScope;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
+import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
+import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
 import com.sope.sope_ecommerce_backend.repositories.TempOrderRepository;
@@ -45,24 +47,9 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
             throw new IllegalArgumentException("Guest info incomplete");
         }
 
-        if (request.paymentMethod().equals("COD")) {
+        if (request.paymentMethod() == PaymentMethod.COD) {
             throw new IllegalArgumentException("Guest cannot pay by COD");
         }
-
-        AppUser user = userService.getUserEntityByEmail(request.guestInfo().email());
-
-        Address shippingAddress = null;
-
-
-//        if(user == null){
-//            // Tạo Guest mới
-//            user = userService.createGuestUser(request.guestInfo());
-//        } else if(user.getRole() == Role.CUSTOMER) {
-//            // Có thể throw exception hoặc cho phép checkout như customer
-//        } else if(user.getRole() == Role.GUEST) {
-//            // Guest hiện tại → dùng luôn
-//        }
-
 
         // Calculate subtotal and orderItems
         BigDecimal subtotal = BigDecimal.ZERO;
@@ -106,14 +93,25 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
                     .subtotal(subtotal)
                     .shippingCharges(shippingCharges)
                     .totalAmount(totalAmount)
-                    .paymentStatus(TempOrder.PaymentStatus.PENDING)
+                    .paymentStatus(PaymentStatus.PENDING)
                     .createdAt(LocalDateTime.now())
                     .expiresAt(LocalDateTime.now().plusHours(24))
                     .idempotencyKey(request.idempotencyKey())
                     .orderNumber(orderNumber)
                     .build();
 
+
+        Payment payment = Payment.builder()
+                .tempOrder(tempOrder)
+                .amount(totalAmount)
+                .paymentMethod(request.paymentMethod())
+                .status(PaymentStatus.PENDING)
+                .idempotencyKey(request.idempotencyKey())
+                .build();
+
+        tempOrder.setPayment(payment);
         TempOrder newTempOrder = tempOrderRepository.save(tempOrder);
+
 
         OrderResponse orderResponse = OrderResponse.builder()
                 .orderId(newTempOrder.getId())

@@ -4,7 +4,7 @@ import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
-import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.OrderService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -68,7 +68,7 @@ public class OrderController {
             OrderResponse order = orderService.createOrder(request, userId);
             return ApiResponseUtil.created(order, "Create order successfully.");
         } catch (Exception e) {
-            return ApiResponseUtil.internalError("Failed to fetch orders", List.of(e.getMessage()));
+            return ApiResponseUtil.internalError("Failed to create order", List.of(e.getMessage()));
         }
     }
 }

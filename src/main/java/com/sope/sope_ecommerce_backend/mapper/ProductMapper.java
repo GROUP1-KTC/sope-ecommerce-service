@@ -22,7 +22,6 @@ public interface ProductMapper {
 
       // POST PUT
       @Mapping(target = "productId", ignore = true)
-      @Mapping(target = "sold", ignore = true)
       @Mapping(target = "slug", ignore = true)
       @Mapping(target = "createdAt", ignore = true)
       @Mapping(target = "updatedAt", ignore = true)
@@ -30,12 +29,12 @@ public interface ProductMapper {
       @Mapping(target = "category", ignore = true)
       @Mapping(target = "shop", ignore = true)
       @Mapping(target = "wishlists", ignore = true)
-      @Mapping(target = "productDetails", ignore = true)
       @Mapping(target = "imagesList", ignore = true) // File xử lý trong service
       @Mapping(target = "defaultImage", ignore = true) // File xử lý trong service
       @Mapping(target = "defaultVideoIntro", ignore = true) // File xử lý trong service
       @Mapping(target = "status", ignore = true)
       @Mapping(target = "variants", source = "variants")
+      @Mapping(target = "productDetails", ignore = true)
       Product toEntity(ProductCreateDTO productCreateDTO); // POST
 
       @Mapping(target = "shop", ignore = true)
@@ -46,7 +45,6 @@ public interface ProductMapper {
       @Mapping(target = "imagesList", ignore = true)
       @Mapping(target = "defaultImage", ignore = true)
       @Mapping(target = "defaultVideoIntro", ignore = true)
-      @Mapping(target = "sold", ignore = true)
       @Mapping(target = "slug", ignore = true)
       @Mapping(target = "productId", ignore = true)
       @Mapping(target = "updatedAt", ignore = true)

@@ -14,14 +14,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(
-        oneOf = { GuestOrderCreateRequest.class, UserOrderCreateRequest.class },
-        discriminatorProperty = "orderType",
-        discriminatorMapping = {
-                @DiscriminatorMapping(value = "guest", schema = GuestOrderCreateRequest.class),
-                @DiscriminatorMapping(value = "user", schema = UserOrderCreateRequest.class)
-        }
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "orderType"
 )
-public sealed interface OrderCreateRequest permits GuestOrderCreateRequest, UserOrderCreateRequest {
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = UserOrderCreateRequest.class, name = "user"),
+        @JsonSubTypes.Type(value = GuestOrderCreateRequest.class, name = "guest")
+})
+public sealed interface OrderCreateRequest permits UserOrderCreateRequest, GuestOrderCreateRequest {
     String idempotencyKey();
 }

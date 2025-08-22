@@ -30,17 +30,4 @@ public interface ProductService {
                   MultipartFile defaultVideoIntro,
                   List<MultipartFile> productImages,
                   List<MultipartFile> variantImages);
-
-      // void createProduct(ProductCreateDTO dto);
-
-      // ProductDTO getProductById(UUID productId);
-
-      // List<ProductDTO> getProductsByShopId(UUID shopId);
-
-      // List<ProductDTO> getAllProducts(boolean includeHidden);
-
-      // ProductDetailEntity createProductDetail(UUID productId, ProductDetailEntity
-      // detail);
-
-      // List<ProductDetailEntity> getProductDetailsByProductId(UUID productId);
 }

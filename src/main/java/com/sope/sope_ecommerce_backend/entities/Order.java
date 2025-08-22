@@ -38,6 +38,8 @@ public class Order {
     @CreationTimestamp
     private LocalDateTime orderDate;
 
+    private LocalDateTime expireAt;
+
     private BigDecimal subtotal;
 
     @Column(name = "shipping_charges")

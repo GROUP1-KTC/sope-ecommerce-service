@@ -7,5 +7,7 @@ import java.util.UUID;
 public interface ProductVariantService {
     ProductVariant getProductVariantEntityById(UUID productVariantId);
 
-    void updateProductVariantStock(UUID productVariantId, int quantityChange);
+    void saveProductVariant(ProductVariant productVariant);
+
+    void retrieveProductVariantStock(UUID productVariantId, int quantityChange);
 }

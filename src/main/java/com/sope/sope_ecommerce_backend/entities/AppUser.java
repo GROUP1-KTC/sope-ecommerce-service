@@ -1,39 +1,33 @@
-package com.sope.sope_ecommerce_backend.entities;
+    package com.sope.sope_ecommerce_backend.entities;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+    import jakarta.persistence.*;
+    import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+    import java.util.HashSet;
+    import java.util.Set;
+    import java.util.UUID;
 
-@Entity
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@Table(name = "users")
-public class AppUser {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private UUID id;
-    private String username;
-    private String password;
-    private String name;
-    private String email;
-    private String phone;
-    private String address;
-    private String note;
-    private String status;
+    @Entity
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Table(name = "users")
+    public class AppUser {
+        @Id
+        @GeneratedValue(strategy = GenerationType.AUTO)
+        private UUID id;
+        private String username;
+        private String password;
+        private String name;
+        private String email;
+        private String phone;
+        private String address;
+        private String note;
+        private String status;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
-}
+        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        @Builder.Default
+        private Set<UserRole> userRoles = new HashSet<>();
+    }

@@ -14,13 +14,13 @@ public class TempOrderCleanupScheduler {
     private final TempOrderRepository tempOrderRepository;
     private final ProductVariantService productVariantService;
 
-    @Scheduled(cron = "0 */30 * * * *")
+    @Scheduled(cron = "0 */20 * * * *")
     public void cleanupExpiredTempOrders() {
         List<TempOrder> expiredOrders = tempOrderRepository.findByExpiresAtBefore(LocalDateTime.now());
 
         for (TempOrder temp : expiredOrders) {
             temp.getOrderItems().forEach(item -> {
-                productVariantService.updateProductVariantStock(item.getProductVariantId(), item.getQuantity());
+                productVariantService.retrieveProductVariantStock(item.getProductVariantId(), item.getQuantity());
             });
 
             tempOrderRepository.delete(temp);

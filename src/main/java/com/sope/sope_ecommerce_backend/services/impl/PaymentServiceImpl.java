@@ -69,15 +69,12 @@ public class PaymentServiceImpl implements PaymentService {
             if (order.getStatus() != OrderStatus.PENDING && order.getPayment().getStatus() != PaymentStatus.PENDING) {
                 throw new CustomException("Order not in pending status");
             }
-            if (order.getPayment() != null) {
-                throw new CustomException("Payment already initiated");
-            }
 
         } else if (!request.tempOrderCode().isEmpty()) {
              tempOrder = tempOrderRepository.findByIdempotencyKey(request.tempOrderCode())
                     .orElseThrow(() -> new CustomException("TempOrder not found or expired"));
 
-            if (tempOrder.getPaymentStatus() != TempOrder.PaymentStatus.PENDING) {
+            if (tempOrder.getPaymentStatus() != PaymentStatus.PENDING) {
                 throw new CustomException("Payment already initiated or expired");
             }
 
@@ -88,17 +85,11 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentGateway<? extends PaymentResponse> gateway = gatewayFactory.getGateway(request.provider());
         PaymentResponse gatewayResponse = gateway.createPaymentIntent(request);
 
-        Payment payment = Payment.builder()
-                .amount(request.amount())
-                .order(order)
-                .tempOrderId(tempOrder != null ? tempOrder.getId() : null)
-                .paymentMethod(request.method())
-                .status(PaymentStatus.PENDING)
-                .provider(request.provider().name())
-                .idempotencyKey(request.idempotencyKey())
-                .providerPayUrl(gatewayResponse.getPayUrl())
-                .providerPaymentId(gatewayResponse.getPaymentId())
-                .build();
+        Payment payment = order != null ? order.getPayment() : tempOrder.getPayment();
+
+       payment.setProvider(request.provider().name());
+       payment.setProviderPaymentId(gatewayResponse.getPaymentId());
+       payment.setProviderPayUrl(gatewayResponse.getPayUrl());
 
 
         paymentRepository.save(payment);
@@ -132,11 +123,10 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.setPaymentTime(LocalDateTime.now());
                 orderService.updateOrderStatus(new UpdateOrderStatusRequest(payment.getOrder().getOrderId(), OrderStatus.CONFIRMED));
             } else {
-                orderService.updateOrderStatus(new UpdateOrderStatusRequest(payment.getOrder().getOrderId(), OrderStatus.CANCELLED));
+                orderService.cancelOrder(payment.getOrder().getOrderId());
             }
-        } else if (payment.getTempOrderId() != null) {
-            TempOrder tempOrder = tempOrderRepository.findById(payment.getTempOrderId())
-                    .orElseThrow(() -> new CustomException("TempOrder not found"));
+        } else if (payment.getTempOrder() != null) {
+            TempOrder tempOrder = payment.getTempOrder();
 
             List<OrderItem> orderItems = orderMapper.tempOrderToOrderItemsEntity(tempOrder.getOrderItems());
 
@@ -154,6 +144,7 @@ public class PaymentServiceImpl implements PaymentService {
 
                 order.setPayment(payment);
                 payment.setOrder(order);
+                payment.setTempOrder(null);
 
                 orderRepository.save(order);
 
@@ -162,10 +153,10 @@ public class PaymentServiceImpl implements PaymentService {
 
             } else {
                 // Payment failed → rollback stock, mark tempOrder
-                tempOrder.setPaymentStatus(TempOrder.PaymentStatus.FAILED);
+                tempOrder.setPaymentStatus(PaymentStatus.FAILED);
                 tempOrderRepository.save(tempOrder);
                 tempOrder.getOrderItems().forEach(item ->
-                        productVariantService.updateProductVariantStock(item.getProductVariantId(), item.getQuantity())
+                        productVariantService.retrieveProductVariantStock(item.getProductVariantId(), item.getQuantity())
                 );
             }
         }

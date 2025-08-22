@@ -30,6 +30,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserService userService;
     private final AddressService addressService;
     private final OrderMapper orderMapper;
+    private final ProductVariantService productVariantService;
 
     private final List<OrderCreationStrategy<?>> strategies;
 
@@ -89,29 +90,43 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toOrderResponseDTO(order);
     }
 
+
+    @Override
+    public  List<Order> findOrderByStatusPendingAndExpireAtBefore(LocalDateTime now){
+        List<Order> orders = orderRepository.findByStatusAndExpireAtBefore(OrderStatus.PENDING, now);
+        if (orders.isEmpty()) {
+            throw new CustomException("No pending orders found that are expired");
+        }
+        return orders;
+    }
+
     @Override
     @Transactional
-    public OrderResponse cancelOrder(UUID id) {
-//        Order order = orderRepository.findById(orderId)
-//                .orElseThrow(() -> new CustomException("Order not found"));
-//        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.PROCESSING) {
-//            throw new CustomException("Cannot cancel order in current status");
-//        }
-//
-//        // Refund if needed...
-//
-//        for (OrderItem item : order.getOrderItems()) {
-//            ProductVariantEntity variant = item.getProductVariant();
-//            variant.setStock(variant.getStock() + item.getQuantity());
-//            productVariantService.save(variant);
-//        }
-//
-//        order.setStatus(OrderStatus.CANCELLED);
-//        addStatusHistory(order, OrderStatus.CANCELLED);
-//        order = orderRepository.save(order);
-//
-//        return dtoMapper.toOrderResponse(order);
-        return null;
+    public void cancelOrder(UUID id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new CustomException("Order not found"));
+
+        OrderStatus newStatus = OrderStatus.CANCELLED;
+
+        if (order.getStatus() == newStatus) {
+            return;
+        }
+
+        if (!isValidStatusTransition(order.getStatus(), newStatus)) {
+            throw new CustomException("Invalid status transition from " + order.getStatus() + " to " + newStatus);
+        }
+
+        List<OrderItem> items = order.getOrderItems();
+        for (OrderItem item : items) {
+            ProductVariant productVariant = item.getProductVariant();
+            productVariant.setStock(productVariant.getStock() + item.getQuantity());
+            productVariant.setSold(productVariant.getSold() - item.getQuantity());
+            productVariantService.saveProductVariant(productVariant);
+        }
+
+        order.setStatus(newStatus);
+        addStatusHistory(order, newStatus);
+        orderRepository.save(order);
     }
 
     @Override
@@ -142,6 +157,8 @@ public class OrderServiceImpl implements OrderService {
         addStatusHistory(order, newStatus);
         orderRepository.save(order);
     }
+
+
 
     /**
      * Adds a status history entry for the given order.

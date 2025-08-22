@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.configuration;
 
-import com.sope.sope_ecommerce_backend.security.JwtRequestFilter;
+import com.sope.sope_ecommerce_backend.security.jwt.JwtAuthFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,7 +15,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final WebCorsConfig webCorsConfig;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -22,22 +26,21 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtRequestFilter jwtRequestFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtRequestFilter) throws Exception {
         http
-                .cors(AbstractHttpConfigurer::disable)
+
+                .cors(cors -> cors.configurationSource(webCorsConfig.corsConfigurationSource()))
+
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập các trang HTML frontend
                         .requestMatchers("/", "/login-page", "/user", "/admin").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll() // Nếu có file tĩnh
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/index.html"
                         ).permitAll()
-                        // Cho phép gọi API không cần login
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Yêu cầu xác thực cho các API khác
                         .requestMatchers("/api/user/me").authenticated()
                         .anyRequest().authenticated()
                 )

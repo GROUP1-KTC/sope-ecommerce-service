@@ -12,35 +12,32 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(
-        name = "reviews",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "product_id"})
-        }
-)
+@Table(name = "reviews", uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "product_id" }) })
 public class ReviewEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "review_id")
-    private Long reviewId;
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        @Column(name = "review_id")
+        private Long reviewId;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+        @ManyToOne
+        @JoinColumn(name = "product_id", nullable = false)
+        private Product product;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    @JsonBackReference
-    private AppUser appUser;
+        @ManyToOne
+        @JoinColumn(name = "user_id")
+        @JsonBackReference
+        private AppUser appUser;
 
-    private Integer rating;
+        private Integer rating;
 
-    private String content;
+        private String content;
 
-    @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<ReviewImageEntity> reviewImages = new ArrayList<>();
+        @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
+        private List<ImageEntity> imagesListReview = new ArrayList<>();
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+        @Column(name = "created_at", nullable = false, updatable = false)
+        private LocalDateTime createdAt;
+
+        @Column(name = "updated_at")
+        private LocalDateTime updatedAt;
 }

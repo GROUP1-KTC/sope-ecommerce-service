@@ -5,7 +5,7 @@ import com.sope.sope_ecommerce_backend.constant.MomoVariable;
 import com.sope.sope_ecommerce_backend.dto.request.PaymentRequest;
 import com.sope.sope_ecommerce_backend.dto.response.PaymentResponse;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
-import com.sope.sope_ecommerce_backend.security.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.PaymentService;
 import com.sope.sope_ecommerce_backend.utils.ParamUtil;
 import jakarta.servlet.http.HttpServletRequest;

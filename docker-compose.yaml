@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: my-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: sope
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+
+  server:
+    build:
+      context: .
+    image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}
+    container_name: sope-server
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+    networks:
+      - sope-network
+
+
+networks:
+  sope-network:
+    driver: bridge
+    external: true
+
+
+volumes:
+  postgres_data:
+    driver: local
+#  docker network create sope-network

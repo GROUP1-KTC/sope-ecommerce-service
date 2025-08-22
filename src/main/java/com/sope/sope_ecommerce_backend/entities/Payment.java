@@ -28,10 +28,12 @@ public class Payment {
     private UUID paymentId;
 
     @OneToOne
-    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @JoinColumn(name = "order_id", unique = true)
     private Order order;
 
-    private UUID tempOrderId;
+    @OneToOne
+    @JoinColumn(name = "temp_order_id",  unique = true)
+    private TempOrder tempOrder;
 
     @Column(nullable = false)
     private BigDecimal amount;
@@ -53,4 +55,17 @@ public class Payment {
     private String providerPayUrl; // redirect/qr url
 
     private String idempotencyKey; // Unique key to prevent duplicate payments
+
+
+    @PrePersist
+    @PreUpdate
+    private void validateAssociation() {
+        if (order == null && tempOrder == null) {
+            throw new IllegalStateException("Payment must be linked to either an Order or a TempOrder");
+        }
+        if (order != null && tempOrder != null) {
+            throw new IllegalStateException("Payment cannot be linked to both Order and TempOrder at the same time");
+        }
+    }
+
 }

@@ -32,9 +32,7 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Product> products;
 
-    @Column(name = "commission_fee", precision = 5, scale = 2)
-    private BigDecimal commissionFee; // % hoa hồng
+    @Column(name = "commission_fee_percent", precision = 5, scale = 2)
+    private BigDecimal commissionFeePercent; // % hoa hồng
 
-    @Column(name = "payment_fee", precision = 5, scale = 2)
-    private BigDecimal paymentFee; // % phí thanh toán
 }

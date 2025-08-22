@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.entities;
 
+import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -36,6 +37,9 @@ public class TempOrder {
     @CollectionTable(name = "temp_order_items", joinColumns = @JoinColumn(name = "temp_order_id"))
     private List<TempOrderItem> orderItems;
 
+    @OneToOne(mappedBy = "tempOrder", cascade = CascadeType.ALL)
+    private Payment payment;
+
     private BigDecimal subtotal;
     private BigDecimal shippingCharges;
     private BigDecimal totalAmount;
@@ -45,12 +49,6 @@ public class TempOrder {
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
-
-    public enum PaymentStatus {
-        PENDING,
-        SUCCESS,
-        FAILED
-    }
 }
 
 
