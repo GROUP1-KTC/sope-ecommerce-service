@@ -51,7 +51,7 @@ jobs:
             mkdir -p $DEPLOY_DIR
 
       - name: Copy necessary files to server EC2
-        uses: appleboy/scp-action@v0.17
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
