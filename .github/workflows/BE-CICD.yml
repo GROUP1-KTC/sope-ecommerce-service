@@ -104,7 +104,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             echo "Moving to dir to deployment..."
-            cd $DEPLOY_DIR
+            cd ${{ env.DEPLOY_DIR }}
             
             echo "Creating network (if not exists)..."
             echo "Currently, we re-use ${{ env.DOCKER_NETWORK }}"
@@ -112,7 +112,7 @@ jobs:
 
             echo "Stopping old container if exists..."
             docker compose -f docker-compose.yaml stop ${{ env.SERVICE_NAME }} || true
-            docker compose -f docker-compose.yaml rm -f ${{ env.SERVICE_NAME }} || true
+            docker compose -f docker-compose.yaml rm --force ${{ env.SERVICE_NAME }} || true
             
             
             echo "Pulling latest image..."
