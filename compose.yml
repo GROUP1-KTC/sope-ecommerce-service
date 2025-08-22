@@ -7,7 +7,7 @@ services:
     networks:
       sope-ecommerce-backend-network:
         aliases:
-          - 18.141.145.133   # alias trực tiếp cho redis container
+          - 18.141.145.133
 
   api-product:
     image: ${DOCKER_IMAGE_SON}:${DOCKER_TAG}
@@ -16,6 +16,8 @@ services:
       - .env
     ports:
       - "${SERV_PORT}:${SERV_PORT}"
+    depends_on:
+      - redis
     networks:
       - sope-ecommerce-backend-network
 
