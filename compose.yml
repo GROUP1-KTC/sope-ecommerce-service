@@ -7,6 +7,15 @@ services:
     ports:
       - "${SERV_PORT}:${SERV_PORT}"
     networks:
+      sope-ecommerce-backend-network:
+        aliases:
+          - 18.141.145.133  
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
       - sope-ecommerce-backend-network
 
 networks:
