@@ -1,5 +1,5 @@
 services:
-  sope-ecommerce-backend:
+  api-product: # service name = DOCKER_CONTAINER
     image: ${DOCKER_IMAGE_SON}:${DOCKER_TAG}
     container_name: ${DOCKER_CONTAINER}
     env_file:
