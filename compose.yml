@@ -1,4 +1,12 @@
 services:
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - sope-ecommerce-backend-network
+
   api-product:
     image: ${DOCKER_IMAGE_SON}:${DOCKER_TAG}
     container_name: ${DOCKER_CONTAINER}
