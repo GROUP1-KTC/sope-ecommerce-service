@@ -19,6 +19,4 @@ COPY --from=builder /app/build/libs/*.jar app.jar
 
 EXPOSE 8082
 
-ENV SPRING_PROFILES_ACTIVE=local
-
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
