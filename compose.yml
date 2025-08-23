@@ -1,12 +1,4 @@
 services:
-  redis:
-    image: redis:7
-    container_name: redis
-    ports:
-      - "6379:6379"
-    networks:
-      sope-ecommerce-backend-network:
-
   api-product:
     image: ${DOCKER_IMAGE_SON}:${DOCKER_TAG}
     container_name: ${DOCKER_CONTAINER}
@@ -14,6 +6,9 @@ services:
       - .env
     ports:
       - "${SERV_PORT}:${SERV_PORT}"
+    environment:
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
     depends_on:
       - redis
     networks:
