@@ -7,7 +7,7 @@ services:
     networks:
       sope-ecommerce-backend-network:
         aliases:
-          - 18.141.145.133
+          - 52.77.255.50
 
   api-product:
     image: ${DOCKER_IMAGE_SON}:${DOCKER_TAG}
