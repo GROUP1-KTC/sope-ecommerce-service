@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import org.hibernate.annotations.GenericGenerator;
 
 @Data
 @Builder
@@ -16,11 +15,11 @@ import org.hibernate.annotations.GenericGenerator;
 @AllArgsConstructor
 @Entity
 @Table(name = "products")
-public class ProductEntity {
+public class Product {
     @Id
-    @GeneratedValue(generator = "UUID")
-    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "product_id", columnDefinition = "UUID", updatable = false, nullable = false)
+
     private UUID productId;
 
     @Column(nullable = false)
@@ -36,6 +35,12 @@ public class ProductEntity {
 
     @Column(nullable = false)
     private String defaultImage;
+
+    private String defaultVideoIntro;
+
+    private int stock;
+
+    private int sold;
 
     private boolean hidden;
 
@@ -53,17 +58,20 @@ public class ProductEntity {
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
-    private CategoryEntity category;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductVariantEntity> variants; // At least 2 variants per product
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<ReviewEntity> reviews;
+    private Category category;
 
     @ManyToOne
     @JoinColumn(name = "shop_id", nullable = false)
     private Shop shop;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariant> variants;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ImageEntity> imagesList;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<ReviewEntity> reviews;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WishlistEntity> wishlists;

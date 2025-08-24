@@ -2,12 +2,16 @@ package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.request.CategoryCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.response.CategoryDTO;
+import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
 import com.sope.sope_ecommerce_backend.services.impl.CategoryServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/categories")
 public class CategoryController {
@@ -15,12 +19,14 @@ public class CategoryController {
       private CategoryServiceImpl categoryService;
 
       @PostMapping
-      public CategoryDTO createCategory(@RequestBody CategoryCreateDTO request) {
-            return categoryService.createCategory(request);
+      public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryCreateDTO request) {
+            CategoryDTO createCategory = categoryService.createCategory(request);
+            return ResponseEntity.ok(createCategory);
       }
 
-      @GetMapping
-      public List<CategoryDTO> getAllCategories() {
-            return categoryService.getAllCategories();
-      }
+      // @GetMapping
+      // public ResponseEntity<List<CategoryDTO>> getAllCategories() {
+      // List<ProductDTO> categories = categoryService.getAllCategories();
+      // return ResponseEntity.ok(categories);
+      // }
 }
