@@ -19,7 +19,7 @@ public interface OrderService {
 
     public OrderResponse getOrderById(UUID id);
 
-    public void cancelOrder(UUID id);
+    public void cancelOrder(UUID id, String reason, UUID userId);
 
     public OrderResponse updateOrder(UUID id, OrderCreateRequest request);
 

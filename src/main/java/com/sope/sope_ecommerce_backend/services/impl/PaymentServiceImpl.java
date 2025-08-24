@@ -126,7 +126,8 @@ public class PaymentServiceImpl implements PaymentService {
                 payment.setPaymentTime(LocalDateTime.now());
                 orderService.updateOrderStatus(new UpdateOrderStatusRequest(payment.getOrder().getOrderId(), OrderStatus.CONFIRMED));
             } else {
-                orderService.cancelOrder(payment.getOrder().getOrderId());
+                orderService.cancelOrder(payment.getOrder().getOrderId(),
+                        "Payment failed: " + callbackStatus, payment.getOrder().getAppUser().getId());
             }
         } else if (payment.getTempOrder() != null) {
             TempOrder tempOrder = payment.getTempOrder();

@@ -62,6 +62,8 @@ public class Order {
     @Column(unique = true, nullable = false)
     private String orderNumber;
 
+    private String cancelReason;
+
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderDiscount> discounts = new HashSet<>();
@@ -72,9 +74,13 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private Payment payment;
 
+
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private CommissionEntity commission;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private TransactionFeeEntity transactionFee;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ReturnOrder returnOrder;
 }

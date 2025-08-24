@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.ApiResponse;
+import com.sope.sope_ecommerce_backend.dto.request.CancelOrderRequest;
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
@@ -70,5 +71,25 @@ public class OrderController {
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to create order", List.of(e.getMessage()));
         }
+    }
+
+    @PatchMapping("/cancel/{id}")
+    public ResponseEntity<ApiResponse<String>> cancelOrder(@PathVariable UUID id,
+                                                           @RequestBody CancelOrderRequest request,
+                                                           @AuthenticationPrincipal CustomUserDetails currentUser
+    ) {
+       try {
+
+            if (currentUser == null) {
+                return ApiResponseUtil.unauthorized("User is not logged in");
+            }
+
+           String cancelReason = request.reason();
+
+            orderService.cancelOrder(id, cancelReason, currentUser.getUserId());
+            return ApiResponseUtil.success(null, "Order cancelled successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to cancel order", List.of(e.getMessage()));
+       }
     }
 }

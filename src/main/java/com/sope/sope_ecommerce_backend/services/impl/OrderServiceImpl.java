@@ -118,9 +118,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void cancelOrder(UUID id) {
+    public void cancelOrder(UUID id, String reason, UUID userId) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new CustomException("Order not found"));
+
+        if (!order.getAppUser().getId().equals(userId)) {
+            throw new CustomException("You are not authorized to cancel this order");
+        }
 
         OrderStatus newStatus = OrderStatus.CANCELLED;
 
@@ -141,6 +145,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         order.setStatus(newStatus);
+        order.setCancelReason(reason);
         addStatusHistory(order, newStatus);
         orderRepository.save(order);
     }

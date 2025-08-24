@@ -137,6 +137,39 @@ public class CartServiceImpl implements CartService {
         cartItemRepository.save(item);
     }
 
+
+    /**
+     * Removes multiple items from the user's cart.
+     *
+     * @param userId      the ID of the user
+     * @param productVariantIds the list of product variant IDs to remove
+     */
+    @Override
+    @Transactional
+    public void removeItemsFromCart(UUID userId, List<UUID> productVariantIds) {
+        AppUser appUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Cart cart = cartRepository.findByAppUser(appUser)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        List<CartItem> items = cart.getItems();
+        if (items.isEmpty()) {
+            return;
+        }
+
+        List<CartItem> itemsToRemove = items.stream()
+                .filter(item -> productVariantIds.contains(item.getProductVariant().getProductVariantId()))
+                .toList();
+
+        if (!itemsToRemove.isEmpty()) {
+            cart.getItems().removeAll(itemsToRemove);
+            cartItemRepository.deleteAll(itemsToRemove);
+            cartRepository.save(cart);
+        }
+    }
+
+
     /**
      * Removes an item from the user's cart.
      *

@@ -173,7 +173,14 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
 
         addStatusHistory(order, OrderStatus.PENDING);
 
-//        cartService.clearCart(cart);
+        if (Boolean.TRUE.equals(request.isOrderedFromCart()) && request.items() != null) {
+            List<UUID> productVariantIds = request.items().stream()
+                    .map(OrderItemRequest::productVariantId)
+                    .toList();
+
+            cartService.removeItemsFromCart(userId, productVariantIds);
+        }
+
 
         Order newOrder = IdempotencyUtils.saveWithIdempotency(
                 () -> orderRepository.save(order),

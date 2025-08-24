@@ -17,6 +17,8 @@ public interface CartService {
 
     List<CartItemResponseDTO> validateGuestCart(List<AddToCartRequestDTO> items);
 
+    void removeItemsFromCart(UUID userId, List<UUID> productVariantIds);
+
     Cart getCartEntityByUser(UUID userId);
 }
 

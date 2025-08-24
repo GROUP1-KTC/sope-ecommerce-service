@@ -20,7 +20,7 @@ public record UserOrderCreateRequest(
         String idempotencyKey,
         List<OrderItemRequest> items,
         PaymentMethod paymentMethod,
-
-        PaymentProvider paymentProvider
+        PaymentProvider paymentProvider,
+        Boolean isOrderedFromCart
 ) implements OrderCreateRequest {
 }
