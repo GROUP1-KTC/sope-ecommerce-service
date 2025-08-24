@@ -15,7 +15,9 @@ import com.sope.sope_ecommerce_backend.repositories.OrderRepository;
 import com.sope.sope_ecommerce_backend.repositories.ProductVariantRepository;
 import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
+import com.sope.sope_ecommerce_backend.utils.IdempotencyUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,7 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
     @Override
     @Transactional
     public OrderResponse createOrder(UserOrderCreateRequest request, UUID userId) {
+
         AppUser user = userService.getUserEntityById(userId);
         Address shippingAddress = addressService.getAddressEntityById(request.shippingAddressId());
 
@@ -74,8 +77,6 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
         }
 
         BigDecimal shippingCharges = request.shippingCharge() != null ? request.shippingCharge() : BigDecimal.ZERO;
-
-
 
         Order order = Order.builder()
                 .appUser(user)
@@ -145,8 +146,8 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                 .order(order)
                 .amount(totalAmount)
                 .paymentMethod(request.paymentMethod())
+                .provider(request.paymentProvider())
                 .status(PaymentStatus.PENDING)
-                .idempotencyKey(request.idempotencyKey())
                 .build();
 
         if( request.paymentMethod() != PaymentMethod.COD ) {
@@ -173,7 +174,13 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
         addStatusHistory(order, OrderStatus.PENDING);
 
 //        cartService.clearCart(cart);
-        return orderMapper.toOrderResponseDTO(orderRepository.save(order));
+
+        Order newOrder = IdempotencyUtils.saveWithIdempotency(
+                () -> orderRepository.save(order),
+                () -> orderRepository.findByIdempotencyKey(order.getIdempotencyKey()),
+                new RuntimeException("Order not found after duplicate key")
+        );
+        return orderMapper.toOrderResponseDTO(newOrder);
     }
 
 

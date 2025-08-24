@@ -2,6 +2,7 @@ package com.sope.sope_ecommerce_backend.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
+import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -18,6 +19,8 @@ public record UserOrderCreateRequest(
         List<String> discountCodes,
         String idempotencyKey,
         List<OrderItemRequest> items,
-        PaymentMethod paymentMethod
+        PaymentMethod paymentMethod,
+
+        PaymentProvider paymentProvider
 ) implements OrderCreateRequest {
 }

@@ -10,6 +10,7 @@ import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
 import com.sope.sope_ecommerce_backend.repositories.OrderRepository;
 import com.sope.sope_ecommerce_backend.repositories.OrderStatusHistoryRepository;
+import com.sope.sope_ecommerce_backend.repositories.TempOrderRepository;
 import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,7 @@ public class OrderServiceImpl implements OrderService {
     private final AddressService addressService;
     private final OrderMapper orderMapper;
     private final ProductVariantService productVariantService;
+    private final TempOrderRepository tempOrderRepository;
 
     private final List<OrderCreationStrategy<?>> strategies;
 
@@ -46,8 +48,22 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse createOrder(OrderCreateRequest request, UUID userId) {
 
         Optional<Order> existing = orderRepository.findByIdempotencyKey(request.idempotencyKey());
+        Optional<TempOrder> tempOrderExisting = tempOrderRepository.findByIdempotencyKey(request.idempotencyKey());
+
         if (existing.isPresent()) {
             return orderMapper.toOrderResponseDTO(existing.get());
+        }
+        else if (tempOrderExisting.isPresent()) {
+            TempOrder tempOrder = tempOrderExisting.get();
+            OrderResponse orderResponse = OrderResponse.builder()
+                    .orderId(tempOrder.getId())
+                    .orderNumber(tempOrder.getOrderNumber())
+                    .subtotal(tempOrder.getSubtotal())
+                    .shippingCharges(tempOrder.getShippingCharges())
+                    .totalAmount(tempOrder.getTotalAmount())
+                    .status(OrderStatus.PENDING)
+                    .build();
+            return orderResponse;
         }
 
         OrderCreationStrategy strategy = strategies.stream()

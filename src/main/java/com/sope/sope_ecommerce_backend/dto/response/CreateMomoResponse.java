@@ -22,6 +22,6 @@ public record CreateMomoResponse(
 
     @Override
     public String getPaymentId() {
-        return orderId;
+        return requestId;
     }
 }

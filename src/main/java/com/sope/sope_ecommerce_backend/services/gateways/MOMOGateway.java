@@ -47,9 +47,11 @@ public class MOMOGateway implements PaymentGateway<CreateMomoResponse>{
     @Override
     public CreateMomoResponse createPaymentIntent(PaymentRequest request) {
 
-        String orderId =  request.idempotencyKey();
+        String orderId = request.orderId() != null
+                ? request.orderId().toString()
+                : request.tempOrderCode();
         String orderInfo = "Payment for order " + orderId;
-        String requestId =  request.idempotencyKey();
+        String requestId =  request.requestId();
         String extraData = "";
         String amount = String.valueOf(request.amount().longValue());
 

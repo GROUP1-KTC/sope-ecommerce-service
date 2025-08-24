@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.entities;
 
+import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
 import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
 import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
 import jakarta.persistence.*;
@@ -50,11 +51,12 @@ public class Payment {
     @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
-    private String provider; // "MOMO", "VNPAY", "STRIPE"
+    private PaymentProvider provider; // "MOMO", "VNPAY", "STRIPE"
     private String providerPaymentId; // id by provider return
     private String providerPayUrl; // redirect/qr url
 
-    private String idempotencyKey; // Unique key to prevent duplicate payments
+    @Column(unique = true)
+    private String requestId;
 
 
     @PrePersist

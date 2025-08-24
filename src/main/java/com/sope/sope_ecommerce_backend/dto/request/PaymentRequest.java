@@ -8,12 +8,13 @@ import java.util.UUID;
 
 public record PaymentRequest(
         UUID orderId,
+        String requestId,
+
         BigDecimal amount,
-         PaymentMethod method,
+        PaymentMethod method,
         PaymentProvider provider,
-         String currency,
-         String orderInfo,
-         String idempotencyKey,
+        String currency,
+        String orderInfo,
         String tempOrderCode
 ) {
 }

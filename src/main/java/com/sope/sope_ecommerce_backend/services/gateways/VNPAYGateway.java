@@ -60,14 +60,14 @@ public class VNPAYGateway implements  PaymentGateway<PaymentResponse>{
     public PaymentResponse createPaymentIntent(PaymentRequest request) {
         String orderInfo = request.orderInfo();
 
-        String vnp_TxnRef = request.idempotencyKey();
+        String vnp_TxnRef = request.requestId();
         String vnp_IpAddr = requestUtil.getClientIp();
 
         String vnpCurrCode = "VND";
         String vnpLocale = "vn";
         String vnpOrderType = "other";
 
-        String requestId =  request.idempotencyKey();
+        String requestId =  request.requestId();
         String amount = String.valueOf(request.amount().multiply(BigDecimal.valueOf(DEFAULT_MULTIPLIER)).longValue());
 
 //        data = vnp_RequestId + “|” + vnp_Version + “|” +

@@ -52,11 +52,14 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public PaymentResponse initiatePayment(PaymentRequest request, UUID userId) {
-        Optional<Payment> existing = paymentRepository.findByIdempotencyKey(request.idempotencyKey());
+        Optional<Payment> existing = paymentRepository.findByRequestId(request.requestId());
         if (existing.isPresent()) {
-            BasePaymentDTO dto = paymentMapper.toBasePaymentDTO(existing.get());
-//            return paymentResponseFactory.from(dto, request.provider());
-            return null;
+            Payment existingPayment = existing.get();
+            if (existingPayment.getStatus() == PaymentStatus.PENDING) {
+                return paymentMapper.toBasePaymentDTO(existingPayment);
+            } else {
+                throw new CustomException("Payment already processed with status: " + existingPayment.getStatus());
+            }
         }
 
         TempOrder tempOrder = null;
@@ -87,9 +90,9 @@ public class PaymentServiceImpl implements PaymentService {
 
         Payment payment = order != null ? order.getPayment() : tempOrder.getPayment();
 
-       payment.setProvider(request.provider().name());
-       payment.setProviderPaymentId(gatewayResponse.getPaymentId());
-       payment.setProviderPayUrl(gatewayResponse.getPayUrl());
+           payment.setProviderPaymentId(gatewayResponse.getPaymentId());
+           payment.setProviderPayUrl(gatewayResponse.getPayUrl());
+           payment.setRequestId(request.requestId());
 
 
         paymentRepository.save(payment);

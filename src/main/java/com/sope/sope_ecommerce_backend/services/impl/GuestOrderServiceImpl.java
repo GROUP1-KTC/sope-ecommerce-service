@@ -19,7 +19,9 @@ import com.sope.sope_ecommerce_backend.services.AddressService;
 import com.sope.sope_ecommerce_backend.services.ProductVariantService;
 import com.sope.sope_ecommerce_backend.services.UserService;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
+import com.sope.sope_ecommerce_backend.utils.IdempotencyUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -51,10 +53,19 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
             throw new IllegalArgumentException("Guest cannot pay by COD");
         }
 
+        if (request.items() == null || request.items().isEmpty()) {
+            throw new IllegalArgumentException("Order items cannot be empty");
+        }
+
+
         // Calculate subtotal and orderItems
         BigDecimal subtotal = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
         for (OrderItemRequest orderItemRequest : request.items()) {
+            if (orderItemRequest.productVariantId() == null || orderItemRequest.quantity() <= 0) {
+                throw new IllegalArgumentException("Invalid order item: " + orderItemRequest);
+            }
+
             ProductVariant variant = productVariantService.getProductVariantEntityById(orderItemRequest.productVariantId()) ;
             if (variant.getStock() < orderItemRequest.quantity()) {
                 throw new CustomException("Insufficient stock for " + variant.getProduct().getName());
@@ -77,8 +88,11 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
 
         BigDecimal shippingCharges = request.shippingCharge() != null ? request.shippingCharge() : BigDecimal.ZERO;
         BigDecimal totalAmount = subtotal.add(shippingCharges);
-        String orderNumber = generateKey("ORDER", userId.toString(), true);
-
+        String orderNumber = generateKey(
+                "ORDER",
+                Optional.ofNullable(userId).map(Object::toString).orElse(UUID.randomUUID().toString()),
+                true
+        );
         List<TempOrderItem> tempOrderItems = orderMapper.toTempOrderItemsEntity(request.items());
 
         TempOrder tempOrder = TempOrder.builder()
@@ -105,13 +119,17 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
                 .tempOrder(tempOrder)
                 .amount(totalAmount)
                 .paymentMethod(request.paymentMethod())
+                .provider(request.paymentProvider())
                 .status(PaymentStatus.PENDING)
-                .idempotencyKey(request.idempotencyKey())
                 .build();
 
         tempOrder.setPayment(payment);
-        TempOrder newTempOrder = tempOrderRepository.save(tempOrder);
 
+        TempOrder newTempOrder = IdempotencyUtils.saveWithIdempotency(
+                () -> tempOrderRepository.save(tempOrder),
+                () -> tempOrderRepository.findByIdempotencyKey(tempOrder.getIdempotencyKey()),
+                new RuntimeException("Order not found after duplicate key")
+        );
 
         OrderResponse orderResponse = OrderResponse.builder()
                 .orderId(newTempOrder.getId())

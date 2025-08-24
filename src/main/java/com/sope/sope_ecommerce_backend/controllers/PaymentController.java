@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -27,7 +28,8 @@ public class PaymentController {
     public ResponseEntity<PaymentResponse> initiatePayment(@RequestBody PaymentRequest request,
                                                             @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
-        PaymentResponse response = paymentService.initiatePayment(request, currentUser.getUserId());
+        UUID userId = (currentUser != null) ? currentUser.getUserId() : null;
+        PaymentResponse response = paymentService.initiatePayment(request, userId);
         return ResponseEntity.ok(response);
     }
 
