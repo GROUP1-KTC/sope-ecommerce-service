@@ -1,9 +1,6 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.dto.request.TokenRefreshRequest;
-import com.sope.sope_ecommerce_backend.dto.request.UserLoginRequest;
-import com.sope.sope_ecommerce_backend.dto.request.UserRegisterRequest;
-import com.sope.sope_ecommerce_backend.dto.request.UserVerifyRequest;
+import com.sope.sope_ecommerce_backend.dto.request.*;
 import com.sope.sope_ecommerce_backend.dto.response.TokenRefreshResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
@@ -172,4 +169,55 @@ public class AuthServiceImpl implements AuthService {
         String redisKey = "refresh:" + refreshToken;
         redisService.delete(redisKey);
     }
+
+    @Override
+    public void changePassword(ChangePasswordRequest request) {
+        AppUser user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + request.email()));
+
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public void forgotPassword(ForgotPasswordRequest request) throws MessagingException {
+        AppUser user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + request.email()));
+
+        String otp = OtpUtil.generateOtp(6);
+
+        String redisKey = "otp:reset:" + user.getEmail();
+        redisService.set(redisKey, otp, 5, TimeUnit.MINUTES);
+
+        emailService.sendVerificationEmail(user.getEmail(), otp);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        String redisKey = "otp:reset:" + request.email();
+        Object otpInRedis = redisService.get(redisKey);
+
+        if (otpInRedis == null) {
+            throw new RuntimeException("OTP expired or invalid");
+        }
+
+        if (!request.otp().equals(otpInRedis.toString())) {
+            throw new RuntimeException("OTP is incorrect");
+        }
+
+        AppUser user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        // Xoá OTP sau khi dùng
+        redisService.delete(redisKey);
+    }
+
+
 }
