@@ -4,6 +4,7 @@ import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.TokenRefreshRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserLoginRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserRegisterRequest;
+import com.sope.sope_ecommerce_backend.dto.request.UserVerifyRequest;
 import com.sope.sope_ecommerce_backend.dto.response.TokenRefreshResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
@@ -33,6 +34,17 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestBody UserVerifyRequest request) {
+        try {
+            authService.verifyUser(request);
+            return ApiResponseUtil.success("Email verified successfully.", "Verification successful.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to verify email", List.of(e.getMessage()));
+        }
+    }
+
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<UserLoginResponse>> login(@RequestBody UserLoginRequest request) {
 
@@ -55,6 +67,8 @@ public class AuthController {
         authService.logout(request.refreshToken());
         return ResponseEntity.ok("Logout successful");
     }
+
+
 
 
 }

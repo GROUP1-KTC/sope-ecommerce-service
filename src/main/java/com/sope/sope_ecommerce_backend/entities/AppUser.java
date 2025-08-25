@@ -1,5 +1,6 @@
     package com.sope.sope_ecommerce_backend.entities;
 
+    import com.sope.sope_ecommerce_backend.enums.UserStatus;
     import jakarta.persistence.*;
     import lombok.*;
 
@@ -25,7 +26,9 @@
         private String phone;
         private String address;
         private String note;
-        private String status;
+
+        @Enumerated(EnumType.STRING)
+        private UserStatus status = UserStatus.INACTIVE;
 
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         @Builder.Default

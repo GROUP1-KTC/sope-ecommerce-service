@@ -4,6 +4,7 @@ import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.Role;
 import com.sope.sope_ecommerce_backend.entities.UserRole;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
+import com.sope.sope_ecommerce_backend.enums.UserStatus;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import lombok.AllArgsConstructor;
@@ -21,7 +22,6 @@ public class UserSeeder {
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-    @Override
     public void run(String... args) {
         // Mỗi user có nhiều role để test
         createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", Arrays.asList("ADMIN", "USER"));
@@ -39,7 +39,7 @@ public class UserSeeder {
                     .password(passwordEncoder.encode(rawPassword))
                     .address("Default Address")
                     .phone("0123456789")
-                    .status("ACTIVE")
+                    .status(UserStatus.ACTIVE)
                     .build();
 
             // Thêm nhiều role
