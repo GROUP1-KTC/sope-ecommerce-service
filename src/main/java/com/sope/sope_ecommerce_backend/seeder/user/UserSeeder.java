@@ -18,18 +18,20 @@ import java.util.List;
 @AllArgsConstructor
 public class UserSeeder {
 
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+    private UserRepository userRepository;
+    private RoleRepository roleRepository;
+    private BCryptPasswordEncoder passwordEncoder;
 
-    public void run(String... args) {
+    public void run() throws Exception {
         // Mỗi user có nhiều role để test
         createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", Arrays.asList("ADMIN", "USER"));
         createUserIfNotExists("user", "Regular User", "user@example.com", "user123", Arrays.asList("USER", "SELLER"));
-        createUserIfNotExists("seller", "Shop Seller", "seller@example.com", "seller123", Arrays.asList("SELLER", "USER"));
+        createUserIfNotExists("seller", "Shop Seller", "seller@example.com", "seller123",
+                Arrays.asList("SELLER", "USER"));
     }
 
-    private void createUserIfNotExists(String username, String name, String email, String rawPassword, List<String> roleNames) {
+    private void createUserIfNotExists(String username, String name, String email, String rawPassword,
+            List<String> roleNames) {
         if (userRepository.findByUsername(username).isEmpty()) {
 
             AppUser appUser = AppUser.builder()

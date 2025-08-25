@@ -1,10 +1,8 @@
 package com.sope.sope_ecommerce_backend.dto.response;
 
-import lombok.Data;
+public record ImageDTO(
+            Long imageId,
+            String url,
+            int priority) {
 
-@Data
-public class ImageDTO {
-      private Long imageId;
-      private String url;
-      private int priority;
 }

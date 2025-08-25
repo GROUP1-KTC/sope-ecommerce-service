@@ -17,7 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Table(name = "return_request")
-public class ReturnOrderRequest {
+public class ReturnOrder {
       @Id
       @GeneratedValue(strategy = GenerationType.UUID)
       @Column(name = "return_request_id")
@@ -34,8 +34,8 @@ public class ReturnOrderRequest {
       @Column(nullable = false, columnDefinition = "TEXT")
       private String reason;
 
-      @Builder.Default
-      private ReturnStatus status = ReturnStatus.PENDING;
+      // @Builder.Default
+      // private ReturnStatus status = ReturnStatus.PENDING;
 
       @Column(name = "total_refund_amount", precision = 10, scale = 2)
       private BigDecimal totalRefundAmount;

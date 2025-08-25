@@ -4,8 +4,8 @@ import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,14 +19,10 @@ public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "product_id", columnDefinition = "UUID", updatable = false, nullable = false)
-
     private UUID productId;
 
     @Column(nullable = false)
     private String name;
-
-    @Column(nullable = false)
-    private BigDecimal defaultPrice;
 
     private String brand;
 
@@ -37,10 +33,6 @@ public class Product {
     private String defaultImage;
 
     private String defaultVideoIntro;
-
-    private int stock;
-
-    private int sold;
 
     private boolean hidden;
 
@@ -76,6 +68,7 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WishlistEntity> wishlists;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<ProductDetailEntity> productDetails;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductDetailEntity> productDetails = new ArrayList<>();
+
 }
