@@ -3,7 +3,6 @@ package com.sope.sope_ecommerce_backend.services.impl;
 import com.sope.sope_ecommerce_backend.services.EmailService;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -33,13 +32,11 @@ public class EmailServiceImpl implements EmailService {
         helper.setTo(toEmail);
         helper.setSubject("Xác thực tài khoản - Mã OTP");
 
-        // Truyền biến vào Thymeleaf
         Context context = new Context();
         context.setVariable("email", toEmail);
         context.setVariable("otp", otp);
         context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
 
-        // Render ra HTML từ template
         String htmlContent = templateEngine.process("verificationEmail", context);
 
         helper.setText(htmlContent, true);

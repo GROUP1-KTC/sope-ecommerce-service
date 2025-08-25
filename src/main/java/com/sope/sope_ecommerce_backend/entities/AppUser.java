@@ -33,4 +33,8 @@
         @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         @Builder.Default
         private Set<UserRole> userRoles = new HashSet<>();
+
+        @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+        private UserSetting setting;
+
     }

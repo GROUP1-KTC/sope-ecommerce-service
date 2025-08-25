@@ -44,8 +44,10 @@ public class MailConfig {
         mailSender.setHost("smtp.gmail.com");
         mailSender.setPort(587);
         mailSender.setUsername(email);
-        mailSender.setPassword(accessToken); // Dùng access token
-        Properties props = mailSender.getJavaMailProperties();
+        mailSender.setPassword(accessToken);
+        Properties props = mailSender.getJavaMailProperties(
+
+        );
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");

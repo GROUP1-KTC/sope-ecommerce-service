@@ -19,6 +19,7 @@ import com.sope.sope_ecommerce_backend.security.jwt.JwtProvider;
 import com.sope.sope_ecommerce_backend.services.AuthService;
 import com.sope.sope_ecommerce_backend.services.EmailService;
 import com.sope.sope_ecommerce_backend.services.RedisService;
+import com.sope.sope_ecommerce_backend.services.UserSettingService;
 import com.sope.sope_ecommerce_backend.utils.OtpUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
     private final EmailService emailService;
+    private final UserSettingService userSettingService;
 
 
     @Override
@@ -72,6 +74,8 @@ public class AuthServiceImpl implements AuthService {
         appUser.getUserRoles().add(userRole);
 
         appUser = userRepository.save(appUser);
+
+        userSettingService.createDefaultUserSetting(appUser);
 
         // Sinh OTP
         String otp = OtpUtil.generateOtp(6);
