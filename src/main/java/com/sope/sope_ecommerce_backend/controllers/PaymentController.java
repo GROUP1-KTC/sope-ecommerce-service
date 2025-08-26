@@ -2,8 +2,10 @@ package com.sope.sope_ecommerce_backend.controllers;
 
 
 import com.sope.sope_ecommerce_backend.constant.MomoVariable;
+import com.sope.sope_ecommerce_backend.dto.request.MomoCallBackRequest;
 import com.sope.sope_ecommerce_backend.dto.request.PaymentRequest;
 import com.sope.sope_ecommerce_backend.dto.response.PaymentResponse;
+import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.PaymentService;
@@ -34,23 +36,22 @@ public class PaymentController {
     }
 
     @PostMapping("/webhook/momo")
-    public ResponseEntity<String> momoIpn(@RequestBody Map<String, String> request) {
-        Map<String, String> flat = new HashMap<>();
-        request.forEach((k,v) -> flat.put(k, v == null ? "" : v.toString()));
-        String providerPaymentId = flat.get("orderId");
-        String providerStatus = flat.get(MomoVariable.RESULT_CODE);
-        paymentService.handlePaymentCallback("MOMO", providerPaymentId, providerStatus, ParamUtil.toQueryString(flat, true));
-        return ResponseEntity.ok(providerStatus.equals("0") ? "Payment success" : "Payment failed");
+    public ResponseEntity<String> momoIpn(@RequestBody MomoCallBackRequest request) {
+
+        String callbackStatus = String.valueOf(request.resultCode());
+
+        paymentService.handlePaymentCallback(UUID.fromString(request.orderId()), callbackStatus, PaymentProvider.MOMO);
+        return ResponseEntity.ok(callbackStatus.equals("0") ? "Payment success" : "Payment failed");
     }
 
-    @RequestMapping(value="/webhook/vnpay", method={RequestMethod.GET, RequestMethod.POST})
-    public ResponseEntity<String> vnpayIpn(HttpServletRequest req) {
-        Map<String, String> flat = ParamUtil.flatten(req.getParameterMap());
-        String providerPaymentId = flat.get("vnp_TxnRef");
-        String providerStatus = flat.get("vnp_ResponseCode"); // "00" success
-        paymentService.handlePaymentCallback("VNPAY", providerPaymentId, providerStatus, ParamUtil.toQueryString(flat, true));
-        return ResponseEntity.ok("OK");
-    }
+//    @RequestMapping(value="/webhook/vnpay", method={RequestMethod.GET, RequestMethod.POST})
+//    public ResponseEntity<String> vnpayIpn(HttpServletRequest req) {
+//        Map<String, String> flat = ParamUtil.flatten(req.getParameterMap());
+//        String providerPaymentId = flat.get("vnp_TxnRef");
+//        String providerStatus = flat.get("vnp_ResponseCode"); // "00" success
+//        paymentService.handlePaymentCallback("VNPAY", providerPaymentId, providerStatus);
+//        return ResponseEntity.ok("OK");
+//    }
 
 //    @GetMapping("/payment/resume")
 //    public PaymentInfo resumePayment(@RequestParam String token) {

@@ -40,7 +40,8 @@ public class RevenueServiceImpl implements RevenueService {
                               BigDecimal itemTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
 
                               BigDecimal commission = itemTotal
-                                          .multiply(item.getCommissionFeePercent())
+                                            .multiply(item.getProductVariant().getProduct().getCategory().getCommissionFeePercent())
+
                                           .divide(BigDecimal.valueOf(100));
 
                               BigDecimal sellerRevenue = itemTotal.subtract(commission);
@@ -66,7 +67,7 @@ public class RevenueServiceImpl implements RevenueService {
                         BigDecimal itemTotal = item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
 
                         BigDecimal commission = itemTotal
-                                    .multiply(item.getCommissionFeePercent())
+                                    .multiply(item.getProductVariant().getProduct().getCategory().getCommissionFeePercent())
                                     .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 
                         totalCommission = totalCommission.add(commission);

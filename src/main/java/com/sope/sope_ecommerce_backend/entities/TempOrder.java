@@ -32,6 +32,8 @@ public class TempOrder {
     private String district;
     private  String ward;
 
+    @Column(nullable = false)
+    private String shippingRateId;
 
     @ElementCollection
     @CollectionTable(name = "temp_order_items", joinColumns = @JoinColumn(name = "temp_order_id"))

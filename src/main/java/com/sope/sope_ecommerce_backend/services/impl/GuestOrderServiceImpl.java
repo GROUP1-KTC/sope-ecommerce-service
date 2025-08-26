@@ -60,7 +60,7 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
 
         // Calculate subtotal and orderItems
         BigDecimal subtotal = BigDecimal.ZERO;
-        List<OrderItem> orderItems = new ArrayList<>();
+        List<TempOrderItem> tempOrderItems = new ArrayList<>();
         for (OrderItemRequest orderItemRequest : request.items()) {
             if (orderItemRequest.productVariantId() == null || orderItemRequest.quantity() <= 0) {
                 throw new IllegalArgumentException("Invalid order item: " + orderItemRequest);
@@ -73,16 +73,14 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
             BigDecimal itemPrice = variant.getPrice().multiply(BigDecimal.valueOf(orderItemRequest.quantity()));
             subtotal = subtotal.add(itemPrice);
 
-            OrderItem orderItem = OrderItem.builder()
-                    .orderItemId(OrderItemId.builder()
-                            .orderId(null)
-                            .productVariantId(variant.getProductVariantId())
-                            .build())
+
+            TempOrderItem tempOrderItem = TempOrderItem.builder()
                     .productVariant(variant)
                     .quantity(orderItemRequest.quantity())
                     .price(variant.getPrice())
                     .build();
-            orderItems.add(orderItem);
+
+            tempOrderItems.add(tempOrderItem);
         }
 
 
@@ -93,7 +91,6 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
                 Optional.ofNullable(userId).map(Object::toString).orElse(UUID.randomUUID().toString()),
                 true
         );
-        List<TempOrderItem> tempOrderItems = orderMapper.toTempOrderItemsEntity(request.items());
 
         TempOrder tempOrder = TempOrder.builder()
                     .guestEmail(request.guestInfo().email())
@@ -112,8 +109,8 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
                     .expiresAt(LocalDateTime.now().plusHours(24))
                     .idempotencyKey(request.idempotencyKey())
                     .orderNumber(orderNumber)
+                    .shippingRateId(request.shippingRateId())
                     .build();
-
 
         Payment payment = Payment.builder()
                 .tempOrder(tempOrder)

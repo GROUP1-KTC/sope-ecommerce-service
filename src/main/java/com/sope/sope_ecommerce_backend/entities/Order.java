@@ -64,6 +64,10 @@ public class Order {
 
     private String cancelReason;
 
+    @Column(nullable = false)
+    private String shippingRateId;
+
+
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderDiscount> discounts = new HashSet<>();

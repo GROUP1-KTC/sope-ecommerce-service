@@ -17,7 +17,8 @@ public record GuestOrderCreateRequest(
         List<OrderItemRequest> items,
         PaymentMethod paymentMethod,
         PaymentProvider paymentProvider,
-        BigDecimal shippingCharge
+        BigDecimal shippingCharge,
+        String shippingRateId
 
         ) implements OrderCreateRequest {
 }

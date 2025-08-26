@@ -20,7 +20,7 @@ public class TempOrderCleanupScheduler {
 
         for (TempOrder temp : expiredOrders) {
             temp.getOrderItems().forEach(item -> {
-                productVariantService.retrieveProductVariantStock(item.getProductVariantId(), item.getQuantity());
+                productVariantService.retrieveProductVariantStock(item.getProductVariant().getProductVariantId(), item.getQuantity());
             });
 
             tempOrderRepository.delete(temp);

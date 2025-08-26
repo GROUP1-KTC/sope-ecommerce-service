@@ -4,6 +4,5 @@ public class MomoVariable {
     public static final String RESULT_CODE = "resultCode";
 
     private MomoVariable() {
-        // Prevent instantiation
     }
 }

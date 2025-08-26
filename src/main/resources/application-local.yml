@@ -153,6 +153,11 @@ payment-gateway:
     request-type: captureWallet
 
 
+shipping-unit:
+  goship:
+    base-url: https://sandbox.goship.io/api/v2
+    auth-token: ${GOSHIP_AUTH_TOKEN}
+
 
 api:
 

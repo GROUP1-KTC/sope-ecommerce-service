@@ -71,7 +71,6 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                     .productVariant(variant)
                     .quantity(orderItemRequest.quantity())
                     .price(variant.getPrice())
-                    .commissionFeePercent(variant.getProduct().getCategory().getCommissionFeePercent())
                     .build();
             orderItems.add(orderItem);
         }
@@ -89,6 +88,7 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                 .orderItems(orderItems)
                 .idempotencyKey(request.idempotencyKey())
                 .statusHistory(new ArrayList<>())
+                .shippingRateId(request.shippingRateId())
                 .build();
 
         CommissionEntity commission = CommissionEntity.builder()

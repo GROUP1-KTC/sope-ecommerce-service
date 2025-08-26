@@ -36,7 +36,10 @@ public class OrderScheduler {
         LocalDateTime thresholdDate = todayStart.minusDays(14);
 
 
-        List<Order> ordersToComplete = orderRepository.findByStatusAndDeliveryDateBefore(OrderStatus.DELIVERED, thresholdDate);
+        List<Order> ordersToComplete = orderRepository.findByStatus(OrderStatus.DELIVERED);
+
+
+
         for (Order order : ordersToComplete) {
             order.setStatus(OrderStatus.COMPLETED);
         }

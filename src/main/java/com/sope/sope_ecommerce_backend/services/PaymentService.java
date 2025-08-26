@@ -10,6 +10,6 @@ import java.util.UUID;
 public interface PaymentService {
     public PaymentResponse initiatePayment(PaymentRequest request, UUID userId);
 
-    public void handlePaymentCallback(String providerStr, String providerPaymentId, String callbackStatus, String otherParamsJsonOrQuery);
+    public void handlePaymentCallback(UUID orderId, String callbackStatus, PaymentProvider provider);
 
 }

@@ -21,6 +21,7 @@ public record UserOrderCreateRequest(
         List<OrderItemRequest> items,
         PaymentMethod paymentMethod,
         PaymentProvider paymentProvider,
-        Boolean isOrderedFromCart
+        Boolean isOrderedFromCart,
+        String shippingRateId
 ) implements OrderCreateRequest {
 }
