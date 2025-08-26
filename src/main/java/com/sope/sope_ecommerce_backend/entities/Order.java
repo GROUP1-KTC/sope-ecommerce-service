@@ -62,6 +62,9 @@ public class Order {
     @Column(unique = true, nullable = false)
     private String orderNumber;
 
+    @Column(name = "tracking_number", unique = true)
+    private String trackingNumber;
+
     private String cancelReason;
 
     @Column(nullable = false)

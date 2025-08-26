@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.configuration;
 
+import com.sope.sope_ecommerce_backend.security.AuthorizationRules;
 import com.sope.sope_ecommerce_backend.security.jwt.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,25 +27,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtRequestFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtRequestFilter, AuthorizationRules authorizationRules) throws Exception {
         http
 
                 .cors(cors -> cors.configurationSource(webCorsConfig.corsConfigurationSource()))
 
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login-page", "/user", "/admin").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers(
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui/index.html",
-                                "/api/**"
-                        ).permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/user/me").authenticated()
-                        .anyRequest().authenticated()
-                )
+
+                .authorizeHttpRequests(auth -> authorizationRules.apply(auth))
+
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );

@@ -22,8 +22,8 @@ public class Discount {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "discount_code_id", columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID discountCodeId;
+    @Column(name = "id", columnDefinition = "UUID", updatable = false, nullable = false)
+    private UUID id;
 
     private String description;
 

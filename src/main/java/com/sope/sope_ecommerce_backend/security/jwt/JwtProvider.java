@@ -43,7 +43,7 @@ public class JwtProvider {
         return getClaims(token).getExpiration();
     }
 
-    private Claims getClaims(String token) {
+    public Claims getClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(rsaKeyUtil.getPublicKey())
                 .build()
@@ -58,6 +58,11 @@ public class JwtProvider {
     public String generateToken(UserDetails userDetails, UUID userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId.toString());
+        claims.put("roles", userDetails.getAuthorities()
+                .stream()
+                .map(a -> a.getAuthority())
+                .toList()
+        );
         return createToken(claims, userDetails.getUsername(), jwtProperties.getExpiration());
     }
 

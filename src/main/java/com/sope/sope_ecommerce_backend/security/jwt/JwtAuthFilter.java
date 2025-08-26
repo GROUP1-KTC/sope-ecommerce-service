@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.security.jwt;
 
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetailsService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -82,13 +84,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private void setAuthentication(String token, String username, String userId, HttpServletRequest request) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
         if (jwtProvider.validateTokenWithUser(token, userDetails, userId)) {
+            Claims claims = jwtProvider.getClaims(token);
+            List<String> roles = Optional.ofNullable(claims.get("roles", List.class))
+                    .orElse(List.of());
+
+            List<SimpleGrantedAuthority> authorities = roles.stream()
+                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                    .toList();
+
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
             SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            log.info("Authentication set for user {} with roles {}", username, roles);
         }
     }
+
+
 }
 

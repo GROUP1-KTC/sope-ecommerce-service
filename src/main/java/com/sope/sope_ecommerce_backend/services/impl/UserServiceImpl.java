@@ -5,19 +5,16 @@ import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
-import com.sope.sope_ecommerce_backend.enums.RoleName;
+
+import com.sope.sope_ecommerce_backend.enums.UserStatus;
+
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
-import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
-import com.sope.sope_ecommerce_backend.security.jwt.JwtProvider;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -78,7 +75,7 @@ public class UserServiceImpl implements UserService {
                     .name(fullName)
                     .phone(phone)
 //                    .roles()
-                    .status("INACTIVE")
+                    .status(UserStatus.INACTIVE)
                     .build();
 
             userRepository.save(guestUser);
@@ -117,7 +114,7 @@ public class UserServiceImpl implements UserService {
             appUser.setNote(request.note());
         }
         if (request.status() != null) {
-            appUser.setStatus(request.status());
+            appUser.setStatus(UserStatus.valueOf(request.status()));
         }
 
         appUser = userRepository.save(appUser);
@@ -130,7 +127,7 @@ public class UserServiceImpl implements UserService {
         AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        appUser.setStatus(request.status());
+        appUser.setStatus(UserStatus.valueOf(request.status()));
         userRepository.save(appUser);
     }
 }

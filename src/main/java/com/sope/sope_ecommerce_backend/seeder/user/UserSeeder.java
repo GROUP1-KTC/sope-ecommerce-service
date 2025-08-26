@@ -4,6 +4,7 @@ import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.Role;
 import com.sope.sope_ecommerce_backend.entities.UserRole;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
+import com.sope.sope_ecommerce_backend.enums.UserStatus;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import lombok.AllArgsConstructor;
@@ -40,7 +41,7 @@ public class UserSeeder {
                     .password(passwordEncoder.encode(rawPassword))
                     .address("Default Address")
                     .phone("0123456789")
-                    .status("ACTIVE")
+                    .status(UserStatus.ACTIVE)
                     .build();
 
             // Thêm nhiều role
