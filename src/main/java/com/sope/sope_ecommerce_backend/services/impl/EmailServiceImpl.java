@@ -43,5 +43,26 @@ public class EmailServiceImpl implements EmailService {
 
         mailSender.send(mimeMessage);
     }
+
+    @Override
+    public void sendResetPasswordEmail(String toEmail, String otp) throws MessagingException {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+        helper.setFrom(fromEmail);
+        helper.setTo(toEmail);
+        helper.setSubject("Khôi phục mật khẩu - Mã OTP");
+
+        Context context = new Context();
+        context.setVariable("email", toEmail);
+        context.setVariable("otp", otp);
+        context.setVariable("expiryMinutes", OTP_EXPIRY_MINUTES);
+
+        String htmlContent = templateEngine.process("resetPasswordEmail", context);
+
+        helper.setText(htmlContent, true);
+
+        mailSender.send(mimeMessage);
+    }
 }
 
