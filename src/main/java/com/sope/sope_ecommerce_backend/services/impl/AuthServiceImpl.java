@@ -116,20 +116,18 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
         try {
+            AppUser appUser = userRepository.findByEmail(request.email())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.username(),
+                            appUser.getUsername(),
                             request.password()
                     )
             );
-        } catch (BadCredentialsException e) {
-            throw new RuntimeException("Incorrect username or password", e);
-        }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.username());
 
-        AppUser appUser = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(appUser.getUsername());
 
         String accessToken = jwtProvider.generateToken(userDetails, appUser.getId());
 
@@ -138,6 +136,9 @@ public class AuthServiceImpl implements AuthService {
         redisService.set("refresh:" + refreshToken, appUser.getId().toString(), 7, TimeUnit.DAYS);
 
         return userMapper.toLoginResponse(appUser, accessToken, refreshToken);
+        } catch (BadCredentialsException e) {
+            throw new RuntimeException("Incorrect username or password", e);
+        }
     }
 
 

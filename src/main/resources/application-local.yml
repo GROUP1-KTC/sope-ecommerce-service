@@ -119,6 +119,7 @@ web:
     allowed-origins:
       - "http://localhost:5173"
       - "https://everspark.vn"
+      - "http://localhost:3000/"
     allowed-methods:
       - GET
       - POST
