@@ -2,22 +2,41 @@ spring:
   application:
     name: sope ecommerce backend
 
+  config:
+    import: optional:file:.env[.properties]
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    cache: false
+
   devtools:
     restart:
       enabled: true
       additional-paths: src/main/java
 
-  # datasource:
-  #   url: jdbc:postgresql://localhost:5432/sope
-  #   username: postgres
-  #   password: postgres123
-  #   driver-class-name: org.postgresql.Driver
-
   datasource:
-    url: jdbc:postgresql://52.77.255.50:5432/sope
+    url: jdbc:postgresql://localhost:5432/sope
     username: postgres
     password: postgres123
     driver-class-name: org.postgresql.Driver
+
+  # datasource:
+  #   url: jdbc:postgresql://52.77.255.50:5432/sope
+  #   username: postgres
+  #   password: postgres123
+  #   driver-class-name: org.postgresql.Driver
 
   data:
     redis:
@@ -93,9 +112,9 @@ server:
 api:
 
 cloudinary:
-  cloud-name: dybo8zd4y123
-  api-key: 111854312673546
-  api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
 
 jwt:
   public-key: ${PUBLIC_KEY}

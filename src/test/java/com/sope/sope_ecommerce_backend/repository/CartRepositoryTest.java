@@ -2,6 +2,8 @@ package com.sope.sope_ecommerce_backend.repository;
 
 import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.Cart;
+import com.sope.sope_ecommerce_backend.entities.Shop.Status;
+import com.sope.sope_ecommerce_backend.enums.UserStatus;
 import com.sope.sope_ecommerce_backend.repositories.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +38,7 @@ public class CartRepositoryTest {
                 .phone("1234567890")
                 .address("123 Test St")
                 .note("Test note")
-                .status("ACTIVE")
+                .status(UserStatus.ACTIVE)
                 .userRoles(Set.of())
                 .build();
         testEntityManager.persist(appUser1);

@@ -47,19 +47,20 @@ public class ProductController {
       }
 
       @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-      public ProductDTO createProduct(
+      public ResponseEntity<ProductDTO> createProduct(
                   @RequestPart("product") ProductCreateDTO productCreateDTO,
                   @RequestPart("defaultImage") MultipartFile defaultImage,
                   @RequestPart(value = "defaultVideoIntro", required = false) MultipartFile defaultVideoIntro,
                   @RequestPart(value = "productImages", required = false) List<MultipartFile> productImages,
                   @RequestPart(value = "variantFiles", required = false) List<MultipartFile> variantFiles) {
 
-            return productService.createProduct(
+            ProductDTO createProduct = productService.createProduct(
                         productCreateDTO,
                         defaultImage,
                         defaultVideoIntro,
                         productImages,
                         variantFiles);
+            return ResponseEntity.ok(createProduct);
       }
 
       @PatchMapping(value = "/{slug}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

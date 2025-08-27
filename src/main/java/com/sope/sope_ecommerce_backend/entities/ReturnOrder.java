@@ -1,6 +1,6 @@
 package com.sope.sope_ecommerce_backend.entities;
 
-import com.sope.sope_ecommerce_backend.enums.ReturnStatus;
+// import com.sope.sope_ecommerce_backend.enums.ReturnStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

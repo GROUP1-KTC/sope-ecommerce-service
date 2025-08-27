@@ -1,8 +1,6 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.dto.request.TokenRefreshRequest;
-import com.sope.sope_ecommerce_backend.dto.request.UserLoginRequest;
-import com.sope.sope_ecommerce_backend.dto.request.UserRegisterRequest;
+import com.sope.sope_ecommerce_backend.dto.request.*;
 import com.sope.sope_ecommerce_backend.dto.response.TokenRefreshResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
@@ -10,12 +8,17 @@ import com.sope.sope_ecommerce_backend.entities.Role;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.UserRole;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
+import com.sope.sope_ecommerce_backend.enums.UserStatus;
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import com.sope.sope_ecommerce_backend.security.jwt.JwtProvider;
 import com.sope.sope_ecommerce_backend.services.AuthService;
+import com.sope.sope_ecommerce_backend.services.EmailService;
 import com.sope.sope_ecommerce_backend.services.RedisService;
+import com.sope.sope_ecommerce_backend.services.UserSettingService;
+import com.sope.sope_ecommerce_backend.utils.OtpUtil;
+import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -39,10 +42,12 @@ public class AuthServiceImpl implements AuthService {
     private final UserDetailsService userDetailsService;
     private final JwtProvider jwtProvider;
     private final RedisService redisService;
+    private final EmailService emailService;
+    private final UserSettingService userSettingService;
 
 
     @Override
-    public UserResponse register(UserRegisterRequest request) {
+    public UserResponse register(UserRegisterRequest request) throws MessagingException {
         if (userRepository.findByUsername(request.username()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
@@ -52,6 +57,7 @@ public class AuthServiceImpl implements AuthService {
 
         AppUser appUser = userMapper.toEntity(request);
         appUser.setPassword(passwordEncoder.encode(request.password()));
+        appUser.setStatus(UserStatus.INACTIVE);
 
         Role userRoleEntity = roleRepository.findByRoleName(RoleName.USER)
                 .orElseGet(() -> roleRepository.save(new Role(RoleName.USER)));
@@ -66,9 +72,45 @@ public class AuthServiceImpl implements AuthService {
 
         appUser = userRepository.save(appUser);
 
+        userSettingService.createDefaultUserSetting(appUser);
+
+        // Sinh OTP
+        String otp = OtpUtil.generateOtp(6);
+
+        // Lưu OTP vào Redis
+        redisService.set("otp:email:" + appUser.getEmail(), otp, 5, TimeUnit.MINUTES);
+
+        // Gửi email
+        emailService.sendVerificationEmail(appUser.getEmail(), otp);
+
         return userMapper.toResponse(appUser);
     }
 
+    @Override
+    public void verifyUser(UserVerifyRequest request) {
+
+        String email = request.email();
+        String otp = request.otp();
+
+        String redisKey = "otp:email:" + email;
+        Object otpInRedis = redisService.get(redisKey);
+
+        if (otpInRedis == null) {
+            throw new RuntimeException("OTP expired or invalid");
+        }
+
+        if (!otp.equals(otpInRedis.toString())) {
+            throw new RuntimeException("OTP is incorrect");
+        }
+
+        AppUser user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setStatus(UserStatus.ACTIVE);
+        userRepository.save(user);
+
+        redisService.delete(redisKey);
+    }
 
 
     @Override
@@ -127,4 +169,55 @@ public class AuthServiceImpl implements AuthService {
         String redisKey = "refresh:" + refreshToken;
         redisService.delete(redisKey);
     }
+
+    @Override
+    public void changePassword(ChangePasswordRequest request) {
+        AppUser user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + request.email()));
+
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
+            throw new RuntimeException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
+    public void forgotPassword(ForgotPasswordRequest request) throws MessagingException {
+        AppUser user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + request.email()));
+
+        String otp = OtpUtil.generateOtp(6);
+
+        String redisKey = "otp:reset:" + user.getEmail();
+        redisService.set(redisKey, otp, 5, TimeUnit.MINUTES);
+
+        emailService.sendVerificationEmail(user.getEmail(), otp);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        String redisKey = "otp:reset:" + request.email();
+        Object otpInRedis = redisService.get(redisKey);
+
+        if (otpInRedis == null) {
+            throw new RuntimeException("OTP expired or invalid");
+        }
+
+        if (!request.otp().equals(otpInRedis.toString())) {
+            throw new RuntimeException("OTP is incorrect");
+        }
+
+        AppUser user = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        userRepository.save(user);
+
+        // Xoá OTP sau khi dùng
+        redisService.delete(redisKey);
+    }
+
+
 }

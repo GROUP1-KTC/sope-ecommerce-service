@@ -8,12 +8,12 @@ import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductVariantDetailDTO;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.StatusProduct;
-import com.sope.sope_ecommerce_backend.exception.ResourceNotFoundException;
 import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
 import com.sope.sope_ecommerce_backend.mapper.ProductVariantMapper;
 import com.sope.sope_ecommerce_backend.repositories.*;
 import com.sope.sope_ecommerce_backend.services.ProductService;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.stereotype.Service;
@@ -56,7 +56,7 @@ public class ProductServiceImpl implements ProductService {
       public ProductDTO getProductBySlug(String slug) {
             return productRepository.findBySlug(slug)
                         .map(productMapper::toDto)
-                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with slug: " + slug));
+                        .orElseThrow(() -> new EntityNotFoundException("Product not found with slug: " + slug));
       }
 
       @Override
@@ -70,7 +70,7 @@ public class ProductServiceImpl implements ProductService {
       @Transactional(readOnly = true)
       public ProductBasicWithVariantsDTO getProductWithVariants(UUID productId) {
             Product product = productRepository.findById(productId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+                        .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
 
             List<Map<String, String>> variantObjects = product.getVariants().stream()
                         .map(variant -> variant.getAttributes().stream()
@@ -90,7 +90,7 @@ public class ProductServiceImpl implements ProductService {
       @Transactional(readOnly = true)
       public ProductVariantDetailDTO getProductVariantDetail(UUID productVariantId) {
             ProductVariant variant = productVariantRepository.findById(productVariantId)
-                        .orElseThrow(() -> new ResourceNotFoundException(
+                        .orElseThrow(() -> new EntityNotFoundException(
                                     "ProductVariant not found with id: " + productVariantId));
             return productVariantMapper.toProductVariantDetailDTO(variant);
       }
@@ -106,9 +106,9 @@ public class ProductServiceImpl implements ProductService {
 
             // category and shop
             Category category = categoryRepository.findById(dto.categoryId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+                        .orElseThrow(() -> new EntityNotFoundException("Category not found"));
             Shop shop = shopRepository.findById(dto.shopId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Shop not found"));
+                        .orElseThrow(() -> new EntityNotFoundException("Shop not found"));
             entity.setCategory(category);
             entity.setShop(shop);
 
@@ -217,7 +217,7 @@ public class ProductServiceImpl implements ProductService {
                   List<MultipartFile> variantFiles) {
 
             Product entity = productRepository.findBySlug(slug)
-                        .orElseThrow(() -> new ResourceNotFoundException("Product not found with slug: " + slug));
+                        .orElseThrow(() -> new EntityNotFoundException("Product not found with slug: " + slug));
 
             if (dto.hidden() != null) {
                   entity.setHidden(dto.hidden());

@@ -1,9 +1,7 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.ApiResponse;
-import com.sope.sope_ecommerce_backend.dto.request.TokenRefreshRequest;
-import com.sope.sope_ecommerce_backend.dto.request.UserLoginRequest;
-import com.sope.sope_ecommerce_backend.dto.request.UserRegisterRequest;
+import com.sope.sope_ecommerce_backend.dto.request.*;
 import com.sope.sope_ecommerce_backend.dto.response.TokenRefreshResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
@@ -33,6 +31,17 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/verify")
+    public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestBody UserVerifyRequest request) {
+        try {
+            authService.verifyUser(request);
+            return ApiResponseUtil.success("Email verified successfully.", "Verification successful.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to verify email", List.of(e.getMessage()));
+        }
+    }
+
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<UserLoginResponse>> login(@RequestBody UserLoginRequest request) {
 
@@ -54,6 +63,36 @@ public class AuthController {
     public ResponseEntity<String> logout(@Valid @RequestBody TokenRefreshRequest request) {
         authService.logout(request.refreshToken());
         return ResponseEntity.ok("Logout successful");
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<ApiResponse<String>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        try {
+            authService.changePassword(request);
+            return ApiResponseUtil.success("Password changed successfully.", "Change password successful.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to change password", List.of(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            authService.forgotPassword(request);
+            return ApiResponseUtil.success("OTP has been sent to your email.", "Forgot password request successful.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to send OTP", List.of(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            authService.resetPassword(request);
+            return ApiResponseUtil.success("Password reset successfully.", "Reset successful.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to reset password", List.of(e.getMessage()));
+        }
     }
 
 
