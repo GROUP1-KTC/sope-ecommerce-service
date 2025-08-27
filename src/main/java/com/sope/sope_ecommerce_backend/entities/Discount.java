@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 
 @Data
@@ -27,7 +29,7 @@ public class Discount {
 
     private String description;
 
-    @Column(length = 5, unique = true, nullable = false)
+    @Column(length = 20, nullable = false)
     private String code;
 
     @Column(name = "discount_value", nullable = false)
@@ -50,6 +52,7 @@ public class Discount {
     @Builder.Default
     private int currentUsage = 0;
 
+    @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -102,10 +105,6 @@ public class Discount {
 
         if (minOrderValue != null && minOrderValue.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalStateException("minOrderValue must be >= 0");
-        }
-
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
         }
     }
 }

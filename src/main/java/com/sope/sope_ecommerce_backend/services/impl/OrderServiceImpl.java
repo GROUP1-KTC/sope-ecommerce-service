@@ -4,6 +4,7 @@ import com.sope.sope_ecommerce_backend.dto.request.GuestOrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
+import com.sope.sope_ecommerce_backend.dto.response.UserOrderResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
@@ -54,16 +55,7 @@ public class OrderServiceImpl implements OrderService {
             return orderMapper.toOrderResponseDTO(existing.get());
         }
         else if (tempOrderExisting.isPresent()) {
-            TempOrder tempOrder = tempOrderExisting.get();
-            OrderResponse orderResponse = OrderResponse.builder()
-                    .orderId(tempOrder.getId())
-                    .orderNumber(tempOrder.getOrderNumber())
-                    .subtotal(tempOrder.getSubtotal())
-                    .shippingCharges(tempOrder.getShippingCharges())
-                    .totalAmount(tempOrder.getTotalAmount())
-                    .status(OrderStatus.PENDING)
-                    .build();
-            return orderResponse;
+            return orderMapper.toOrderResponseDTO(tempOrderExisting.get());
         }
 
         OrderCreationStrategy strategy = strategies.stream()
@@ -76,17 +68,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Iterable<OrderResponse> getAllOrders() {
+    public Iterable<? extends OrderResponse> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
         if (orders.isEmpty()) {
             throw new CustomException("No orders found");
         }
 
-        return orderMapper.toOrderResponseDTOs(orders);
+        return orderMapper.toUserOrderResponseDTOs(orders);
     }
 
     @Override
-    public Iterable<OrderResponse> getOrdersByUserId(UUID userId) {
+    public Iterable<? extends OrderResponse> getOrdersByUserId(UUID userId) {
 
         AppUser appUser = userService.getUserEntityById(userId);
 
@@ -96,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
 
-        return orderMapper.toOrderResponseDTOs(orders);
+        return orderMapper.toUserOrderResponseDTOs(orders);
     }
 
     @Override
@@ -174,6 +166,7 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Invalid status transition from " + order.getStatus() + " to " + newStatus);
         }
 
+        order.setExpireAt(null);
         order.setStatus(newStatus);
         addStatusHistory(order, newStatus);
         orderRepository.save(order);

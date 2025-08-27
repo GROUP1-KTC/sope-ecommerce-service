@@ -5,6 +5,7 @@ import com.sope.sope_ecommerce_backend.dto.request.CancelOrderRequest;
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
+import com.sope.sope_ecommerce_backend.dto.response.UserOrderResponse;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.OrderService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
@@ -30,14 +31,14 @@ public class OrderController {
      * @return a response containing the list of cart items
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<Iterable<OrderResponse>>> getAllOrders(
+    public ResponseEntity<ApiResponse<Iterable<? extends OrderResponse>>> getAllOrders(
             @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
             if (currentUser == null) {
                 return ApiResponseUtil.unauthorized("User is not logged in");
             }
 
-            Iterable<OrderResponse> orders = orderService.getAllOrders();
+            Iterable<? extends OrderResponse> orders = orderService.getAllOrders();
             return ApiResponseUtil.success(orders, "Order fetched successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to fetch cart items", List.of(e.getMessage()));
@@ -45,14 +46,14 @@ public class OrderController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<ApiResponse<Iterable<OrderResponse>>> getAllOrdersByUserAccount(
+    public ResponseEntity<ApiResponse<Iterable<? extends OrderResponse>>> getAllOrdersByUserAccount(
             @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
             if (currentUser == null) {
                 return ApiResponseUtil.unauthorized("User is not logged in");
             }
 
-            Iterable<OrderResponse> orders = orderService.getOrdersByUserId(currentUser.getUserId());
+            Iterable<? extends OrderResponse> orders = orderService.getOrdersByUserId(currentUser.getUserId());
             return ApiResponseUtil.success(orders, "Orders fetched successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to fetch orders", List.of(e.getMessage()));

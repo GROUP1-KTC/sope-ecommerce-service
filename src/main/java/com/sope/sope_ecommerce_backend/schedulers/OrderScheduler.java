@@ -24,9 +24,13 @@ public class OrderScheduler {
     @Scheduled(fixedRate = 300000)
     @Transactional
     public void cancelExpiredOrders() {
-        List<Order> expiredOrders = orderService.findOrderByStatusPendingAndExpireAtBefore(LocalDateTime.now());
+        List<Order> expiredOrders = findExpiredPendingOrders(LocalDateTime.now());
         expiredOrders.forEach(order -> orderService.cancelOrder(order.getOrderId(),
                 "Order expired due to inactivity", order.getAppUser().getId()));
+    }
+
+    public List<Order> findExpiredPendingOrders(LocalDateTime now) {
+        return orderRepository.findByStatusAndExpireAtBefore(OrderStatus.PENDING, now);
     }
 
     @Scheduled(cron = "0 0 0 * * ?")

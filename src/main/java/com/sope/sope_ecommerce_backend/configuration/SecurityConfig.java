@@ -28,6 +28,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtRequestFilter, AuthorizationRules authorizationRules) throws Exception {
+
         http
 
                 .cors(cors -> cors.configurationSource(webCorsConfig.corsConfigurationSource()))

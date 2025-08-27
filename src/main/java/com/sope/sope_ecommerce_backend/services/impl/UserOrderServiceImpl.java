@@ -17,6 +17,7 @@ import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
 import com.sope.sope_ecommerce_backend.utils.IdempotencyUtils;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ import java.util.*;
 
 import static com.sope.sope_ecommerce_backend.utils.RandomUtil.generateKey;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCreateRequest> {
@@ -52,6 +54,7 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
 
         AppUser user = userService.getUserEntityById(userId);
         Address shippingAddress = addressService.getAddressEntityById(request.shippingAddressId());
+
 
         BigDecimal subtotal = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
@@ -105,10 +108,11 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
         BigDecimal discountOnOrder = BigDecimal.ZERO;
         BigDecimal discountOnShipping = BigDecimal.ZERO;
         Set<OrderDiscount> discounts = new HashSet<>();
+
         if (request.discountCodes() != null && !request.discountCodes().isEmpty()) {
             for (String discountCode : request.discountCodes()) {
-                Discount discount = discountService.getDiscountByCode(discountCode)
-                        .orElseThrow(() -> new CustomException("Invalid discount code: " + discountCode));
+                Discount discount = discountService.getDiscountEntityByCode(discountCode);
+
 
                 BigDecimal discountValueForOrder = discountService.applyDiscount(discount, subtotal, shippingCharges);
 
@@ -125,6 +129,8 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                         .discountName(discount.getScope().name())
                         .discountAmount(discountValueForOrder)
                         .build();
+
+                log.info("Applied discount: {} Amount: {}", discount.getScope().name(), discountValueForOrder);
 
                 discounts.add(orderDiscount);
             }
@@ -154,6 +160,8 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
             order.setExpireAt(LocalDateTime.now().plusHours(24));
         }
 
+        log.info("Final total amount: {}", totalAmount);
+
         order.setPayment(payment);
         order.setDiscounts(discounts);
         order.setTotalAmount(totalAmount);
@@ -180,7 +188,6 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
 
             cartService.removeItemsFromCart(userId, productVariantIds);
         }
-
 
         Order newOrder = IdempotencyUtils.saveWithIdempotency(
                 () -> orderRepository.save(order),

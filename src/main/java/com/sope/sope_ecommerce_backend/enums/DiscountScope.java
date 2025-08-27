@@ -4,4 +4,5 @@ public enum DiscountScope {
     SHOP,
     PLATFORM,
     FREESHIP,
+    COIN_BACK
 }

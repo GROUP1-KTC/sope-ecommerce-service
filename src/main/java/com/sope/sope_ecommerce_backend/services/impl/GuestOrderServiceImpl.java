@@ -6,6 +6,7 @@ import com.sope.sope_ecommerce_backend.dto.request.GuestOrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.OrderItemRequest;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
+import com.sope.sope_ecommerce_backend.dto.response.UserOrderResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 
 import com.sope.sope_ecommerce_backend.enums.DiscountScope;
@@ -128,16 +129,7 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
                 new RuntimeException("Order not found after duplicate key")
         );
 
-        OrderResponse orderResponse = OrderResponse.builder()
-                .orderId(newTempOrder.getId())
-                .orderNumber(orderNumber)
-                .subtotal(subtotal)
-                .shippingCharges(shippingCharges)
-                .totalAmount(totalAmount)
-                .status(OrderStatus.PENDING)
-                .build();
-
-        return orderResponse;
+        return orderMapper.toOrderResponseDTO(newTempOrder);
     }
 
 

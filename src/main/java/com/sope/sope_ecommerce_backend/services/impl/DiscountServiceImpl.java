@@ -1,95 +1,99 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
+import com.sope.sope_ecommerce_backend.dto.request.DiscountCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.response.DiscountResponse;
 import com.sope.sope_ecommerce_backend.entities.Discount;
+import com.sope.sope_ecommerce_backend.mapper.DiscountMapper;
 import com.sope.sope_ecommerce_backend.repositories.DiscountRepository;
 import com.sope.sope_ecommerce_backend.services.DiscountService;
+import com.sope.sope_ecommerce_backend.services.patterns.DiscountStrategy;
+import com.sope.sope_ecommerce_backend.services.patterns.DiscountStrategyFactory;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @AllArgsConstructor
 @Service
 public class DiscountServiceImpl implements DiscountService {
     private final DiscountRepository discountRepository;
+    private final DiscountStrategyFactory discountStrategyFactory;
+    private final DiscountMapper discountMapper;
 
     @Override
-    public Discount createDiscount(Discount discount) {
-        return discountRepository.save(discount);
+    public DiscountResponse createDiscount(DiscountCreateRequest request) {
+        Optional<Discount> existingDiscount = discountRepository.findByCode(request.code());
+
+        if (existingDiscount.isPresent()) {
+            Discount discount = existingDiscount.get();
+            LocalDateTime now = LocalDateTime.now();
+            boolean isNotExpired = discount.getEndDate() == null || !now.isAfter(discount.getEndDate());
+            boolean isNotUsedUp = discount.getMaxUsage() == 0 || discount.getCurrentUsage() < discount.getMaxUsage();
+            boolean isNotYetActive = discount.getStartDate() != null && now.isBefore(discount.getStartDate());
+
+            if (isNotExpired && isNotUsedUp || isNotYetActive) {
+                throw new IllegalArgumentException("Discount code " + request.code() +
+                        (isNotYetActive ? " is not yet active" : " is still active or has not expired"));
+            }
+        }
+
+        Discount newDiscount = discountMapper.toEntity(request);
+
+        Discount savedDiscount = discountRepository.save(newDiscount);
+
+        return discountMapper.toResponse(savedDiscount);
     }
 
     @Override
-    public Optional<Discount> getDiscountByCode(String code) {
-        return discountRepository.findByCode(code);
+    public DiscountResponse getDiscountByCode(String code) {
+
+        Discount discount = discountRepository.findByCode(code).orElseThrow(
+                () -> new IllegalArgumentException("Discount code " + code + " not found")
+        );
+
+        return discountMapper.toResponse(discount);
+    }
+
+    @Override
+    public Discount getDiscountEntityByCode(String code) {
+
+        Discount discount = discountRepository.findByCode(code).orElseThrow(
+                () -> new IllegalArgumentException("Discount code " + code + " not found")
+        );
+
+        return discount;
     }
 
     @Override
     public boolean validateDiscount(String code, BigDecimal orderTotal) {
-        Optional<Discount> discountOpt = discountRepository.findByCode(code);
-        if (discountOpt.isEmpty()) return false;
+        Discount discount = discountRepository.findByCode(code).orElseThrow(
+                () -> new IllegalArgumentException("Discount code " + code + " not found")
+        );
 
-        Discount discount = discountOpt.get();
-
-        // check active
-        if (!discount.isActive()) return false;
-
-        // check min order
-        if (discount.getMinOrderValue() != null && orderTotal.compareTo(discount.getMinOrderValue()) < 0) return false;
-
-        return true;
+        return discount.isActive() && isOrderValueValid(discount, orderTotal);
     }
 
     @Override
     public BigDecimal applyDiscount(Discount discount, BigDecimal orderTotal, BigDecimal shippingCharges) {
         if (!validateDiscount(discount.getCode(), orderTotal)) {
-            return BigDecimal.ZERO;
+            throw new IllegalArgumentException("Discount code " + discount.getCode() + " is not valid");
         }
 
-        BigDecimal discountValueForOrder = BigDecimal.ZERO;
-
-        switch (discount.getScope()) {
-            case SHOP, PLATFORM -> {
-                discountValueForOrder = calculateDiscountValue(discount, orderTotal);
-            }
-            case FREESHIP -> {
-                discountValueForOrder = calculateDiscountValue(discount, shippingCharges);
-            }
-        }
+        DiscountStrategy strategy = discountStrategyFactory.getStrategy(discount.getScope());
+        BigDecimal discountValue = strategy.applyDiscount(discount, orderTotal, shippingCharges);
 
         // update current usage
         discount.setCurrentUsage(discount.getCurrentUsage() + 1);
         discountRepository.save(discount);
 
-        return discountValueForOrder;
-    }
-
-
-
-    private BigDecimal calculateDiscountValue(Discount discount, BigDecimal baseAmount) {
-        BigDecimal discountValue = BigDecimal.ZERO;
-
-        switch (discount.getDiscountType()) {
-            case PERCENTAGE -> {
-                BigDecimal percent = discount.getDiscountValue()
-                        .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-                discountValue = baseAmount.multiply(percent);
-                if (discount.getMaxDiscountValue() != null) {
-                    discountValue = discountValue.min(discount.getMaxDiscountValue());
-                }
-            }
-            case FIXED_AMOUNT -> {
-                discountValue = discount.getDiscountValue();
-            }
-        }
-
-        if (discountValue.compareTo(baseAmount) > 0) {
-            discountValue = baseAmount;
-        }
-
         return discountValue;
     }
 
-
+    private boolean isOrderValueValid(Discount discount, BigDecimal orderTotal) {
+        return discount.getMinOrderValue() == null ||
+                orderTotal.compareTo(discount.getMinOrderValue()) >= 0;
+    }
 }
