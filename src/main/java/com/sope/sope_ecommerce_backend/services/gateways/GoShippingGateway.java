@@ -6,23 +6,24 @@ import com.sope.sope_ecommerce_backend.dto.LocationIds;
 import com.sope.sope_ecommerce_backend.dto.request.ShipmentCreationRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShipmentRequest;
 import com.sope.sope_ecommerce_backend.dto.response.*;
-import com.sope.sope_ecommerce_backend.integration.shipping.GoshipProperties;
 import com.sope.sope_ecommerce_backend.integration.shipping.dto.GoShipCity;
 import com.sope.sope_ecommerce_backend.integration.shipping.dto.GoShipDistrict;
 import com.sope.sope_ecommerce_backend.integration.shipping.dto.GoShipWard;
-import com.sope.sope_ecommerce_backend.services.RedisService;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import jakarta.annotation.PostConstruct;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -32,76 +33,100 @@ import java.util.stream.Collectors;
 public class GoShippingGateway {
 
     private final GoShipApi goShipApi;
-    private  final RedisService redisService;
+    private final ApplicationContext context;
 
-
-    @PostConstruct
-    public void init() throws Exception {
-        if (redisService.get(GoShipVariable.GOSHIP_ADDRESSES) == null)
-            fetchAndCacheLocations();
+    @EventListener(ApplicationReadyEvent.class)
+    @Cacheable(value = GoShipVariable.GOSHIP_NAMESPACE, key = "'" + GoShipVariable.GOSHIP_ADDRESSES + "'", unless = "#result == null")
+    public List<GoShipCity> getLocations() throws Exception {
+        log.info("Cache miss -> Fetching GoShip locations...");
+        return fetchLocations();
     }
 
 
-//    @Scheduled(fixedRate = 3600000)
-    public void fetchAndCacheLocations() throws Exception {
-        List<GoShipCitiesResponse.DataCitiesResponse> cities = loadCities();
+    @CachePut(value = GoShipVariable.GOSHIP_NAMESPACE, key = "'" + GoShipVariable.GOSHIP_ADDRESSES + "'")
+    public List<GoShipCity> syncLocations() throws Exception {
+        log.info("Forcing sync of GoShip locations...");
+        return fetchLocations();
+    }
 
-        ArrayList<GoShipCity> cityList = new ArrayList<>();
-
-        for (GoShipCitiesResponse.DataCitiesResponse city : cities) {
-            List<GoShipDistrictsResponse.DataDistrictsResponse> districts = loadDistrictsFromCity(city.id());
-
-            GoShipCity cityEntity = GoShipCity.builder()
-                    .id(city.id())
-                    .name(city.name())
-                    .build();
-
-            // 3. Với từng district, gọi wards
-            for (GoShipDistrictsResponse.DataDistrictsResponse district : districts) {
-                GoShipWardResponse wardsResponse = loadWards(district.id());
-
-                GoShipDistrict districtEntity = GoShipDistrict.builder()
-                        .id(district.id())
-                        .name(district.name())
-                        .cityId(district.cityId())
-                        .build();
-
-                List<GoShipWard> wards = wardsResponse.data().stream()
-                        .map(ward -> GoShipWard.builder()
-                                .id(ward.id())
-                                .name(ward.name())
-                                .districtId(ward.districtId())
-                                .build()
-                        )
-                        .collect(Collectors.toList());
+    @CacheEvict(value = GoShipVariable.GOSHIP_NAMESPACE, key = "'" + GoShipVariable.GOSHIP_ADDRESSES + "'")
+    public void clearLocationsCache() {
+        log.info("Cleared GoShip locations cache.");
+    }
 
 
-                districtEntity.setWards(wards);
-                cityEntity.getDistricts().add(districtEntity);
-            }
-            cityList.add(cityEntity);
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void scheduledSync() throws Exception {
+        log.info("Scheduled sync of GoShip locations started...");
+        GoShippingGateway proxy = context.getBean(GoShippingGateway.class);
+        proxy.syncLocations();
+    }
+
+    /* ================= API CALL ================= */
+
+    private List<GoShipCity> fetchLocations() throws Exception {
+        List<GoShipCitiesResponse.DataCitiesResponse> cities = Optional.ofNullable(goShipApi.getCities().data())
+                .orElse(Collections.emptyList());
+
+        if (cities.isEmpty()) {
+            throw new RuntimeException("No cities returned from GoShip API");
         }
-        // Lưu vào Redis
-        redisService.set(
-                GoShipVariable.GOSHIP_ADDRESSES,
-                cityList
-        );
+
+        return cities.stream()
+                .map(this::buildCityWithDistricts)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
-    private List<GoShipCitiesResponse.DataCitiesResponse> loadCities() {
-        GoShipCitiesResponse cities = goShipApi.getCities();
-        return cities.data();
+    private GoShipCity buildCityWithDistricts(GoShipCitiesResponse.DataCitiesResponse city) {
+        List<GoShipDistrictsResponse.DataDistrictsResponse> districts = Optional.ofNullable(goShipApi.getDistrictsFromCity(city.id()).data())
+                .orElse(Collections.emptyList());
+
+        if (districts.isEmpty()) {
+            log.warn("No districts found for city: {}", city.name());
+            return null;
+        }
+
+        GoShipCity cityEntity = GoShipCity.builder()
+                .id(city.id())
+                .name(city.name())
+                .build();
+
+        districts.stream()
+                .map(this::buildDistrictWithWards)
+                .filter(Objects::nonNull)
+                .forEach(cityEntity.getDistricts()::add);
+
+        return cityEntity;
     }
 
-    private List<GoShipDistrictsResponse.DataDistrictsResponse> loadDistrictsFromCity(String cityId) {
+    private GoShipDistrict buildDistrictWithWards(GoShipDistrictsResponse.DataDistrictsResponse district) {
+        List<GoShipWardResponse.DataWardsResponse> wards = Optional.ofNullable(goShipApi.getWardsByDistrictCode(district.id()).data())
+                .orElse(Collections.emptyList());
 
+        if (wards.isEmpty()) {
+            log.warn("No wards found for district: {}", district.name());
+            return null;
+        }
 
-       return goShipApi.getDistrictsFromCity(cityId).data();
+        GoShipDistrict districtEntity = GoShipDistrict.builder()
+                .id(district.id())
+                .name(district.name())
+                .cityId(district.cityId())
+                .wards(
+                        wards.stream()
+                                .map(w -> GoShipWard.builder()
+                                        .id(w.id())
+                                        .name(w.name())
+                                        .districtId(w.districtId())
+                                        .build())
+                                .toList()
+                )
+                .build();
+
+        return districtEntity;
     }
 
-    private GoShipWardResponse loadWards(String districsCode) {
-        return goShipApi.getWardsByDistrictCode(districsCode);
-    }
 
     public RateResponse getShippingRates(ShipmentRequest request) {
         log.info("Fetching shipping rates from GoShip API for request: {}", request);
@@ -116,6 +141,7 @@ public class GoShippingGateway {
                 request.shipment().addressTo().district(),
                 request.shipment().addressTo().ward()
         );
+
 
         ShipmentRequest updatedRequest = new ShipmentRequest(
                 new ShipmentRequest.ShipmentDetails(
@@ -185,37 +211,49 @@ public class GoShippingGateway {
 
 
     public LocationIds resolveLocationIds(String cityName, String districtName, String wardName) {
-        String normalizedCityName = cityName.toLowerCase().trim();
-        String normalizedDistrictName = districtName.toLowerCase().trim();
-        String normalizedWardName = wardName.toLowerCase().trim();
+        List<GoShipCity> cities = getLocationsUnchecked();
 
-        List<GoShipCity> cityList = (List<GoShipCity>) redisService.get(GoShipVariable.GOSHIP_ADDRESSES);
-        if (cityList == null) throw new RuntimeException("Locations cache is empty");
+        String cityKey = normalize(cityName);
+        String districtKey = normalize(districtName);
+        String wardKey = normalize(wardName);
 
-        // 3. Tìm city
-        GoShipCity city = cityList.stream()
-                .filter(c -> c.getName().toLowerCase().trim().equals(normalizedCityName))
+
+        GoShipCity city = cities.stream()
+                .filter(c -> normalize(c.getName()).equals(cityKey))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("City not found: " + cityName));
 
-        // 4. Tìm district
         GoShipDistrict district = city.getDistricts().stream()
-                .filter(d -> d.getName().toLowerCase().trim().equals(normalizedDistrictName))
+                .filter(d -> normalize(d.getName()).equals(districtKey))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("District not found: " + districtName));
 
-        // 5. Tìm ward
         GoShipWard ward = district.getWards().stream()
-                .filter(w -> w.getName().toLowerCase().trim().equals(normalizedWardName))
+                .filter(w -> normalize(w.getName()).equals(wardKey))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Ward not found: " + wardName));
 
-        // 6. Trả về code của 3 cấp
-        return LocationIds.builder()
-                .cityId(city.getId())
-                .districtId(district.getId())
-                .wardId(ward.getId())
-                .build();
+        log.info("Resolved location IDs - City: {} (ID: {}), District: {} (ID: {}), Ward: {} (ID: {})",
+                city.getName(), city.getId(),
+                district.getName(), district.getId(),
+                ward.getName(), ward.getId());
+
+        return new LocationIds(city.getId(), district.getId(), ward.getId());
+    }
+
+    private String normalize(String input) {
+        return Optional.ofNullable(input).orElse("")
+                .toLowerCase().trim();
+    }
+
+
+    public List<GoShipCity> getLocationsUnchecked() {
+        try {
+            GoShippingGateway proxy = context.getBean(GoShippingGateway.class);
+            return proxy.getLocations();
+        } catch (Exception e) {
+            throw new RuntimeException("Cannot load GoShip locations", e);
+        }
     }
 }
 

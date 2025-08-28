@@ -34,6 +34,16 @@ public class ShippingController {
         }
     }
 
+    @PostMapping("/sync")
+    public ResponseEntity<ApiResponse<String>> syncShippingData() {
+        try {
+            goShippingGateway.syncLocations();
+            return ApiResponseUtil.success(null, "Synchronized shipping data successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to synchronize shipping data", List.of(e.getMessage()));
+        }
+    }
+
     @PostMapping("/shipments")
     public ResponseEntity<ShipmentResponse> createShipment(@Valid @RequestBody ShipmentCreationRequest request) {
         try {
