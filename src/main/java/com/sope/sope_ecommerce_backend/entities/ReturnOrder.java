@@ -1,6 +1,6 @@
 package com.sope.sope_ecommerce_backend.entities;
 
-// import com.sope.sope_ecommerce_backend.enums.ReturnStatus;
+import com.sope.sope_ecommerce_backend.enums.ReturnStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +23,7 @@ public class ReturnOrder {
       @Column(name = "return_request_id")
       private UUID returnRequestId;
 
-      @ManyToOne(fetch = FetchType.LAZY)
+      @OneToOne
       @JoinColumn(name = "order_id", nullable = false)
       private Order order;
 
@@ -34,8 +34,9 @@ public class ReturnOrder {
       @Column(nullable = false, columnDefinition = "TEXT")
       private String reason;
 
-      // @Builder.Default
-      // private ReturnStatus status = ReturnStatus.PENDING;
+      @Enumerated(EnumType.STRING)
+      @Builder.Default
+      private ReturnStatus status = ReturnStatus.PENDING;
 
       @Column(name = "total_refund_amount", precision = 10, scale = 2)
       private BigDecimal totalRefundAmount;

@@ -8,10 +8,11 @@ java = "17"
 spring-websocket = "6.1.14"
 spring-messaging = "6.1.14"
 springdoc-openapi = "2.8.9"
+spring-cloud = "2025.0.0"
 
 
 # Database
-postgresql = "42.7.4" # PostgreSQL JDBC Driver (check version phù hợp)
+postgresql = "42.7.7"
 spring-data-redis = "3.2.4" # Tự động match Spring Boot
 commons-pool2 = "2.12.1"
 
@@ -19,7 +20,7 @@ commons-pool2 = "2.12.1"
 lombok = "1.18.34"
 cloudinary = "1.39.0"
 slugify = "3.0.6"
-spring-dotenv="4.0.0"
+spring-dotenv = "4.0.0"
 
 # JWT
 jjwt = "0.12.6"
@@ -82,3 +83,9 @@ flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform-launcher" }
 mockito = { module = "org.mockito:mockito-junit-jupiter" }
 h2database = { module = "com.h2database:h2" }
+
+
+# FeignClient
+
+spring-cloud-starter-openfeign = { module = "org.springframework.cloud:spring-cloud-starter-openfeign" }
+spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }

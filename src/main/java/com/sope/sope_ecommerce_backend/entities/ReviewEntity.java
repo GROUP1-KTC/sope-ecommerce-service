@@ -38,6 +38,7 @@ public class ReviewEntity {
 
         private String content;
 
+        @Builder.Default
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
         private List<ReviewMediaEntity> mediaList = new ArrayList<>();
 

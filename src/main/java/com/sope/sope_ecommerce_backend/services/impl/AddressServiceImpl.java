@@ -22,6 +22,13 @@ public class AddressServiceImpl implements AddressService {
     private final AddressRepository addressRepository;
     private final UserRepository userRepository;
 
+
+    @Override
+    public Address getAddressEntityById(UUID addressId){
+        return addressRepository.findById(addressId)
+                .orElseThrow(() -> new RuntimeException("Address not found"));
+    }
+
     @Override
     @Transactional
     public AddressResponse addAddress(UUID userId, AddressCreateRequest request) {
@@ -52,6 +59,28 @@ public class AddressServiceImpl implements AddressService {
         Address saved = addressRepository.save(address);
         return toResponse(saved);
     }
+
+
+    @Override
+    @Transactional
+    public Address getOrCreateAddress(UUID userId, AddressCreateRequest request){
+        AppUser appUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Address address = new Address();
+        address.setAppUser(appUser);
+        address.setRecipientName(request.recipientName());
+        address.setPhoneNumber(request.phoneNumber());
+        address.setStreet(request.street());
+        address.setWard(request.ward());
+        address.setDistrict(request.district());
+        address.setCity(request.city());
+        address.setCountry(request.country());
+        address.setDefault(request.isDefault());
+
+        return addressRepository.save(address);
+    }
+
 
     @Override
     @Transactional

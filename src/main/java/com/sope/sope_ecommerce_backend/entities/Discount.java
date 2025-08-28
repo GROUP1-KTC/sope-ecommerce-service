@@ -1,13 +1,17 @@
 package com.sope.sope_ecommerce_backend.entities;
 
+import com.sope.sope_ecommerce_backend.enums.DiscountScope;
 import com.sope.sope_ecommerce_backend.enums.DiscountType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 
 @Data
@@ -15,15 +19,17 @@ import org.hibernate.annotations.GenericGenerator;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "discount_codes")
-public class DiscountCodeEntity {
+@Table(name = "discounts")
+public class Discount {
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(name = "discount_code_id", columnDefinition = "UUID", updatable = false, nullable = false)
-    private UUID discountCodeId;
+    @Column(name = "id", columnDefinition = "UUID", updatable = false, nullable = false)
+    private UUID id;
 
-    @Column(length = 5, unique = true, nullable = false)
+    private String description;
+
+    @Column(length = 20, nullable = false)
     private String code;
 
     @Column(name = "discount_value", nullable = false)
@@ -46,6 +52,7 @@ public class DiscountCodeEntity {
     @Builder.Default
     private int currentUsage = 0;
 
+    @CreationTimestamp
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -53,13 +60,25 @@ public class DiscountCodeEntity {
     private LocalDateTime startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime endDate; // End of discount validity
+    private LocalDateTime endDate;
 
-    @OneToMany(mappedBy = "discountCode", cascade = CascadeType.ALL)
-    private List<Order> orders;
+    @Builder.Default
+    @OneToMany(mappedBy = "discount", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderDiscount> orderDiscounts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "discountCode", cascade = CascadeType.ALL)
-    private List<DiscountCodeScopeEntity> scopes;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private DiscountScope scope;;
+
+
+
+    @Transient
+    public boolean isActive() {
+        LocalDateTime now = LocalDateTime.now();
+        return (startDate == null || !now.isBefore(startDate)) &&
+                (endDate == null || !now.isAfter(endDate)) &&
+                (maxUsage == 0 || currentUsage < maxUsage);
+    }
 
     @PrePersist
     @PreUpdate
@@ -68,7 +87,7 @@ public class DiscountCodeEntity {
             if (maxDiscountValue == null || maxDiscountValue.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalStateException("maxDiscountValue must be greater than 0 for PERCENTAGE discount type");
             }
-            // Thêm kiểm tra discountValue cho PERCENTAGE (0-100)
+
             if (discountValue.compareTo(BigDecimal.ZERO) <= 0 || discountValue.compareTo(new BigDecimal("100")) > 0) {
                 throw new IllegalStateException("discountValue for PERCENTAGE must be between 0 and 100");
             }
@@ -86,10 +105,6 @@ public class DiscountCodeEntity {
 
         if (minOrderValue != null && minOrderValue.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalStateException("minOrderValue must be >= 0");
-        }
-
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
         }
     }
 }

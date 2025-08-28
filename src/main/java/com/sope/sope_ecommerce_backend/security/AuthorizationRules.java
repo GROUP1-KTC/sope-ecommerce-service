@@ -15,6 +15,9 @@
             auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui/index.html").permitAll();
             auth.requestMatchers("/api/auth/**").permitAll();
 
+            auth.requestMatchers("/api/**").permitAll();
+
+
             // User APIs
             auth.requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN");
             auth.requestMatchers(HttpMethod.GET, "/api/users/me").hasAnyRole("USER", "ADMIN");

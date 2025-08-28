@@ -6,7 +6,9 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -25,9 +27,6 @@ public class Order {
     @Column(name = "order_id", columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID orderId;
 
-//    @Column(unique = true, nullable = false)
-//    private String orderNumber; // human-readable code
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser appUser;
@@ -38,6 +37,8 @@ public class Order {
 
     @CreationTimestamp
     private LocalDateTime orderDate;
+
+    private LocalDateTime expireAt;
 
     private BigDecimal subtotal;
 
@@ -55,11 +56,24 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 
+    @Column(unique = true, nullable = false)
     private String idempotencyKey;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "discount_code_id")
-    private DiscountCodeEntity discountCode;
+    @Column(unique = true, nullable = false)
+    private String orderNumber;
+
+    @Column(name = "tracking_number", unique = true)
+    private String trackingNumber;
+
+    private String cancelReason;
+
+    @Column(nullable = false)
+    private String shippingRateId;
+
+
+    @Builder.Default
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<OrderDiscount> discounts = new HashSet<>();
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderStatusHistory> statusHistory;
@@ -67,9 +81,13 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     private Payment payment;
 
+
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private CommissionEntity commission;
 
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private TransactionFeeEntity transactionFee;
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private ReturnOrder returnOrder;
 }
