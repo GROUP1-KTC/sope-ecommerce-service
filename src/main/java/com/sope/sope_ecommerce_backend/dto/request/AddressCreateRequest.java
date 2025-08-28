@@ -2,7 +2,9 @@ package com.sope.sope_ecommerce_backend.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 
+@Builder
 public record AddressCreateRequest(
         @NotBlank String recipientName,
         @NotBlank String phoneNumber,

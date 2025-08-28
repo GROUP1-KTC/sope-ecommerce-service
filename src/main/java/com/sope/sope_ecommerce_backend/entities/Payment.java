@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.entities;
 
+import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
 import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
 import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
 import jakarta.persistence.*;
@@ -28,8 +29,12 @@ public class Payment {
     private UUID paymentId;
 
     @OneToOne
-    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @JoinColumn(name = "order_id", unique = true)
     private Order order;
+
+    @OneToOne
+    @JoinColumn(name = "temp_order_id",  unique = true)
+    private TempOrder tempOrder;
 
     @Column(nullable = false)
     private BigDecimal amount;
@@ -46,9 +51,23 @@ public class Payment {
     @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
-    private String provider; // "MOMO", "VNPAY", "STRIPE"
+    private PaymentProvider provider; // "MOMO", "VNPAY", "STRIPE"
     private String providerPaymentId; // id by provider return
     private String providerPayUrl; // redirect/qr url
 
-    private String idempotencyKey; // Unique key to prevent duplicate payments
+    @Column(unique = true)
+    private String requestId;
+
+
+    @PrePersist
+    @PreUpdate
+    private void validateAssociation() {
+        if (order == null && tempOrder == null) {
+            throw new IllegalStateException("Payment must be linked to either an Order or a TempOrder");
+        }
+        if (order != null && tempOrder != null) {
+            throw new IllegalStateException("Payment cannot be linked to both Order and TempOrder at the same time");
+        }
+    }
+
 }

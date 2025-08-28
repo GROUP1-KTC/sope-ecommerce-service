@@ -3,6 +3,4 @@ spring:
     name: sope ecommerce backend
 
   profiles:
-    default: local
-
-
+    default: ${SPRING_PROFILES_ACTIVE:local}

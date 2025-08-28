@@ -8,5 +8,10 @@ public enum ReturnStatus {
       PICKED_UP, // Đã lấy hàng từ khách
       DELIVERED_TO_SHOP, // Đã trả về shop
       REFUND_INITIATED, // Shop khởi tạo hoàn tiền
-      REFUNDED // Đã hoàn tiền
+      REFUNDED, // Đã hoàn tiền
+
+      PENDING, // Trạng thái mặc định, khi tạo yêu cầu trả hàng
+        CANCELLED, // Khách hủy yêu cầu trả hàng
+        COMPLETED, // Yêu cầu trả hàng đã hoàn tất,
+      NONE,
 }

@@ -46,6 +46,7 @@ dependencies {
 	annotationProcessor(libs.lombok)
 	implementation(libs.cloudinary)
 	implementation(libs.slugify)
+	implementation(libs.spring.dotenv)
 
 	// ===== JWT =====
 	implementation(libs.jjwt.api)
@@ -67,12 +68,18 @@ dependencies {
 	implementation(libs.flyway.core)
 	runtimeOnly(libs.flyway.database.postgresql)
 
+
+	// ===== FeignClient =====
+	implementation(libs.spring.cloud.starter.openfeign)
+	implementation(platform(libs.spring.cloud.dependencies))
+
 	// ===== OAuth + Mail =====
 	implementation("com.google.auth:google-auth-library-oauth2-http:1.26.0")
 	implementation("org.springframework.boot:spring-boot-starter-mail")
 
 	// ===== Thymelaf ======
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf:3.5.4")
+
 
 	// ===== Test =====
 	testImplementation(libs.spring.boot.starter.test)

@@ -1,5 +1,5 @@
 package com.sope.sope_ecommerce_backend.enums;
 
 public enum RoleName {
-    ADMIN, USER, SELLER
+    ADMIN, USER, SELLER, GUEST
 }

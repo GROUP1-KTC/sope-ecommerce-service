@@ -5,19 +5,16 @@ import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
+
 import com.sope.sope_ecommerce_backend.enums.UserStatus;
+
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
-import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
-import com.sope.sope_ecommerce_backend.security.jwt.JwtProvider;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,12 +25,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
-    private final JwtProvider jwtProvider;
+
 
     @Override
     public UserInformationResponse getCurrentUserInfo() {
@@ -57,6 +50,37 @@ public class UserServiceImpl implements UserService {
         AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return userMapper.toResponse(appUser);
+    }
+
+
+    @Override
+    public AppUser getUserEntityById(UUID id) {
+        AppUser appUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return appUser;
+    }
+
+
+    @Override
+    public AppUser getUserEntityByEmail(String email) {
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    @Override
+    public AppUser getOrCreateGuestUser(String email, String fullName, String phone) {
+        AppUser guestUser = userRepository.findByEmail(email).orElse(null);
+        if (guestUser == null) {
+            guestUser = AppUser.builder()
+                    .email(email)
+                    .name(fullName)
+                    .phone(phone)
+//                    .roles()
+                    .status(UserStatus.INACTIVE)
+                    .build();
+
+            userRepository.save(guestUser);
+        }
+        return guestUser;
     }
 
     @Override

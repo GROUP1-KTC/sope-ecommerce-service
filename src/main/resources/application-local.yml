@@ -26,16 +26,23 @@ spring:
       enabled: true
       additional-paths: src/main/java
 
-#  jwt:
-#    secret: '284dd6c8bceeacfa2559a1ca7ef3e4c25099bea3d6a7f3e9cb2470e39a46106f1379b3b61aedbaf5299126211f663aef6c79aac2fc3913752b5ae63e06c7a592='
-#    expiration: 900000
-#    refresh-expiration: 604800000
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/sope
+    url: jdbc:postgresql://localhost:5432/sope?TimeZone=Asia/Ho_Chi_Minh
     username: postgres
     password: postgres123
     driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Ho_Chi_Minh
 
   data:
     redis:
@@ -66,17 +73,8 @@ spring:
         max-wait: 1s
         test-on-borrow: true
 
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    properties:
-      hibernate:
-        format_sql: true
-
   flyway:
-    enabled: true
+    enabled: false
     baseline-on-migrate: true
     baseline-version: 1.0
     default-schema: public
@@ -89,6 +87,45 @@ spring:
       enabled: true
       max-file-size: 10MB
       max-request-size: 20MB
+
+app:
+  jwt:
+    secret: '284dd6c8bceeacfa2559a1ca7ef3e4c25099bea3d6a7f3e9cb2470e39a46106f1379b3b61aedbaf5299126211f663aef6c79aac2fc3913752b5ae63e06c7a592='
+    header: Authorization
+    prefix: Bearer
+    expires-in-minutes: 60
+    refresh-expires-in-days: 14
+    clock-skew-second: 60
+    rotate-on-refresh: true
+    reuse-detection: true
+    expiration: 900000
+    refresh-expiration: 604800000
+  refresh-token:
+    enabled: true
+    header: X-Refresh-Token
+    prefix: Refresh
+    expires-in-minutes: 60
+    clock-skew-second: 60
+
+  security:
+    user:
+    name: user
+    password: password
+    oauth2:
+    client:
+      registration:
+      google:
+        client-id: your-google-client-id
+        client-secret: your-google-client-secret
+        scope: profile, email
+
+cors:
+    allowed-origins: "*"
+    allowed-methods: GET, POST, PUT, DELETE, OPTIONS
+    allowed-headers: Content-Type, Authorization, X-Requested-With
+    exposed-headers: Content-Disposition
+    allow-credentials: true
+    max-age: 3600
 
 logging:
   level:
@@ -106,6 +143,42 @@ server:
   tomcat:
     max-part-count: 50
     max-part-header-size: 2048
+
+
+
+jwt:
+  private-key: ${JWT_PRIVATE_KEY}
+  public-key: ${JWT_PUBLIC_KEY}
+  expiration: ${JWT_EXPIRATION}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION}
+
+
+payment-gateway:
+  vnpay:
+    pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+    secret-key: 4F3B2D1C6A7E8B9A0D1C2E3F4A5B6C7D
+    api-url:
+    return-url: http://localhost:8082/api/v1/payment/webhook/vnpay
+    vnp-version: 2.1.0
+    vnp-command: pay
+    vnp_tmn-code: 2QXUI4J4
+
+
+  momo:
+    partner-code: MOMO
+    endpoint: https://test-payment.momo.vn/v2/gateway/api
+    return-url: http://localhost:3000
+    ipn-url: http://localhost:8082/api/v1/payment/webhook/momo
+    access-key: F8BBA842ECF85
+    secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+    request-type: captureWallet
+
+
+shipping-unit:
+  goship:
+    base-url: https://sandbox.goship.io/api/v2
+    auth-token: ${GOSHIP_AUTH_TOKEN}
+
 
 api:
 

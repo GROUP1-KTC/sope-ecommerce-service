@@ -11,6 +11,7 @@ spring:
     properties:
       hibernate.show_sql: true
       hibernate.format_sql: true
+      hibernate.jdbc.time_zone: Asia/Ho_Chi_Minh
 
   flyway.enabled: false
   liquibase.enabled: false

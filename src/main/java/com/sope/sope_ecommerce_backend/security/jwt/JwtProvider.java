@@ -4,6 +4,7 @@ import com.sope.sope_ecommerce_backend.security.secret.RsaKeyUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @Component
 public class JwtProvider {
     private final JwtProperties jwtProperties;
@@ -63,6 +65,7 @@ public class JwtProvider {
                 .map(a -> a.getAuthority())
                 .toList()
         );
+
         return createToken(claims, userDetails.getUsername(), jwtProperties.getExpiration());
     }
 
@@ -87,6 +90,7 @@ public class JwtProvider {
             getClaims(token);
             return !isTokenExpired(token);
         } catch (Exception e) {
+            log.error("Invalid JWT token: {}", e.getMessage());
             return false;
         }
     }
