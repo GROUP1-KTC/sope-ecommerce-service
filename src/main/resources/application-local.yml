@@ -191,7 +191,7 @@ web:
   cors:
     allowed-origins:
       - "http://localhost:5173"
-      - "http://localhost:3000/"
+      - "http://localhost:3000"
     allowed-methods:
       - GET
       - POST
@@ -201,5 +201,6 @@ web:
     allowed-headers: "*"
     exposed-headers:
       - "Authorization"
+      - "Content-Type"
     allow-credentials: true
     max-age: 3600

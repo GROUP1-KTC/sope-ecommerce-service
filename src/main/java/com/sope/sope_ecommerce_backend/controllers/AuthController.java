@@ -7,6 +7,7 @@ import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.services.AuthService;
 import com.sope.sope_ecommerce_backend.services.CookieService;
+import com.sope.sope_ecommerce_backend.services.impl.CookieServiceImpl;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -23,7 +24,28 @@ import java.util.List;
 public class AuthController {
 
     private AuthService authService;
-    private CookieService cookieService;
+    private CookieServiceImpl cookieService;
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<ApiResponse<String>> sendOtp(@RequestBody UserSendOtpRequest request) {
+        try {
+            authService.sendOtp(request.email());
+            return ApiResponseUtil.success("OTP sent successfully.", "OTP sent");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to send OTP", List.of(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<ApiResponse<String>> verifyOtp(@RequestBody UserVerifyRequest request) {
+        try {
+            authService.verifyOtp(request.email(), request.otp());
+            return ApiResponseUtil.success("Email verified successfully.", "OTP verified");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to verify OTP", List.of(e.getMessage()));
+        }
+    }
+
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<UserResponse>> register(@RequestBody UserRegisterRequest request) {
@@ -35,7 +57,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/verify")
+    @PostMapping("/verify-user")
     public ResponseEntity<ApiResponse<String>> verifyEmail(@RequestBody UserVerifyRequest request) {
         try {
             authService.verifyUser(request);
@@ -52,21 +74,18 @@ public class AuthController {
 
             UserLoginResponseFE responseFE = new UserLoginResponseFE(
                     loginResponse.username(),
-                    loginResponse.roles()
+                    loginResponse.roles(),
+                    loginResponse.access_token()
             );
 
             // Tạo cookies
-            List<ResponseCookie> cookies = cookieService.createAuthCookies(
-                    loginResponse.access_token(),
-                    loginResponse.refresh_token()
-            );
+            ResponseCookie refreshCookie = cookieService.createRefreshCookie(loginResponse.refresh_token());
 
             ResponseEntity<ApiResponse<UserLoginResponseFE>> response = ApiResponseUtil.success(responseFE, "User logged in successfully");
 
             ResponseEntity.BodyBuilder builder = ResponseEntity.status(response.getStatusCode())
-                    .headers(response.getHeaders());
-
-            cookies.forEach(cookie -> builder.header(HttpHeaders.SET_COOKIE, cookie.toString()));
+                    .headers(response.getHeaders())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
             return builder.body(response.getBody());
 
@@ -75,7 +94,6 @@ public class AuthController {
             return ApiResponseUtil.internalError("Failed to login user", List.of(e.getMessage()));
         }
     }
-
 
     @PostMapping("/refresh-token")
     public ResponseEntity<TokenRefreshResponse> refreshAccessToken(@RequestBody TokenRefreshRequest request) {
@@ -118,6 +136,4 @@ public class AuthController {
             return ApiResponseUtil.internalError("Failed to reset password", List.of(e.getMessage()));
         }
     }
-
-
 }

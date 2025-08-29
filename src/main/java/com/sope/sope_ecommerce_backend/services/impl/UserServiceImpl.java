@@ -27,7 +27,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-
     @Override
     public UserInformationResponse getCurrentUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -73,7 +72,6 @@ public class UserServiceImpl implements UserService {
             guestUser = AppUser.builder()
                     .email(email)
                     .name(fullName)
-                    .phone(phone)
 //                    .roles()
                     .status(UserStatus.INACTIVE)
                     .build();
@@ -103,12 +101,6 @@ public class UserServiceImpl implements UserService {
         }
         if (request.name() != null) {
             appUser.setName(request.name());
-        }
-        if (request.phone() != null) {
-            appUser.setPhone(request.phone());
-        }
-        if (request.address() != null) {
-            appUser.setAddress(request.address());
         }
         if (request.note() != null) {
             appUser.setNote(request.note());

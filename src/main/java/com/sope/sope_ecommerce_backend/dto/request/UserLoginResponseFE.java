@@ -4,6 +4,7 @@ import java.util.List;
 
 public record UserLoginResponseFE(
         String username,
-        List<String> roles
+        List<String> roles,
+        String accessToken
 ) {
 }

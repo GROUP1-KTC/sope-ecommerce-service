@@ -4,6 +4,6 @@ public record UserInformationResponse(
         String username,
         String name,
         String email,
-        String phone,
+        String gender,
         String address
 ) {}
