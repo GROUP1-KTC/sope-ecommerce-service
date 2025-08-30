@@ -227,7 +227,15 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
         }
 
         // Gắn 2 chiều cho orderItem + discount
-        orderItems.forEach(item -> item.setOrder(order));
+        orderItems.forEach(item -> {
+            item.setOrder(order);
+            item.setOrderItemId(
+                    OrderItemId.builder()
+                            .orderId(order.getOrderId())
+                            .productVariantId(item.getProductVariant().getProductVariantId())
+                            .build()
+            );
+        });
         discounts.forEach(d -> d.setOrder(order));
 
         // === Xử lý cart ===

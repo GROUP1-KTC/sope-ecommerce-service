@@ -77,6 +77,13 @@ public class Payment {
         }
     }
 
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+        if (orders != null) {
+            orders.forEach(order -> order.setPayment(this));
+        }
+    }
+
 
     @PrePersist
     @PreUpdate

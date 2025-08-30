@@ -27,6 +27,7 @@ public interface OrderMapper {
     @Mapping(target = "paymentMethod", source = "payment.paymentMethod")
     @Mapping(target = "paymentProvider", source = "payment.provider")
     @Mapping(target = "paymentStatus", source = "payment.status")
+    @Mapping(target = "items", source = "orderItems")
     ShopOrderResponse toShopOrderResponse(Order entity);
 
     // Ánh xạ từ TempOrder sang GuestOrderResponse

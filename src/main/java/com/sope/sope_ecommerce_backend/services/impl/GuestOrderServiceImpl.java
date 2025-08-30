@@ -136,8 +136,6 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
 
         BigDecimal shippingCharges = shopOrder.shippingCharge() != null ? shopOrder.shippingCharge() : BigDecimal.ZERO;
 
-        // === Apply Discounts ===
-
 
         BigDecimal totalAmount = subTotal.add(shippingCharges);
         if (totalAmount.compareTo(BigDecimal.ZERO) < 0) totalAmount = BigDecimal.ZERO;

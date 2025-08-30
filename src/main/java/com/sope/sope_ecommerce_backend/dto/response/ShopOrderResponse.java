@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.dto.response;
 
 import com.sope.sope_ecommerce_backend.dto.request.OrderItemRequest;
+import com.sope.sope_ecommerce_backend.entities.OrderStatusHistory;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
 import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
@@ -27,6 +28,8 @@ public record ShopOrderResponse(
         PaymentMethod paymentMethod,
         PaymentProvider paymentProvider,
         PaymentStatus paymentStatus,
+
+        List<OrderStatusHistoryResponse> statusHistory,
 
         LocalDateTime createdAt
 ) {
