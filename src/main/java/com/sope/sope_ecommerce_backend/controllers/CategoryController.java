@@ -30,10 +30,11 @@ public class CategoryController {
             return ResponseEntity.ok(categories);
       }
 
-      @GetMapping("/categories/{id}/tree")
-      public ResponseEntity<CategoryTreeDTO> getCategoryTree(@PathVariable UUID id) {
-            return ResponseEntity.ok(categoryService.getCategoryTree(id));
-      }
+      // @GetMapping("/categories/{id}/tree")
+      // public ResponseEntity<CategoryTreeDTO> getCategoryTree(@PathVariable UUID id)
+      // {
+      // return ResponseEntity.ok(categoryService.getCategoryTree(id));
+      // }
 
       @GetMapping("/{id}/breadcrumb")
       public ResponseEntity<List<CategoryDTO>> getBreadcrumb(@PathVariable UUID id) {
