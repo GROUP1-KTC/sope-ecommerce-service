@@ -18,6 +18,8 @@ import com.sope.sope_ecommerce_backend.services.ProductService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
+import org.hibernate.annotations.Cache;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -94,6 +96,12 @@ public class ProductServiceImpl implements ProductService {
                   ids.addAll(getAllChildCategoryIds(child.getId())); // đệ quy
             }
             return ids;
+      }
+
+      @Cacheable(value = "products", key = "'allProducts'", unless = "#result == null || #result.isEmpty()")
+      public List<ProductDTO> getAllProducts() {
+            List<Product> products = productRepository.findAll();
+            return productMapper.toDtoList(products);
       }
 
       @Override

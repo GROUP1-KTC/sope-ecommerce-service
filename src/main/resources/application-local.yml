@@ -49,28 +49,29 @@ spring:
       port: 6379
       password:
       database: 0
-      timeout: 2000ms
-  #      cluster:
-  #        nodes:
+      timeout: 2s
+      lettuce:
+        pool:
+          max-total: 100
+          max-idle: 50
+          min-idle: 10
+          max-wait: 1s
+      cluster:
+        nodes:
 
   cache:
     type: redis
     redis:
-      default-ttl: 600 # 10 minutes
+      default-ttl: 10m
       cache-ttls:
-        users: 300 # 5 minutes
-        products: 1800 # 30 minutes
+        users: 5m
+        products: 30m
+        GOSHIP_ADDRESSES: 7d
 
-  redis:
-    timeout: 2s # connection timeout
-    lettuce:
-      shutdown-timeout: 100ms
-      pool:
-        max-total: 100
-        max-idle: 50
-        min-idle: 10
-        max-wait: 1s
-        test-on-borrow: true
+  jackson:
+    polymorphic:
+      package: com.sope.sope_ecommerce_backend.model.
+
 
   flyway:
     enabled: false
