@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.sope.sope_ecommerce_backend.dto.request.ProductCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductUpdateDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductBasicWithVariantsDTO;
+import com.sope.sope_ecommerce_backend.dto.response.ProductByCategory;
 import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductVariantDetailDTO;
 import com.sope.sope_ecommerce_backend.services.ProductService;
@@ -28,10 +29,17 @@ public class ProductController {
             return ResponseEntity.ok(products);
       }
 
-      @GetMapping
-      public ResponseEntity<List<ProductDTO>> getAllProducts() {
-            List<ProductDTO> products = productService.getAllProducts();
-            return ResponseEntity.ok(products);
+      // @GetMapping("/by-category/{categoryId}")
+      // public ResponseEntity<List<ProductByCategory>>
+      // getProductsByCategory(@PathVariable UUID categoryId) {
+      // List<ProductByCategory> products =
+      // productService.getProductsByCategoryIncludingChildren(categoryId);
+      // return ResponseEntity.ok(products);
+      // }
+
+      @GetMapping("/by-category/slug/{slug}")
+      public ResponseEntity<List<ProductByCategory>> getProductsByCategorySlug(@PathVariable String slug) {
+            return ResponseEntity.ok(productService.getProductsByCategoryIncludingChildren(slug));
       }
 
       @GetMapping("/{productId}/with-variants")

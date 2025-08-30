@@ -29,6 +29,9 @@ public class Category {
     @JoinColumn(name = "parent_id")
     private Category parent;
 
+    @Column(nullable = false)
+    private Integer level;
+
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Product> products;
 

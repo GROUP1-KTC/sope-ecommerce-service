@@ -1,13 +1,13 @@
 package com.sope.sope_ecommerce_backend.dto.response;
 
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
-public record CategoryDTO(
+public record CategoryTreeDTO(
     UUID id,
     String name,
     String slug,
     Integer level,
-    BigDecimal commissionFeePercent,
-    UUID parentId) {
+    UUID parentId,
+    List<CategoryTreeDTO> children) {
 }

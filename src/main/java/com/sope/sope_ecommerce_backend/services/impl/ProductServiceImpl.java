@@ -4,7 +4,9 @@ import com.sope.sope_ecommerce_backend.dto.request.ProductCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductUpdateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductVariantRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductBasicWithVariantsDTO;
+import com.sope.sope_ecommerce_backend.dto.response.ProductByCategory;
 import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
+import com.sope.sope_ecommerce_backend.dto.response.ProductVariantByCategory;
 import com.sope.sope_ecommerce_backend.dto.response.ProductVariantDetailDTO;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.StatusProduct;
@@ -61,9 +63,37 @@ public class ProductServiceImpl implements ProductService {
 
       @Override
       @Transactional(readOnly = true)
-      public List<ProductDTO> getAllProducts() {
-            List<Product> products = productRepository.findAll();
-            return productMapper.toDtoList(products);
+      public List<ProductByCategory> getProductsByCategoryIncludingChildren(String slug) {
+            Category category = categoryRepository.findBySlug(slug)
+                        .orElseThrow(() -> new EntityNotFoundException("Category not found with slug: " + slug));
+
+            Set<UUID> categoryIds = getAllChildCategoryIds(category.getId());
+
+            categoryIds.add(category.getId());
+
+            List<Product> products = productRepository.findByCategoryIdIn(new ArrayList<>(categoryIds));
+
+            return products.stream()
+                        .map(product -> new ProductByCategory(
+                                    product.getProductId(),
+                                    product.getName(),
+                                    product.getSlug(),
+                                    product.getBrand(),
+                                    product.getDefaultImage(),
+                                    product.getVariants().stream()
+                                                .map(v -> new ProductVariantByCategory(v.getPrice(), v.getSold()))
+                                                .toList()))
+                        .toList();
+      }
+
+      private Set<UUID> getAllChildCategoryIds(UUID parentId) {
+            Set<UUID> ids = new HashSet<>();
+            List<Category> children = categoryRepository.findByParentId(parentId);
+            for (Category child : children) {
+                  ids.add(child.getId());
+                  ids.addAll(getAllChildCategoryIds(child.getId())); // đệ quy
+            }
+            return ids;
       }
 
       @Override
