@@ -98,86 +98,104 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public void handlePaymentCallback(UUID orderId, String callbackStatus, PaymentProvider provider) {
-        Payment payment = paymentRepository.findByOrder_OrderIdOrTempOrder_Id(orderId, orderId)
+    public void handlePaymentCallback(String requestId, String callbackStatus, PaymentProvider provider) {
+        Payment payment = paymentRepository.findByRequestId(requestId)
                 .orElseThrow(() -> new CustomException("Payment not found"));
 
         if (payment.getStatus() != PaymentStatus.PENDING) return;
 
 
         PaymentGateway gw = gatewayFactory.getGateway(provider);
-//        if (!gw.verifyCallback(params)) throw new CustomException("Invalid callback signature");
 
         PaymentStatus newStatus = gw.mapStatus(callbackStatus);
         payment.setStatus(newStatus);
 
-        if (payment.getOrder() != null) {
-            if (newStatus == PaymentStatus.SUCCESS) {
-                payment.setPaymentTime(LocalDateTime.now());
-                orderService.updateOrderStatus(new UpdateOrderStatusRequest(payment.getOrder().getOrderId(), OrderStatus.CONFIRMED));
-            } else {
-                orderService.cancelOrder(payment.getOrder().getOrderId(),
-                        "Payment failed: " + callbackStatus, payment.getOrder().getAppUser().getId());
+        if (payment.getOrders() != null && !payment.getOrders().isEmpty()) {
+            for (Order order : payment.getOrders()) {
+                if (newStatus == PaymentStatus.SUCCESS) {
+                    orderService.updateOrderStatus(
+                            UpdateOrderStatusRequest.builder()
+                                    .orderId(order.getOrderId())
+                                    .status(OrderStatus.CONFIRMED)
+                                    .build()
+                    );
+                } else {
+                    orderService.updateOrderStatus(
+                            UpdateOrderStatusRequest.builder()
+                                    .orderId(order.getOrderId())
+                                    .status(OrderStatus.CANCELLED)
+                                    .build()
+                    );
+                }
             }
-        } else if (payment.getTempOrder() != null) {
-            TempOrder tempOrder = payment.getTempOrder();
-
-            List<OrderItem> orderItems = orderMapper.tempOrderToOrderItemsEntity(tempOrder.getOrderItems());
-
-            if (newStatus == PaymentStatus.SUCCESS) {
-
-                AppUser user = userService.getOrCreateGuestUser(tempOrder.getGuestEmail(), tempOrder.getGuestName(), tempOrder.getGuestPhone());
-
-                Order order = Order.builder()
-                        .appUser(user)
-                        .subtotal(tempOrder.getSubtotal())
-                        .shippingCharges(tempOrder.getShippingCharges())
-                        .totalAmount(tempOrder.getTotalAmount())
-                        .status(OrderStatus.CONFIRMED)
-                        .orderDate(LocalDateTime.now())
-                        .orderNumber(tempOrder.getOrderNumber())
-                        .shippingRateId(tempOrder.getShippingRateId())
-                        .idempotencyKey(tempOrder.getIdempotencyKey())
-                        .shippingAddress(addressService.getOrCreateAddress(
-                                user.getId(),
-                                AddressCreateRequest.builder()
-                                        .country("Vietnam")
-                                        .city(tempOrder.getCity())
-                                        .district(tempOrder.getDistrict())
-                                        .ward(tempOrder.getWard())
-                                        .phoneNumber(tempOrder.getGuestPhone())
-                                        .recipientName(tempOrder.getGuestName())
-                                        .street(tempOrder.getShippingAddress())
-                                        .isDefault(false)
-                                        .build())
-                        ).build();
+        } else if (payment.getTempOrders() != null && !payment.getTempOrders().isEmpty()) {
+            for (TempOrder tempOrder : payment.getTempOrders()) {
+                List<OrderItem> orderItems = orderMapper.tempOrderToOrderItemsEntity(tempOrder.getOrderItems());
 
 
-                orderItems.forEach(item ->{
-                    OrderItemId orderItemId = OrderItemId.builder()
-                            .orderId(order.getOrderId())
-                            .productVariantId(item.getProductVariant().getProductVariantId()
-                    ).build();
+                if (newStatus == PaymentStatus.SUCCESS) {
+                    AppUser user = userService.getOrCreateGuestUser(tempOrder.getGuestEmail(), tempOrder.getGuestName(), tempOrder.getGuestPhone());
 
-                    item.setOrder(order);
-                    item.setOrderItemId(orderItemId);
-                });
 
-                order.setOrderItems(orderItems);
-                order.setPayment(payment);
+                    Address address = addressService.getOrCreateAddress(
+                            user.getId(),
+                            AddressCreateRequest.builder()
+                                    .country("Vietnam")
+                                    .city(tempOrder.getCity())
+                                    .district(tempOrder.getDistrict())
+                                    .ward(tempOrder.getWard())
+                                    .phoneNumber(tempOrder.getGuestPhone())
+                                    .recipientName(tempOrder.getGuestName())
+                                    .street(tempOrder.getShippingAddress())
+                                    .isDefault(false)
+                                    .build());
 
-                payment.setOrder(order);
-                payment.setTempOrder(null);
 
-                orderRepository.save(order);
-                tempOrder.setPaymentStatus(PaymentStatus.SUCCESS);
-                tempOrderRepository.save(tempOrder);
-            } else {
-                tempOrder.setPaymentStatus(PaymentStatus.FAILED);
-                tempOrderRepository.save(tempOrder);
-                tempOrder.getOrderItems().forEach(item ->
-                        productVariantService.retrieveProductVariantStock(item.getProductVariant().getProductVariantId(), item.getQuantity())
-                );
+                    Order order = Order.builder()
+                            .appUser(user)
+                            .shop(tempOrder.getShop())
+                            .subTotal(tempOrder.getSubTotal())
+                            .shippingCharges(tempOrder.getShippingCharges())
+                            .totalAmount(tempOrder.getTotalAmount())
+                            .status(OrderStatus.CONFIRMED)
+                            .orderDate(LocalDateTime.now())
+                            .orderNumber(tempOrder.getOrderNumber())
+                            .shippingRateId(tempOrder.getShippingRateId())
+                            .idempotencyKey(tempOrder.getIdempotencyKey())
+                            .shippingAddress(address)
+                            .build();
+
+
+                    orderItems.forEach(item ->{
+                        OrderItemId orderItemId = OrderItemId.builder()
+                                .orderId(order.getOrderId())
+                                .productVariantId(item.getProductVariant().getProductVariantId()
+                                ).build();
+
+                        item.setOrder(order);
+                        item.setOrderItemId(orderItemId);
+                    });
+
+                    order.setOrderItems(orderItems);
+                    order.setPayment(payment);
+
+                    payment.addOrder(order);
+                    payment.setTempOrders(null);
+
+                    orderRepository.save(order);
+                    tempOrder.setPaymentStatus(PaymentStatus.SUCCESS);
+                    tempOrderRepository.save(tempOrder);
+
+                } else {
+                    tempOrder.setPaymentStatus(PaymentStatus.FAILED);
+                    tempOrder.setExpiresAt(null);
+                    tempOrderRepository.save(tempOrder);
+
+                    tempOrder.getOrderItems().forEach(item ->
+                            productVariantService.retrieveProductVariantStock(item.getProductVariant().getProductVariantId(), item.getQuantity())
+                    );
+
+                }
             }
         }
 

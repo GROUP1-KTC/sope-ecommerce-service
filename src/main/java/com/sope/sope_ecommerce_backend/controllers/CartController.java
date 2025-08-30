@@ -3,7 +3,8 @@ package com.sope.sope_ecommerce_backend.controllers;
 import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.AddToCartRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.request.UpdateCartItemRequestDTO;
-import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
+import com.sope.sope_ecommerce_backend.dto.response.CartGroupResponse;
+import com.sope.sope_ecommerce_backend.dto.response.CartItemResponse;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.CartService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
@@ -58,14 +59,14 @@ public class CartController {
      * @return a response containing the list of cart items
      */
     @GetMapping()
-    public ResponseEntity<ApiResponse<List<CartItemResponseDTO>>> getCart(
+    public ResponseEntity<ApiResponse<List<CartGroupResponse>>> getCart(
             @AuthenticationPrincipal CustomUserDetails currentUser) {
         try {
             if (currentUser == null) {
                 return ApiResponseUtil.unauthorized("User is not logged in");
             }
 
-            List<CartItemResponseDTO> items = cartService.getCartByUser(currentUser.getUserId());
+            List<CartGroupResponse> items = cartService.getCartByUser(currentUser.getUserId());
             return ApiResponseUtil.success(items, "Cart fetched successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to fetch cart items", List.of(e.getMessage()));
@@ -137,8 +138,8 @@ public class CartController {
      * @return a response containing the validated cart items
      */
     @PostMapping("/guest/validate")
-    public ResponseEntity<ApiResponse<List<CartItemResponseDTO>>> validateGuestCart(@RequestBody List<AddToCartRequestDTO> items) {
-        List<CartItemResponseDTO> validatedItems = cartService.validateGuestCart(items);
+    public ResponseEntity<ApiResponse<List<CartItemResponse>>> validateGuestCart(@RequestBody List<AddToCartRequestDTO> items) {
+        List<CartItemResponse> validatedItems = cartService.validateGuestCart(items);
         return ApiResponseUtil.success(validatedItems, "Guest cart validated successfully.");
     }
 }

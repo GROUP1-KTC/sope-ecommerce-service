@@ -2,7 +2,8 @@ package com.sope.sope_ecommerce_backend.services.impl;
 
 import com.sope.sope_ecommerce_backend.dto.request.AddToCartRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.request.UpdateCartItemRequestDTO;
-import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
+import com.sope.sope_ecommerce_backend.dto.response.CartGroupResponse;
+import com.sope.sope_ecommerce_backend.dto.response.CartItemResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.mapper.CartMapper;
 import com.sope.sope_ecommerce_backend.repositories.*;
@@ -14,8 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -203,7 +206,7 @@ public class CartServiceImpl implements CartService {
      * @return a list of CartItemResponseDTO representing the items in the cart
      */
     @Override
-    public List<CartItemResponseDTO> getCartByUser(UUID userId) {
+    public  List<CartGroupResponse> getCartByUser(UUID userId) {
         AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -214,8 +217,14 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Cart is empty");
         }
 
+        Map<Shop, List<CartItem>> groupedByShop = cart.getItems().stream()
+                .collect(Collectors.groupingBy(item -> item.getProductVariant().getProduct().getShop()));
 
-        return cartMapper.toCartItemResponseDTOs(cart.getItems());
+
+
+        return groupedByShop.entrySet().stream()
+                .map(entry -> cartMapper.toCartGroupResponseDTO(entry.getKey(), entry.getValue()))
+                .toList();
     }
 
 
@@ -242,7 +251,7 @@ public class CartServiceImpl implements CartService {
      * @return a list of CartItemResponseDTO with validated quantities
      */
     @Override
-    public List<CartItemResponseDTO> validateGuestCart(List<AddToCartRequestDTO> items) {
+    public List<CartItemResponse> validateGuestCart(List<AddToCartRequestDTO> items) {
         // return items.stream().map(item -> {
         // ProductVariant product =
         // productVariantRepository.findById(item.productVariantId())

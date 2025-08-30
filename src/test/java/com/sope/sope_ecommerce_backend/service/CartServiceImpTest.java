@@ -1,6 +1,6 @@
 package com.sope.sope_ecommerce_backend.service;
 
-import com.sope.sope_ecommerce_backend.dto.response.CartItemResponseDTO;
+import com.sope.sope_ecommerce_backend.dto.response.CartItemResponse;
 import com.sope.sope_ecommerce_backend.mapper.CartMapper;
 import com.sope.sope_ecommerce_backend.repositories.CartRepository;
 import com.sope.sope_ecommerce_backend.services.impl.CartServiceImpl;
@@ -19,7 +19,7 @@ public class CartServiceImpTest {
 
     CartServiceImpl cartService;
 
-    CartItemResponseDTO cartItemResponseDTO;
+    CartItemResponse cartItemResponse;
 
     @BeforeEach
     void setUp() {

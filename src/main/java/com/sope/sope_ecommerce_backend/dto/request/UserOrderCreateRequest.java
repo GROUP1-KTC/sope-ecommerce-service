@@ -14,14 +14,11 @@ import java.util.UUID;
 @Schema(description = "Order create request for logged-in users")
 public record UserOrderCreateRequest(
         UUID shippingAddressId,
-        BigDecimal shippingCharge,
-        String note,
-        List<String> discountCodes,
         String idempotencyKey,
-        List<OrderItemRequest> items,
+        List<ShopOrderRequest> shopOrders,
+
         PaymentMethod paymentMethod,
         PaymentProvider paymentProvider,
-        Boolean isOrderedFromCart,
-        String shippingRateId
+        Boolean isOrderedFromCart
 ) implements OrderCreateRequest {
 }

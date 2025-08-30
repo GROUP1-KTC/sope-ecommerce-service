@@ -11,5 +11,8 @@ import java.util.UUID;
 public interface TempOrderRepository extends JpaRepository<TempOrder, UUID> {
     List<TempOrder> findByExpiresAtBefore(LocalDateTime dateTime);
 
+
+    List<TempOrder> findAllByIdempotencyKeyContaining(String pattern);
+
     Optional <TempOrder> findByIdempotencyKey(String idempotencyKey);
 }

@@ -14,11 +14,11 @@ import java.util.List;
 public record GuestOrderCreateRequest(
         String idempotencyKey,
         GuestInfo guestInfo,
-        List<OrderItemRequest> items,
+
         PaymentMethod paymentMethod,
         PaymentProvider paymentProvider,
-        BigDecimal shippingCharge,
-        String shippingRateId
+
+        List<ShopOrderRequest> shopOrders
 
         ) implements OrderCreateRequest {
 }

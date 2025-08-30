@@ -2,6 +2,7 @@ package com.sope.sope_ecommerce_backend.mapper;
 
 import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
+import com.sope.sope_ecommerce_backend.dto.response.ShopInfo;
 import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.entities.Shop;
 import org.mapstruct.*;
@@ -17,6 +18,12 @@ public interface ShopMapper {
     Shop toEntity(ShopCreateRequest request);
 
     ShopResponse toResponse(Shop shop);
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "avatarUrl", source = "logoUrl")
+    ShopInfo toShopInfo(Shop entity);
+
 
     @Mapping(target = "appUser", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

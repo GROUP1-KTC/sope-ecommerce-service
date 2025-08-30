@@ -46,16 +46,24 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional
-    public OrderResponse createOrder(OrderCreateRequest request, UUID userId) {
+    public List<? extends OrderResponse> createOrder(OrderCreateRequest request, UUID userId) {
 
-        Optional<Order> existing = orderRepository.findByIdempotencyKey(request.idempotencyKey());
-        Optional<TempOrder> tempOrderExisting = tempOrderRepository.findByIdempotencyKey(request.idempotencyKey());
+        String idempotencyKey = request.idempotencyKey();
 
-        if (existing.isPresent()) {
-            return orderMapper.toOrderResponseDTO(existing.get());
+        List<Order> matchingOrders = orderRepository.findAllByIdempotencyKeyContaining(idempotencyKey);
+
+        if (!matchingOrders.isEmpty()) {
+            return matchingOrders.stream()
+                    .map(orderMapper::toOrderResponseDTO)
+                    .toList();
         }
-        else if (tempOrderExisting.isPresent()) {
-            return orderMapper.toOrderResponseDTO(tempOrderExisting.get());
+
+        List<TempOrder> matchingTempOrders = tempOrderRepository.findAllByIdempotencyKeyContaining(idempotencyKey);
+
+        if (!matchingTempOrders.isEmpty()) {
+            return matchingTempOrders.stream()
+                    .map(orderMapper::toOrderResponseDTO)
+                    .toList();
         }
 
         OrderCreationStrategy strategy = strategies.stream()
@@ -68,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Iterable<? extends OrderResponse> getAllOrders() {
+    public List<? extends OrderResponse> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
         if (orders.isEmpty()) {
             throw new CustomException("No orders found");
@@ -78,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Iterable<? extends OrderResponse> getOrdersByUserId(UUID userId) {
+    public List<? extends OrderResponse> getOrdersByUserId(UUID userId) {
 
         AppUser appUser = userService.getUserEntityById(userId);
 

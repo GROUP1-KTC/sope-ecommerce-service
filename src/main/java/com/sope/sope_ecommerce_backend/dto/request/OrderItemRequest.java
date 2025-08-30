@@ -4,6 +4,5 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record OrderItemRequest(UUID productVariantId,
-                               BigDecimal price,
                                int quantity) {
 }
