@@ -5,6 +5,7 @@
     import jakarta.persistence.*;
     import lombok.*;
 
+    import java.time.LocalDate;
     import java.util.*;
 
     @Entity
@@ -23,6 +24,7 @@
         private String name;
         private String phone;
         private String email;
+        private LocalDate birthday;
         private String avatarUrl;
 
         @Enumerated(EnumType.STRING)

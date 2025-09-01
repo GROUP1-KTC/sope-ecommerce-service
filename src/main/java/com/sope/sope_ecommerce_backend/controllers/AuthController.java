@@ -73,6 +73,7 @@ public class AuthController {
             UserLoginResponse loginResponse = authService.login(request);
 
             UserLoginResponseFE responseFE = new UserLoginResponseFE(
+                    loginResponse.id(),
                     loginResponse.username(),
                     loginResponse.roles(),
                     loginResponse.access_token()

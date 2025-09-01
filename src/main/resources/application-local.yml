@@ -198,6 +198,7 @@ web:
       - PUT
       - DELETE
       - OPTIONS
+      - PATCH
     allowed-headers: "*"
     exposed-headers:
       - "Authorization"

@@ -114,7 +114,6 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
 
-
         UserDetails userDetails = userDetailsService.loadUserByUsername(appUser.getUsername());
 
         String accessToken = jwtProvider.generateToken(userDetails, appUser.getId());

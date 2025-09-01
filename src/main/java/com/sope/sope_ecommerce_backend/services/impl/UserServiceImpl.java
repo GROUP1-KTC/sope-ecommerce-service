@@ -93,26 +93,25 @@ public class UserServiceImpl implements UserService {
         AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (request.username() != null) {
-            appUser.setUsername(request.username());
-        }
-        if (request.email() != null) {
-            appUser.setEmail(request.email());
-        }
         if (request.name() != null) {
             appUser.setName(request.name());
         }
-        if (request.note() != null) {
-            appUser.setNote(request.note());
+
+        if (request.gender() != null) {
+            appUser.setGender(request.gender());
         }
-        if (request.status() != null) {
-            appUser.setStatus(UserStatus.valueOf(request.status()));
+
+        if (request.birthday() != null) {
+            appUser.setBirthday(request.birthday());
+        }
+
+        if (request.avatarUrl() != null) {
+            appUser.setAvatarUrl(request.avatarUrl());
         }
 
         appUser = userRepository.save(appUser);
         return userMapper.toInfoResponse(appUser);
     }
-
 
     @Override
     public void changeUserStatus(UUID id, UserStatusRequest request) {
