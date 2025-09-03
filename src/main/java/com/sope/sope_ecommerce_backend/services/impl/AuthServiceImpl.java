@@ -51,13 +51,10 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.findByUsername(request.username()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
-        if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new RuntimeException("Email already exists");
-        }
 
         AppUser appUser = userMapper.toEntity(request);
         appUser.setPassword(passwordEncoder.encode(request.password()));
-        appUser.setStatus(UserStatus.INACTIVE);
+        appUser.setStatus(UserStatus.ACTIVE);
 
         Role userRoleEntity = roleRepository.findByRoleName(RoleName.USER)
                 .orElseGet(() -> roleRepository.save(new Role(RoleName.USER)));
@@ -73,15 +70,6 @@ public class AuthServiceImpl implements AuthService {
         appUser = userRepository.save(appUser);
 
         userSettingService.createDefaultUserSetting(appUser);
-
-        // Sinh OTP
-        String otp = OtpUtil.generateOtp(6);
-
-        // Lưu OTP vào Redis
-        redisService.set("otp:email:" + appUser.getEmail(), otp, 5, TimeUnit.MINUTES);
-
-        // Gửi email
-        emailService.sendVerificationEmail(appUser.getEmail(), otp);
 
         return userMapper.toResponse(appUser);
     }
@@ -116,20 +104,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
         try {
+            AppUser appUser = userRepository.findByEmail(request.email())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.username(),
+                            appUser.getUsername(),
                             request.password()
                     )
             );
-        } catch (BadCredentialsException e) {
-            throw new RuntimeException("Incorrect username or password", e);
-        }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.username());
-
-        AppUser appUser = userRepository.findByUsername(request.username())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        UserDetails userDetails = userDetailsService.loadUserByUsername(appUser.getUsername());
 
         String accessToken = jwtProvider.generateToken(userDetails, appUser.getId());
 
@@ -138,6 +123,9 @@ public class AuthServiceImpl implements AuthService {
         redisService.set("refresh:" + refreshToken, appUser.getId().toString(), 7, TimeUnit.DAYS);
 
         return userMapper.toLoginResponse(appUser, accessToken, refreshToken);
+        } catch (BadCredentialsException e) {
+            throw new RuntimeException("Incorrect username or password", e);
+        }
     }
 
 
@@ -216,6 +204,42 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         // Xoá OTP sau khi dùng
+        redisService.delete(redisKey);
+    }
+
+    @Override
+    public void sendOtp(String email) throws MessagingException {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("This email is already in use. Please log in or use another email.");
+        }
+
+        String otp = OtpUtil.generateOtp(6);
+
+        String redisKey = "otp:email:" + email;
+        redisService.set(redisKey, otp, 5, TimeUnit.MINUTES);
+
+        emailService.sendVerificationEmail(email, otp);
+
+        redisService.set("otp:verified:" + email, false, 10, TimeUnit.MINUTES);
+
+        System.out.println("OTP for " + email + " is: " + otp);
+    }
+
+    @Override
+    public void verifyOtp(String email, String otp) {
+        String redisKey = "otp:email:" + email;
+        Object otpInRedis = redisService.get(redisKey);
+
+        if (otpInRedis == null) {
+            throw new RuntimeException("OTP expired or invalid");
+        }
+
+        if (!otp.equals(otpInRedis.toString())) {
+            throw new RuntimeException("OTP is incorrect");
+        }
+
+        redisService.set("otp:verified:" + email, true, 10, TimeUnit.MINUTES);
+
         redisService.delete(redisKey);
     }
 

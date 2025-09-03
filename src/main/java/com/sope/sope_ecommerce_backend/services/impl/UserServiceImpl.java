@@ -27,7 +27,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
-
     @Override
     public UserInformationResponse getCurrentUserInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -73,7 +72,6 @@ public class UserServiceImpl implements UserService {
             guestUser = AppUser.builder()
                     .email(email)
                     .name(fullName)
-                    .phone(phone)
 //                    .roles()
                     .status(UserStatus.INACTIVE)
                     .build();
@@ -95,32 +93,25 @@ public class UserServiceImpl implements UserService {
         AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (request.username() != null) {
-            appUser.setUsername(request.username());
-        }
-        if (request.email() != null) {
-            appUser.setEmail(request.email());
-        }
         if (request.name() != null) {
             appUser.setName(request.name());
         }
-        if (request.phone() != null) {
-            appUser.setPhone(request.phone());
+
+        if (request.gender() != null) {
+            appUser.setGender(request.gender());
         }
-        if (request.address() != null) {
-            appUser.setAddress(request.address());
+
+        if (request.birthday() != null) {
+            appUser.setBirthday(request.birthday());
         }
-        if (request.note() != null) {
-            appUser.setNote(request.note());
-        }
-        if (request.status() != null) {
-            appUser.setStatus(UserStatus.valueOf(request.status()));
+
+        if (request.avatarUrl() != null) {
+            appUser.setAvatarUrl(request.avatarUrl());
         }
 
         appUser = userRepository.save(appUser);
         return userMapper.toInfoResponse(appUser);
     }
-
 
     @Override
     public void changeUserStatus(UUID id, UserStatusRequest request) {

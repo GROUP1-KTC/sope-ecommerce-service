@@ -206,3 +206,4 @@ web:
       - "Content-Type"
     allowed-credentials: true
     max-age: 3600
+

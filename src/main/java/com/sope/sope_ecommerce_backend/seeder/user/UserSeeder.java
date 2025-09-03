@@ -39,8 +39,6 @@ public class UserSeeder {
                     .name(name)
                     .email(email)
                     .password(passwordEncoder.encode(rawPassword))
-                    .address("Default Address")
-                    .phone("0123456789")
                     .status(UserStatus.ACTIVE)
                     .build();
 
