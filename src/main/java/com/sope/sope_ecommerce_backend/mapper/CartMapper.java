@@ -15,7 +15,6 @@ public interface CartMapper {
     @Mapping(source = "productVariant.product.name", target = "productName")
     @Mapping(source = "productVariant.productVariantId", target = "productVariantId")
     @Mapping(source = "productVariant.price", target = "price")
-    @Mapping(source = "productVariant.imageVariant", target = "imageVariant")
     CartItemResponse toCartItemResponseDTO(CartItem entity);
 
     List<CartItemResponse> toCartItemResponseDTOs(List<CartItem> entities);

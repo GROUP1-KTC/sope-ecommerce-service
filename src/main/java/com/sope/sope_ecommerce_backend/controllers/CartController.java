@@ -46,7 +46,7 @@ public class CartController {
                 return ApiResponseUtil.badRequest(List.of("Invalid input: userId, productVariantId, or quantity"));
             }
 
-            cartService.addToCart(currentUser.getUserId(), request.productVariantId(), request.quantity());
+            cartService.addToCart(currentUser.getUserId(), request.productVariantId(), request.quantity(), request.image());
             return ApiResponseUtil.success(null, "Added to cart successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to add item to cart", List.of(e.getMessage()));
@@ -123,6 +123,26 @@ public class CartController {
             }
 
             cartService.removeItemFromCart(currentUser.getUserId(), cartItemId);
+            return ApiResponseUtil.success(null, "Item removed from cart.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to remove cart item", List.of(e.getMessage()));
+        }
+    }
+
+
+    @DeleteMapping()
+    public ResponseEntity<ApiResponse<Object>> removeItems(@RequestBody List<UUID> cartItemIds,
+                                                          @AuthenticationPrincipal CustomUserDetails currentUser) {
+        try {
+            if (currentUser == null) {
+                return ApiResponseUtil.unauthorized("User is not logged in");
+            }
+
+            if (cartItemIds == null || cartItemIds.isEmpty()) {
+                return ApiResponseUtil.badRequest(List.of("cartItemId and userId must not be null"));
+            }
+
+            cartService.removeItemsFromCart(currentUser.getUserId(), cartItemIds);
             return ApiResponseUtil.success(null, "Item removed from cart.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to remove cart item", List.of(e.getMessage()));

@@ -42,7 +42,7 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     @Transactional
-    public void addToCart(UUID userId, UUID productVariantId, int quantity) {
+    public void addToCart(UUID userId, UUID productVariantId, int quantity, String image) {
         Optional<CartItem> existingItemOpt = cartItemRepository.findOne(
                 CartItemSpecification.byUserAndVariantFetch(userId, productVariantId)
         );
@@ -70,6 +70,7 @@ public class CartServiceImpl implements CartService {
 
             item = new CartItem();
             item.setCart(cart);
+            item.setImage(image);
             item.setProductVariant(productVariant);
             item.setQuantity(0);
         }
@@ -100,7 +101,7 @@ public class CartServiceImpl implements CartService {
 
 
         // Đổi variant
-        if (request.newVariantId() != null) {
+        if (request.newVariantId() != null && !request.newVariantId().equals(item.getProductVariant().getProductVariantId())) {
             ProductVariant newVariant = productVariantRepository.findById(request.newVariantId())
                     .orElseThrow(() -> new EntityNotFoundException("Variant not found"));
 
@@ -129,7 +130,7 @@ public class CartServiceImpl implements CartService {
         }
 
         // Đổi số lượng
-        if (request.quantity() != null) {
+        if (request.quantity() != null && request.quantity() != item.getQuantity()) {
             int availableStock = item.getProductVariant().getStock();
             if (request.quantity() > availableStock) {
                 throw new IllegalArgumentException("Quantity exceeds available stock");
@@ -145,31 +146,18 @@ public class CartServiceImpl implements CartService {
      * Removes multiple items from the user's cart.
      *
      * @param userId      the ID of the user
-     * @param productVariantIds the list of product variant IDs to remove
+     * @param cartItemIds the list of product variant IDs to remove
      */
     @Override
     @Transactional
-    public void removeItemsFromCart(UUID userId, List<UUID> productVariantIds) {
+    public void removeItemsFromCart(UUID userId, List<UUID> cartItemIds) {
         AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Cart cart = cartRepository.findByAppUser(appUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        List<CartItem> items = cart.getItems();
-        if (items.isEmpty()) {
-            return;
-        }
-
-        List<CartItem> itemsToRemove = items.stream()
-                .filter(item -> productVariantIds.contains(item.getProductVariant().getProductVariantId()))
-                .toList();
-
-        if (!itemsToRemove.isEmpty()) {
-            cart.getItems().removeAll(itemsToRemove);
-            cartItemRepository.deleteAll(itemsToRemove);
-            cartRepository.save(cart);
-        }
+        cart.getItems().removeIf(item -> cartItemIds.contains(item.getId()));
     }
 
 
@@ -180,6 +168,7 @@ public class CartServiceImpl implements CartService {
      * @param cartItemId the ID of the cart item to remove
      */
     @Override
+    @Transactional
     public void removeItemFromCart(UUID userId, UUID cartItemId) {
         AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -190,13 +179,7 @@ public class CartServiceImpl implements CartService {
         CartItem item = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
 
-        if (!cart.getItems().contains(item)) {
-            throw new RuntimeException("Item not found in cart");
-        }
-
-        cart.getItems().remove(item);
-        cartItemRepository.delete(item);
-        cartRepository.save(cart);
+        cart.getItems().removeIf(i -> i.getId().equals(item.getId()));
     }
 
     /**

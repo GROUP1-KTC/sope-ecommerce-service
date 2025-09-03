@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CartService {
-    void addToCart(UUID userId, UUID productVariantId, int quantity);
+    void addToCart(UUID userId, UUID productVariantId, int quantity, String image);
     List<CartGroupResponse> getCartByUser(UUID userId);
     void removeItemFromCart(UUID userId, UUID cartItemId);
 
@@ -18,7 +18,7 @@ public interface CartService {
 
     List<CartItemResponse> validateGuestCart(List<AddToCartRequestDTO> items);
 
-    void removeItemsFromCart(UUID userId, List<UUID> productVariantIds);
+    void removeItemsFromCart(UUID userId, List<UUID> cartItemIds);
 
     Cart getCartEntityByUser(UUID userId);
 }

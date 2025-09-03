@@ -4,5 +4,6 @@ import java.util.UUID;
 
 public record AddToCartRequestDTO(
         UUID productVariantId,
-        int quantity
+        int quantity,
+        String image
 ){}

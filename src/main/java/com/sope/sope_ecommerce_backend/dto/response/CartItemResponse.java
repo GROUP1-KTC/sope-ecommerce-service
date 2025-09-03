@@ -8,6 +8,6 @@ public record CartItemResponse(
                 String productName,
                 UUID productVariantId,
                 BigDecimal price,
-                String imageVariant,
+                String image,
                 Integer quantity) {
 }

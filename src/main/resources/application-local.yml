@@ -121,12 +121,12 @@ app:
         scope: profile, email
 
 cors:
-    allowed-origins: "*"
-    allowed-methods: GET, POST, PUT, DELETE, OPTIONS
-    allowed-headers: Content-Type, Authorization, X-Requested-With
-    exposed-headers: Content-Disposition
-    allow-credentials: true
-    max-age: 3600
+  allowed-origins: "*"
+  allowed-methods: GET, POST, PUT, DELETE, OPTIONS
+  allowed-headers: Content-Type, Authorization, X-Requested-With
+  exposed-headers: Content-Disposition
+  allow-credentials: true
+  max-age: 3600
 
 logging:
   level:
@@ -192,15 +192,17 @@ web:
   cors:
     allowed-origins:
       - "http://localhost:5173"
-      - "https://everspark.vn"
+      - "http://localhost:3000"
     allowed-methods:
       - GET
       - POST
       - PUT
       - DELETE
       - OPTIONS
+      - PATCH
     allowed-headers: "*"
     exposed-headers:
       - "Authorization"
-    allow-credentials: true
+      - "Content-Type"
+    allowed-credentials: true
     max-age: 3600
