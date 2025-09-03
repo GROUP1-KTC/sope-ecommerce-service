@@ -32,11 +32,8 @@ public class SecurityConfig {
         http
 
                 .cors(cors -> cors.configurationSource(webCorsConfig.corsConfigurationSource()))
-
                 .csrf(AbstractHttpConfigurer::disable)
-
                 .authorizeHttpRequests(auth -> authorizationRules.apply(auth))
-
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );

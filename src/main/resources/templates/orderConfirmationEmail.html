@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h2 { color: #333333; }
+        p { color: #666666; }
+        .order-info, .user-info { margin-bottom: 20px; }
+        .info-item { margin: 4px 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #dddddd; padding: 10px; text-align: left; font-size: 14px; }
+        th { background-color: #f8f8f8; }
+        .total { font-weight: bold; color: #007bff; }
+        .footer { font-size: 12px; color: #999999; text-align: center; margin-top: 20px; }
+        .company-info { font-size: 12px; color: #999999; text-align: center; margin-top: 10px; border-top: 1px solid #eeeeee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Xác nhận đơn hàng của bạn</h2>
+    <p>Xin chào <strong th:text="${user.name}"></strong>,</p>
+    <p>Cảm ơn bạn đã đặt hàng tại <strong>Sope</strong>. Đơn hàng của bạn đã được xác nhận với các thông tin sau:</p>
+
+    <!-- Thông tin người dùng -->
+    <div class="user-info">
+        <h3>Thông tin người nhận</h3>
+        <p class="info-item">Họ tên: <strong th:text="${user.name}"></strong></p>
+        <p class="info-item">Email: <strong th:text="${user.email}"></strong></p>
+        <p class="info-item">Số điện thoại: <strong th:text="${user.phone}"></strong></p>
+        <p class="info-item">Địa chỉ: <strong th:text="${user.address}"></strong></p>
+    </div>
+
+    <!-- Thông tin đơn hàng -->
+    <div class="order-info">
+        <h3>Chi tiết đơn hàng</h3>
+        <p class="info-item">Mã đơn hàng: <strong th:text="${order.code}"></strong></p>
+        <p class="info-item">Ngày đặt: <strong th:text="${order.date}"></strong></p>
+        <p class="info-item">Trạng thái: <strong th:text="${order.status}"></strong></p>
+    </div>
+
+    <!-- Danh sách sản phẩm -->
+    <h3>Sản phẩm đã đặt</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Sản phẩm</th>
+            <th>Số lượng</th>
+            <th>Giá</th>
+            <th>Tổng</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${order.items}">
+            <td th:text="${item.productName}"></td>
+            <td th:text="${item.quantity}"></td>
+            <td th:text="${item.price} + '₫'"></td>
+            <td th:text="${item.quantity * item.price} + '₫'"></td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="3" style="text-align: right;">Tổng cộng:</td>
+            <td class="total" th:text="${order.totalAmount} + '₫'"></td>
+        </tr>
+        </tfoot>
+    </table>
+
+    <p>Chúng tôi sẽ thông báo cho bạn khi đơn hàng được giao cho đơn vị vận chuyển.</p>
+
+    <div class="company-info">
+        Công ty TNHH Sope<br>
+        Email: support@sope.vn | Website: www.sope.vn
+    </div>
+</div>
+</body>
+</html>

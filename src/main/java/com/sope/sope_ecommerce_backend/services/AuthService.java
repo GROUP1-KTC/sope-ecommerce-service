@@ -16,5 +16,6 @@ public interface AuthService {
     void changePassword(ChangePasswordRequest request);
     void forgotPassword(ForgotPasswordRequest request) throws MessagingException;
     void resetPassword(ResetPasswordRequest request);
-
+    void sendOtp(String email) throws MessagingException;
+    void verifyOtp(String email, String otp) throws MessagingException;
 }

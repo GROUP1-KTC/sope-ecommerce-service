@@ -20,7 +20,7 @@
 
             // User APIs
             auth.requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN");
-            auth.requestMatchers(HttpMethod.GET, "/api/users/me").hasAnyRole("USER", "ADMIN");
+            auth.requestMatchers(HttpMethod.OPTIONS, "/api/users/me").hasAnyRole("USER", "ADMIN");
             auth.requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("USER", "ADMIN");
 
             // Admin APIs
