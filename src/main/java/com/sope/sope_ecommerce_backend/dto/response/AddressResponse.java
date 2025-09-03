@@ -11,6 +11,7 @@ public record AddressResponse(
         String district,
         String city,
         String country,
-        boolean isDefault
+        boolean isDefault,
+        String fullAddress
 ) {
 }
