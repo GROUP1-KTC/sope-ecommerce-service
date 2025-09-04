@@ -22,6 +22,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     Optional<Order> findByIdempotencyKeyAndAppUser(String idempotencyKey, AppUser appUser);
 
+    List<Order> findAllByIdempotencyKeyContaining(String pattern);
+
 
     @Modifying
     @Query("UPDATE Order o SET o.status = 'CANCELLED' WHERE o.status = 'PENDING' AND o.expireAt < :now")

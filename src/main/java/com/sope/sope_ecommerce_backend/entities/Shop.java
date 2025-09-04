@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -12,6 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 public class Shop {
 
     @Id
@@ -21,6 +24,15 @@ public class Shop {
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser appUser;
+
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Order> orders = new ArrayList<>();
+
+
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<Product> products = new ArrayList<>();
 
     @Column(nullable = false)
     private String name;
@@ -48,6 +60,13 @@ public class Shop {
     public enum Status {
         ACTIVE, INACTIVE, DELETED
     }
+
+
+    public void addOrder(Order order) {
+        orders.add(order);
+        order.setShop(this);
+    }
+
 
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

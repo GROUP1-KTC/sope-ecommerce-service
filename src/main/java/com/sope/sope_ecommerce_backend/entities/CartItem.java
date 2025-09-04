@@ -22,6 +22,8 @@ public class CartItem {
     @GeneratedValue
     private UUID id;
 
+    String image;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", nullable = false)
     private Cart cart;

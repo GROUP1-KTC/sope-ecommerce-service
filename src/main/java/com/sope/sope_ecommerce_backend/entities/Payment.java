@@ -13,6 +13,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -28,13 +29,12 @@ public class Payment {
     @Column(name = "payment_id", columnDefinition = "UUID", updatable = false, nullable = false)
     private UUID paymentId;
 
-    @OneToOne
-    @JoinColumn(name = "order_id", unique = true)
-    private Order order;
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Order> orders;
 
-    @OneToOne
-    @JoinColumn(name = "temp_order_id",  unique = true)
-    private TempOrder tempOrder;
+
+    @OneToMany(mappedBy = "payment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TempOrder> tempOrders;
 
     @Column(nullable = false)
     private BigDecimal amount;
@@ -51,6 +51,7 @@ public class Payment {
     @Builder.Default
     private PaymentStatus status = PaymentStatus.PENDING;
 
+    @Enumerated(EnumType.STRING)
     private PaymentProvider provider; // "MOMO", "VNPAY", "STRIPE"
     private String providerPaymentId; // id by provider return
     private String providerPayUrl; // redirect/qr url
@@ -59,13 +60,41 @@ public class Payment {
     private String requestId;
 
 
+    public void addOrder(Order order) {
+        orders.add(order);
+        order.setPayment(this);
+    }
+
+    public void addTempOrder(TempOrder tempOrder) {
+        tempOrders.add(tempOrder);
+        tempOrder.setPayment(this);
+    }
+
+    public void setTempOrders(List<TempOrder> tempOrders) {
+        this.tempOrders = tempOrders;
+        if (tempOrders != null) {
+            tempOrders.forEach(order -> order.setPayment(this));
+        }
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+        if (orders != null) {
+            orders.forEach(order -> order.setPayment(this));
+        }
+    }
+
+
     @PrePersist
     @PreUpdate
     private void validateAssociation() {
-        if (order == null && tempOrder == null) {
+        boolean hasOrders = orders != null && !orders.isEmpty();
+        boolean hasTempOrders = tempOrders != null && !tempOrders.isEmpty();
+
+        if (!hasOrders && !hasTempOrders) {
             throw new IllegalStateException("Payment must be linked to either an Order or a TempOrder");
         }
-        if (order != null && tempOrder != null) {
+        if (hasOrders && hasTempOrders) {
             throw new IllegalStateException("Payment cannot be linked to both Order and TempOrder at the same time");
         }
     }

@@ -26,6 +26,9 @@ public class TempOrder {
     private String guestName;
     private String guestPhone;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Shop shop;
+
 
     private String shippingAddress;
     private String city;
@@ -39,10 +42,11 @@ public class TempOrder {
     @CollectionTable(name = "temp_order_items", joinColumns = @JoinColumn(name = "temp_order_id"))
     private List<TempOrderItem> orderItems;
 
-    @OneToOne(mappedBy = "tempOrder", cascade = CascadeType.ALL)
+    @ManyToOne
+    @JoinColumn(name = "payment_id")
     private Payment payment;
 
-    private BigDecimal subtotal;
+    private BigDecimal subTotal;
     private BigDecimal shippingCharges;
     private BigDecimal totalAmount;
 

@@ -40,7 +40,7 @@ public class PaymentController {
 
         String callbackStatus = String.valueOf(request.resultCode());
 
-        paymentService.handlePaymentCallback(UUID.fromString(request.orderId()), callbackStatus, PaymentProvider.MOMO);
+        paymentService.handlePaymentCallback(request.requestId(), callbackStatus, PaymentProvider.MOMO);
         return ResponseEntity.ok(callbackStatus.equals("0") ? "Payment success" : "Payment failed");
     }
 

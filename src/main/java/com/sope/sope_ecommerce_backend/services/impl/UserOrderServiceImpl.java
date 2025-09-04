@@ -2,8 +2,10 @@ package com.sope.sope_ecommerce_backend.services.impl;
 
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.OrderItemRequest;
+import com.sope.sope_ecommerce_backend.dto.request.ShopOrderRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserOrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
+import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.DiscountScope;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
@@ -12,6 +14,7 @@ import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
 import com.sope.sope_ecommerce_backend.repositories.OrderRepository;
+import com.sope.sope_ecommerce_backend.repositories.PaymentRepository;
 import com.sope.sope_ecommerce_backend.repositories.ProductVariantRepository;
 import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
@@ -43,6 +46,10 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
 
     private final DiscountService discountService;
 
+    private final ShopService shopService;
+
+    private final PaymentRepository paymentRepository;
+
     @Override
     public boolean supports(OrderCreateRequest request) {
         return request instanceof UserOrderCreateRequest;
@@ -50,152 +57,211 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
 
     @Override
     @Transactional
-    public OrderResponse createOrder(UserOrderCreateRequest request, UUID userId) {
-
+    public List<? extends  OrderResponse> createOrder(UserOrderCreateRequest request, UUID userId) {
+        // 1. Lấy địa chỉ giao hàng + user
         AppUser user = userService.getUserEntityById(userId);
         Address shippingAddress = addressService.getAddressEntityById(request.shippingAddressId());
 
+//        List<Order> ordersToSave = new ArrayList<>();
+        List<OrderItem> allOrderItems = new ArrayList<>();
 
-        BigDecimal subtotal = BigDecimal.ZERO;
-        List<OrderItem> orderItems = new ArrayList<>();
-        for (OrderItemRequest orderItemRequest : request.items()) {
-            ProductVariant variant = productVariantService.getProductVariantEntityById(orderItemRequest.productVariantId()) ;
-            if (variant.getStock() < orderItemRequest.quantity()) {
-                throw new CustomException("Insufficient stock for " + variant.getProduct().getName());
-            }
-            BigDecimal itemPrice = variant.getPrice().multiply(BigDecimal.valueOf(orderItemRequest.quantity()));
-            subtotal = subtotal.add(itemPrice);
+        // 2. Build order cho từng shop
+            List<Order> ordersToSave = request.shopOrders().stream()
+                    .map(shopOrder -> buildOrder(shopOrder, user, shippingAddress, request, allOrderItems, userId))
+                    .toList();
 
-            OrderItem orderItem = OrderItem.builder()
-                    .orderItemId(OrderItemId.builder()
-                            .orderId(null)
-                            .productVariantId(variant.getProductVariantId())
-                            .build())
-                    .productVariant(variant)
-                    .quantity(orderItemRequest.quantity())
-                    .price(variant.getPrice())
+        // 3. Batch update stock
+        batchUpdateStock(allOrderItems);
+
+        // 4. Nếu online payment → gộp payment chung
+        if (request.paymentMethod() != PaymentMethod.COD) {
+            BigDecimal grandTotal = ordersToSave.stream()
+                    .map(Order::getTotalAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            Payment sharedPayment = Payment.builder()
+                    .amount(grandTotal)
+                    .paymentMethod(request.paymentMethod())
+                    .provider(request.paymentProvider())
+                    .status(PaymentStatus.PENDING)
                     .build();
-            orderItems.add(orderItem);
+
+            sharedPayment.setOrders(ordersToSave);
+
+            List<Order> persistedOrders = IdempotencyUtils.saveWithIdempotency(
+                    () -> paymentRepository.save(sharedPayment).getOrders(),
+                    () -> Optional.of(orderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
+                    new RuntimeException("Order not found after duplicate key")
+            );
+
+            return persistedOrders.stream()
+                    .map(orderMapper::toOrderResponseDTO)
+                    .toList();
         }
 
-        BigDecimal shippingCharges = request.shippingCharge() != null ? request.shippingCharge() : BigDecimal.ZERO;
 
-        Order order = Order.builder()
-                .appUser(user)
-                .shippingAddress(shippingAddress)
-                .orderDate(LocalDateTime.now())
-                .subtotal(subtotal)
-                .shippingCharges(shippingCharges)
-                .note(request.note())
-                .status(OrderStatus.PENDING)
-                .orderItems(orderItems)
-                .idempotencyKey(request.idempotencyKey())
-                .statusHistory(new ArrayList<>())
-                .shippingRateId(request.shippingRateId())
-                .build();
+        // 6. Apply idempotency
+        List<Order> persistedOrders = IdempotencyUtils.saveWithIdempotency(
+                            () -> orderRepository.saveAll(ordersToSave),
+                            () ->  Optional.of(orderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
+                            new RuntimeException("Order not found after duplicate key"));
 
-        CommissionEntity commission = CommissionEntity.builder()
-                .commissionRate(new BigDecimal("0.05")) // Example commission rate of 5%
-                .commissionAmount(subtotal.multiply(new BigDecimal("0.05"))) // Calculate commission amount
-                .recordedAt(LocalDateTime.now())
-                .order(order)
-                .build();
+        return persistedOrders.stream()
+                .map(orderMapper::toOrderResponseDTO)
+                .toList();
+    }
 
-        order.setCommission(commission);
+    private Order buildOrder(ShopOrderRequest shopOrder,
+                             AppUser user,
+                             Address shippingAddress,
+                             UserOrderCreateRequest request,
+                             List<OrderItem> allOrderItems,
+                             UUID userId) {
 
+        Shop shop = shopService.getShopEntityById(shopOrder.shopId());
 
-        // Apply discount
+        List<OrderItem> orderItems = new ArrayList<>();
+        BigDecimal subTotal = BigDecimal.ZERO;
+
+        for (OrderItemRequest itemReq : shopOrder.items()) {
+            ProductVariant variant = productVariantService.getProductVariantEntityById(itemReq.productVariantId());
+            if (variant.getStock() < itemReq.quantity() || variant.getStock() <= 0) {
+                throw new CustomException("Insufficient stock for " + variant.getProduct().getName());
+            } else if (itemReq.quantity() <= 0) {
+                throw new CustomException("Quantity must be greater than zero for " + variant.getProduct().getName());
+            } else if (!variant.getProduct().getShop().getId().equals(shop.getId())) {
+                throw new CustomException("Product " + variant.getProduct().getName() + " does not belong to shop " + shop.getName());
+
+            }
+
+            OrderItem orderItem = OrderItem.builder()
+                    .productVariant(variant)
+                    .quantity(itemReq.quantity())
+                    .price(variant.getPrice())
+                    .build();
+
+            orderItems.add(orderItem);
+            allOrderItems.add(orderItem);
+
+            BigDecimal itemPrice =  orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+            subTotal = subTotal.add(itemPrice);
+        }
+
+        BigDecimal shippingCharges = shopOrder.shippingCharge() != null ? shopOrder.shippingCharge() : BigDecimal.ZERO;
+
+        // === Apply Discounts ===
         BigDecimal discountOnOrder = BigDecimal.ZERO;
         BigDecimal discountOnShipping = BigDecimal.ZERO;
         Set<OrderDiscount> discounts = new HashSet<>();
 
-        if (request.discountCodes() != null && !request.discountCodes().isEmpty()) {
-            for (String discountCode : request.discountCodes()) {
+        if (shopOrder.discountCodes() != null && !shopOrder.discountCodes().isEmpty()) {
+            for (String discountCode : shopOrder.discountCodes()) {
                 Discount discount = discountService.getDiscountEntityByCode(discountCode);
-
-
-                BigDecimal discountValueForOrder = discountService.applyDiscount(discount, subtotal, shippingCharges);
-
+                BigDecimal discountValue = discountService.applyDiscount(discount, subTotal, shippingCharges);
 
                 if (discount.getScope() == DiscountScope.FREESHIP) {
-                    discountOnShipping = discountOnShipping.add(discountValueForOrder);
+                    discountOnShipping = discountOnShipping.add(discountValue);
                 } else {
-                    discountOnOrder = discountOnOrder.add(discountValueForOrder);
+                    discountOnOrder = discountOnOrder.add(discountValue);
                 }
 
                 OrderDiscount orderDiscount = OrderDiscount.builder()
-                        .order(order)
+                        .order(null)
                         .discount(discount)
                         .discountName(discount.getScope().name())
-                        .discountAmount(discountValueForOrder)
+                        .discountAmount(discountValue)
                         .build();
-
-                log.info("Applied discount: {} Amount: {}", discount.getScope().name(), discountValueForOrder);
 
                 discounts.add(orderDiscount);
             }
         }
 
-        BigDecimal subtotalAfterDiscount = subtotal.subtract(discountOnOrder);
+        BigDecimal subtotalAfterDiscount = subTotal.subtract(discountOnOrder);
         BigDecimal shippingAfterDiscount = shippingCharges.subtract(discountOnShipping);
 
-        if (shippingAfterDiscount.compareTo(BigDecimal.ZERO) < 0) shippingAfterDiscount = BigDecimal.ZERO;
         if (subtotalAfterDiscount.compareTo(BigDecimal.ZERO) < 0) subtotalAfterDiscount = BigDecimal.ZERO;
+        if (shippingAfterDiscount.compareTo(BigDecimal.ZERO) < 0) shippingAfterDiscount = BigDecimal.ZERO;
 
         BigDecimal totalAmount = subtotalAfterDiscount.add(shippingAfterDiscount);
+        if (totalAmount.compareTo(BigDecimal.ZERO) < 0) totalAmount = BigDecimal.ZERO;
 
-        if (totalAmount.compareTo(BigDecimal.ZERO) < 0) {
-            totalAmount = BigDecimal.ZERO;
-        }
-
-        Payment payment = Payment.builder()
-                .order(order)
-                .amount(totalAmount)
-                .paymentMethod(request.paymentMethod())
-                .provider(request.paymentProvider())
-                .status(PaymentStatus.PENDING)
+        // === Build Order ===
+        Order order = Order.builder()
+                .appUser(user)
+                .shop(shop)
+                .shippingAddress(shippingAddress)
+                .orderDate(LocalDateTime.now())
+                .subTotal(subTotal)
+                .shippingCharges(shippingCharges)
+                .totalAmount(totalAmount)
+                .status(OrderStatus.PENDING)
+                .note(shopOrder.note())
+                .discounts(discounts)
+                .statusHistory(new ArrayList<>())
+                .orderNumber(generateKey("ORDER", userId.toString(), true))
+                .orderItems(orderItems)
+                .shippingRateId(shopOrder.shippingRateId())
+                .idempotencyKey(request.idempotencyKey() + "-" + shop.getId())
                 .build();
 
-        if( request.paymentMethod() != PaymentMethod.COD ) {
+        // === Commission ===
+        CommissionEntity commission = CommissionEntity.builder()
+                .commissionRate(new BigDecimal("0.05"))
+                .commissionAmount(subTotal.multiply(new BigDecimal("0.05")))
+                .recordedAt(LocalDateTime.now())
+                .order(order)
+                .build();
+        order.setCommission(commission);
+
+        // === Payment ===
+        if (request.paymentMethod() == PaymentMethod.COD) {
+            Payment codPayment = Payment.builder()
+                    .orders(List.of(order))
+                    .amount(totalAmount)
+                    .paymentMethod(PaymentMethod.COD)
+                    .status(PaymentStatus.PENDING)
+                    .build();
+            order.setPayment(codPayment);
+        } else {
             order.setExpireAt(LocalDateTime.now().plusHours(24));
         }
 
-        log.info("Final total amount: {}", totalAmount);
+        // Gắn 2 chiều cho orderItem + discount
+        orderItems.forEach(item -> {
+            item.setOrder(order);
+            item.setOrderItemId(
+                    OrderItemId.builder()
+                            .orderId(order.getOrderId())
+                            .productVariantId(item.getProductVariant().getProductVariantId())
+                            .build()
+            );
+        });
+        discounts.forEach(d -> d.setOrder(order));
 
-        order.setPayment(payment);
-        order.setDiscounts(discounts);
-        order.setTotalAmount(totalAmount);
-        order.setOrderNumber(generateKey("ORDER", userId.toString(), true));
-
-        orderItems.forEach(item ->
-                {
-                    item.setOrder(order);
-                    item.getOrderItemId().setOrderId(order.getOrderId());
-
-                    productVariantService.retrieveProductVariantStock(
-                            item.getProductVariant().getProductVariantId(),
-                            -item.getQuantity()
-                    );
-                }
-        );
-
-        addStatusHistory(order, OrderStatus.PENDING);
-
-        if (Boolean.TRUE.equals(request.isOrderedFromCart()) && request.items() != null) {
-            List<UUID> productVariantIds = request.items().stream()
+        // === Xử lý cart ===
+        if (Boolean.TRUE.equals(request.isOrderedFromCart()) && shopOrder.items() != null) {
+            List<UUID> productVariantIds = shopOrder.items().stream()
                     .map(OrderItemRequest::productVariantId)
                     .toList();
-
             cartService.removeItemsFromCart(userId, productVariantIds);
         }
 
-        Order newOrder = IdempotencyUtils.saveWithIdempotency(
-                () -> orderRepository.save(order),
-                () -> orderRepository.findByIdempotencyKey(order.getIdempotencyKey()),
-                new RuntimeException("Order not found after duplicate key")
-        );
-        return orderMapper.toOrderResponseDTO(newOrder);
+        addStatusHistory(order, OrderStatus.PENDING);
+        return order;
     }
+
+    private void batchUpdateStock(List<OrderItem> allOrderItems) {
+        Map<UUID, Integer> stockUpdates = new HashMap<>();
+        for (OrderItem item : allOrderItems) {
+            stockUpdates.merge(
+                    item.getProductVariant().getProductVariantId(),
+                    item.getQuantity(),
+                    Integer::sum
+            );
+        }
+        productVariantService.updateStockBatch(stockUpdates);
+    }
+
 
 
     private void addStatusHistory(Order order, OrderStatus status) {

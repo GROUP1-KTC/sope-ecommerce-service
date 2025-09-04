@@ -63,6 +63,12 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public Shop getShopEntityById(UUID shopId) {
+        return shopRepository.findById(shopId)
+                .orElseThrow(() -> new RuntimeException("Shop không tồn tại: " + shopId));
+    }
+
+    @Override
     public ShopResponse updateShop(ShopUpdateRequest request, UUID currentUserId) {
         Shop shop = shopRepository.findByAppUser_Id(currentUserId)
                 .orElseThrow(() -> new RuntimeException("Shop không tồn tại: " + currentUserId));

@@ -12,11 +12,11 @@ import java.util.List;
 import java.util.UUID;
 
 public interface OrderService {
-    public OrderResponse createOrder(OrderCreateRequest request, UUID userId);
+    public List<? extends OrderResponse> createOrder(OrderCreateRequest request, UUID userId);
 
-    public Iterable<? extends OrderResponse> getAllOrders();
+    public List<? extends OrderResponse> getAllOrders();
 
-    public Iterable<? extends OrderResponse> getOrdersByUserId(UUID userId);
+    public List<? extends OrderResponse> getOrdersByUserId(UUID userId);
 
     public OrderResponse getOrderById(UUID id);
 

@@ -31,6 +31,9 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser appUser;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Shop shop;
+
     @ManyToOne
     @JoinColumn(name = "address_id", nullable = false)
     private Address shippingAddress;
@@ -40,7 +43,7 @@ public class Order {
 
     private LocalDateTime expireAt;
 
-    private BigDecimal subtotal;
+    private BigDecimal subTotal;
 
     @Column(name = "shipping_charges")
     private BigDecimal shippingCharges;
@@ -78,7 +81,8 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderStatusHistory> statusHistory;
 
-    @OneToOne(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "payment_id")
     private Payment payment;
 
 
