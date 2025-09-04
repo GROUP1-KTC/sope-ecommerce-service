@@ -203,5 +203,5 @@ web:
     exposed-headers:
       - "Authorization"
       - "Content-Type"
-    allow-credentials: true
+    allowed-credentials: true
     max-age: 3600
