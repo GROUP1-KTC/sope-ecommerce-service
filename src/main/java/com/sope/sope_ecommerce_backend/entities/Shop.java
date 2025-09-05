@@ -57,8 +57,20 @@ public class Shop {
     @Column(nullable = false)
     private Status status = Status.ACTIVE;
 
+    @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Discount> discounts = new ArrayList<>();
+
+
+
+
     public enum Status {
         ACTIVE, INACTIVE, DELETED
+    }
+
+    public void addDiscount(Discount discount) {
+        discounts.add(discount);
+        discount.setShop(this);
     }
 
 

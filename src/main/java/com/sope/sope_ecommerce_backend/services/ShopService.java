@@ -22,7 +22,6 @@ public interface ShopService {
 
     public Shop getShopEntityById(UUID shopId);
 
-
     public ShopResponse updateShop(ShopUpdateRequest shopUpdateRequest, UUID userId);
 
     public ShopResponse changeShopStatus(UUID shopId, Shop.Status shopStatus);

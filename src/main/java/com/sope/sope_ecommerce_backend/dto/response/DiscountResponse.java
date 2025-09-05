@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.dto.response;
 
 import com.sope.sope_ecommerce_backend.enums.DiscountScope;
+import com.sope.sope_ecommerce_backend.enums.DiscountStatus;
 import com.sope.sope_ecommerce_backend.enums.DiscountType;
 
 import java.math.BigDecimal;
@@ -21,6 +22,8 @@ public record DiscountResponse(
         LocalDateTime startDate,
         LocalDateTime endDate,
         DiscountScope scope,
-        BigDecimal maxCoins
+        BigDecimal maxCoins,
+        DiscountStatus status
+
 ) {
 }
