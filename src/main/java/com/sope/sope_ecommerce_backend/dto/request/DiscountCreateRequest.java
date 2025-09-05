@@ -6,6 +6,7 @@ import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record DiscountCreateRequest(
         @NotBlank(message = "Code is required")
@@ -39,6 +40,8 @@ public record DiscountCreateRequest(
         DiscountScope scope,
 
         @PositiveOrZero(message = "Max coins must be non-negative")
-        BigDecimal maxCoins
+        BigDecimal maxCoins,
+
+         UUID shopId
 ) {
 }

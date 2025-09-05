@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,6 +33,53 @@ public class DiscountController {
         }
     }
 
+    @GetMapping()
+    public ResponseEntity<ApiResponse<List<? extends DiscountResponse>>> getAllDiscounts() {
+        try {
+            List<? extends DiscountResponse> discounts = discountService.getAllDiscounts();
+
+            return  ApiResponseUtil.success(discounts, "Get all discounts successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to get discounts", List.of(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/shops/{shopId}")
+    public ResponseEntity<ApiResponse<List<? extends DiscountResponse>>> getAllDiscountsOfShop(
+            @PathVariable UUID shopId
+    ) {
+        try {
+            List<? extends DiscountResponse> discounts = discountService.getActiveDiscountsByShop(shopId);
+
+            return  ApiResponseUtil.success(discounts, "Get all discounts successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to get discounts", List.of(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/platform")
+    public ResponseEntity<ApiResponse<List<? extends DiscountResponse>>> getAllDiscountsOfPlatform() {
+        try {
+            List<? extends DiscountResponse> discounts = discountService.getAllDiscountsOfPlatform();
+
+            return  ApiResponseUtil.success(discounts, "Get all discounts successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to get discounts", List.of(e.getMessage()));
+        }
+    }
+
+
+    @GetMapping("/platform/active")
+    public ResponseEntity<ApiResponse<List<? extends DiscountResponse>>> getActiveDiscountsOfPlatform() {
+        try {
+            List<? extends DiscountResponse> discounts = discountService.getActiveDiscountsOfPlatform();
+
+            return  ApiResponseUtil.success(discounts, "Get all discounts successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to get discounts", List.of(e.getMessage()));
+        }
+    }
+
     @GetMapping("/{code}")
     public ResponseEntity<ApiResponse<DiscountResponse>> getDiscountByCode(
             @PathVariable String code
@@ -44,4 +92,20 @@ public class DiscountController {
             return ApiResponseUtil.internalError("Failed to get discount", List.of(e.getMessage()));
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<DiscountResponse>> updateDiscount(
+            @PathVariable UUID id,
+            @RequestBody DiscountCreateRequest request
+    ) {
+        try {
+            DiscountResponse discountResponse = discountService.updateDiscount(id, request);
+
+            return  ApiResponseUtil.success(discountResponse, "Update discount successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to update discount", List.of(e.getMessage()));
+        }
+    }
+
+
 }

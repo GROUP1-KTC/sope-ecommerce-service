@@ -35,15 +35,16 @@ public class Discount {
     @Column(name = "discount_value", nullable = false)
     private BigDecimal discountValue;
 
-    @Column(name = "max_discount_value", nullable = false)
+    @Column(name = "max_discount_value")
     private BigDecimal maxDiscountValue;
 
-    @Column(name = "min_order_value", nullable = false)
+    @Column(name = "min_order_value")
     private BigDecimal minOrderValue;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private DiscountType discountType;
+    @Builder.Default
+    private DiscountType discountType = DiscountType.FIXED_AMOUNT;
 
     @Column(name = "max_usage")
     private int maxUsage;
@@ -71,6 +72,11 @@ public class Discount {
     private DiscountScope scope;;
 
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shop_id")
+    private Shop shop;
+
+
 
     @Transient
     public boolean isActive() {
@@ -83,6 +89,13 @@ public class Discount {
     @PrePersist
     @PreUpdate
     private void validateDiscountCode() {
+
+        if (scope == DiscountScope.SHOP && shop == null) {
+            throw new IllegalStateException("Shop must be set when scope is SHOP");
+        }else if( scope != DiscountScope.SHOP && shop != null) {
+            throw new IllegalStateException("Shop must be null when scope is different from SHOP");
+        }
+
         if (discountType == DiscountType.PERCENTAGE) {
             if (maxDiscountValue == null || maxDiscountValue.compareTo(BigDecimal.ZERO) <= 0) {
                 throw new IllegalStateException("maxDiscountValue must be greater than 0 for PERCENTAGE discount type");
@@ -96,7 +109,6 @@ public class Discount {
                 throw new IllegalStateException("discountValue for FIXED_AMOUNT must be greater than 0");
             }
         }
-
 
         // Validate start and end dates
         if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
