@@ -97,16 +97,32 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<TokenRefreshResponse> refreshAccessToken(@RequestBody TokenRefreshRequest request) {
-        TokenRefreshResponse response = authService.refreshAccessToken(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<TokenRefreshResponse> refreshAccessToken(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken) {
+
+        if (refreshToken == null) {
+            throw new RuntimeException("Refresh token not found in cookies");
+        }
+
+        TokenRefreshResponse response = authService.refreshAccessToken(refreshToken);
+
+        // update cookie với refresh token mới
+        ResponseCookie refreshCookie = cookieService.createRefreshCookie(response.refreshToken());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(response);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@Valid @RequestBody TokenRefreshRequest request) {
-        authService.logout(request.refreshToken());
-        return ResponseEntity.ok("Logout successful");
+    public ResponseEntity<String> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+        List<ResponseCookie> cookies = authService.logout(refreshToken);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookies.get(0).toString())
+                .header(HttpHeaders.SET_COOKIE, cookies.get(1).toString())
+                .body("Logout successful");
     }
+
 
     @PostMapping("/change-password")
     public ResponseEntity<ApiResponse<String>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {

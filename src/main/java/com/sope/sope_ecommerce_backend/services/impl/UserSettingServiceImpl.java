@@ -33,17 +33,22 @@ public class UserSettingServiceImpl implements UserSettingService {
 
     @Override
     public void updateUserSetting(UUID userId, UserSettingRequest request) {
-        AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
-
         UserSetting setting = userSettingRepository.findByUserId(userId)
-                .orElse(new UserSetting());
+                .orElseThrow(() -> new RuntimeException("UserSetting not found for user " + userId));
 
-        setting.setUser(user);
-        userSettingMapper.updateFromRequest(request, setting);
+        if (request.orderUpdateNoti() != null) {
+            setting.setOrderUpdateNoti(request.orderUpdateNoti());
+        }
+        if (request.promotionNoti() != null) {
+            setting.setPromotionNoti(request.promotionNoti());
+        }
+        if (request.surveyNoti() != null) {
+            setting.setSurveyNoti(request.surveyNoti());
+        }
 
         userSettingRepository.save(setting);
     }
+
 
     public void createDefaultUserSetting(AppUser user) {
         UserSetting setting = UserSetting.builder()
