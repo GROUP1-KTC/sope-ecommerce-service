@@ -1,13 +1,9 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sope.sope_ecommerce_backend.dto.request.*;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
-import com.sope.sope_ecommerce_backend.dto.response.UserOrderResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 
-import com.sope.sope_ecommerce_backend.enums.DiscountScope;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
 import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
@@ -15,14 +11,10 @@ import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
 import com.sope.sope_ecommerce_backend.repositories.PaymentRepository;
 import com.sope.sope_ecommerce_backend.repositories.TempOrderRepository;
-import com.sope.sope_ecommerce_backend.services.AddressService;
-import com.sope.sope_ecommerce_backend.services.ProductVariantService;
-import com.sope.sope_ecommerce_backend.services.ShopService;
-import com.sope.sope_ecommerce_backend.services.UserService;
+import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
 import com.sope.sope_ecommerce_backend.utils.IdempotencyUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,7 +86,6 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
                         () -> Optional.of(tempOrderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
                         new RuntimeException("TempOrder not found after duplicate key")
                 );
-
 
         return orderMapper.toGuestOrderResponseDTOs(savedTempOrders);
     }

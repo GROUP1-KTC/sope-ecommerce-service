@@ -2,6 +2,7 @@ package com.sope.sope_ecommerce_backend.repositories;
 
 import com.sope.sope_ecommerce_backend.entities.Cart;
 import com.sope.sope_ecommerce_backend.entities.Order;
+import com.sope.sope_ecommerce_backend.entities.Payment;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,8 @@ import java.util.UUID;
 public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByAppUser(AppUser appUser);
     Optional<Order> findByIdempotencyKey(String idempotencyKey);
+
+    List<Order> findByPayment(Payment payment);
 
     Optional<Order> findByIdempotencyKeyAndAppUser(String idempotencyKey, AppUser appUser);
 

@@ -6,6 +6,7 @@
         body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
         .container { max-width: 700px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
         h2 { color: #333333; }
+        h3 { margin-top: 20px; color: #444; }
         p { color: #666666; }
         .order-info, .user-info { margin-bottom: 20px; }
         .info-item { margin: 4px 0; }
@@ -32,40 +33,50 @@
         <p class="info-item">Địa chỉ: <strong th:text="${user.address}"></strong></p>
     </div>
 
-    <!-- Thông tin đơn hàng -->
-    <div class="order-info">
-        <h3>Chi tiết đơn hàng</h3>
-        <p class="info-item">Mã đơn hàng: <strong th:text="${order.code}"></strong></p>
-        <p class="info-item">Ngày đặt: <strong th:text="${order.date}"></strong></p>
-        <p class="info-item">Trạng thái: <strong th:text="${order.status}"></strong></p>
+    <!-- Thông tin nhiều đơn hàng -->
+    <div th:each="order : ${orders}">
+        <div class="order-info">
+            <h3>Chi tiết đơn hàng <span th:text="${order.code}"></span></h3>
+            <p class="info-item">Ngày đặt: <strong th:text="${#temporals.format(order.date, 'dd/MM/yyyy HH:mm')}"></strong></p>
+            <p class="info-item">Trạng thái: <strong th:text="${order.status}"></strong></p>
+        </div>
+
+        <!-- Danh sách sản phẩm -->
+        <table>
+            <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Giá</th>
+                <th>Tổng</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${order.items}">
+                <td th:text="${item.productVariant.product.name}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + '₫'"></td>
+                <td th:text="${#numbers.formatDecimal(item.quantity * item.price, 0, 'COMMA', 0, 'POINT')} + '₫'"></td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="3" style="text-align: right;">Tổng cộng đơn này:</td>
+                <td class="total" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '₫'"></td>
+            </tr>
+            </tfoot>
+        </table>
+        <hr/>
     </div>
 
-    <!-- Danh sách sản phẩm -->
-    <h3>Sản phẩm đã đặt</h3>
-    <table>
-        <thead>
-        <tr>
-            <th>Sản phẩm</th>
-            <th>Số lượng</th>
-            <th>Giá</th>
-            <th>Tổng</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="item : ${order.items}">
-            <td th:text="${item.productName}"></td>
-            <td th:text="${item.quantity}"></td>
-            <td th:text="${item.price} + '₫'"></td>
-            <td th:text="${item.quantity * item.price} + '₫'"></td>
-        </tr>
-        </tbody>
-        <tfoot>
-        <tr>
-            <td colspan="3" style="text-align: right;">Tổng cộng:</td>
-            <td class="total" th:text="${order.totalAmount} + '₫'"></td>
-        </tr>
-        </tfoot>
-    </table>
+    <!-- Tổng cộng tất cả -->
+    <h3>Tổng thanh toán cho tất cả đơn:</h3>
+    <p class="total" style="font-size:16px;" th:text="${#numbers.formatDecimal(grandTotal, 0, 'COMMA', 0, 'POINT')} + '₫'"></p>
+
+    <a th:href="${paymentUrl}"
+       style="display:inline-block; margin-top:15px; padding:10px 16px; background-color:#007bff; color:#fff; text-decoration:none; border-radius:4px;">
+        Truy cập để thanh toán
+    </a>
 
     <p>Chúng tôi sẽ thông báo cho bạn khi đơn hàng được giao cho đơn vị vận chuyển.</p>
 

@@ -7,14 +7,11 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 public record PaymentRequest(
-        UUID orderId,
+        UUID paymentId,
         String requestId,
-
         BigDecimal amount,
         PaymentMethod method,
         PaymentProvider provider,
-        String currency,
-        String orderInfo,
-        String tempOrderCode
+        String orderInfo
 ) {
 }

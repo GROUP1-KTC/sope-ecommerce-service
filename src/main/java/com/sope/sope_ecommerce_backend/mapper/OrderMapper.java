@@ -17,6 +17,7 @@ public interface OrderMapper {
     // Ánh xạ từ Order sang UserOrderResponse
     @Mapping(target = "shippingAddress", source = "shippingAddress")
     @Mapping(target = "order", source = ".")
+    @Mapping(target = "paymentId", source = "payment.paymentId")
     UserOrderResponse toOrderResponseDTO(Order entity);
 
     List<OrderResponse> toUserOrderResponseDTOs(List<Order> entities);
@@ -39,6 +40,7 @@ public interface OrderMapper {
     @Mapping(target = "guestInfo.district", source = "district")
     @Mapping(target = "guestInfo.ward", source = "ward")
     @Mapping(target = "order", source = ".")
+    @Mapping(target = "paymentId", source = "payment.paymentId")
     GuestOrderResponse toOrderResponseDTO(TempOrder entity);
 
     List<OrderResponse> toGuestOrderResponseDTOs(List<TempOrder> entities);

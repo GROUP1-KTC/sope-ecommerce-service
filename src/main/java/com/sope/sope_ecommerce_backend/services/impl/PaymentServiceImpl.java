@@ -26,10 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.security.Provider;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -45,6 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final UserService userService;
     private final OrderMapper orderMapper;
     private final AddressService addressService;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -58,39 +56,58 @@ public class PaymentServiceImpl implements PaymentService {
                 throw new CustomException("Payment already processed with status: " + existingPayment.getStatus());
             }
         }
+        Payment payment = paymentRepository.findById(request.paymentId())
+                .orElseThrow(() -> new CustomException("Payment not found"));
 
-        TempOrder tempOrder = null;
-        Order order = null;
+        List<TempOrder> tempOrders = payment.getTempOrders();
+        List<Order> orders = payment.getOrders();
 
-        if (userId != null) {
-             order = orderRepository.findById(request.orderId())
-                    .orElseThrow(() -> new CustomException("Order not found"));
-
-            if (order.getStatus() != OrderStatus.PENDING && order.getPayment().getStatus() != PaymentStatus.PENDING) {
-                throw new CustomException("Order not in pending status");
-            }
-
-        } else if (!request.tempOrderCode().isEmpty()) {
-             tempOrder = tempOrderRepository.findById(UUID.fromString(request.tempOrderCode()))
-                    .orElseThrow(() -> new CustomException("TempOrder not found or expired"));
-
-            if (tempOrder.getPaymentStatus() != PaymentStatus.PENDING) {
-                throw new CustomException("Payment already initiated or expired");
-            }
-
-        } else {
-            throw new IllegalArgumentException("Either userId or tempOrderCode must be provided");
-        }
 
         PaymentGateway<? extends PaymentResponse> gateway = gatewayFactory.getGateway(request.provider());
         PaymentResponse gatewayResponse = gateway.createPaymentIntent(request);
-
-        Payment payment = order != null ? order.getPayment() : tempOrder.getPayment();
 
            payment.setProviderPaymentId(gatewayResponse.getPaymentId());
            payment.setProviderPayUrl(gatewayResponse.getPayUrl());
            payment.setRequestId(request.requestId());
 
+           if(!tempOrders.isEmpty()){
+               TempOrder tempOrder = tempOrders.get(0);
+               try {
+                   Map<String, Object> emailModel = new HashMap<>();
+                   emailModel.put("user", Map.of(
+                           "name", tempOrder.getGuestName(),
+                           "email", tempOrder.getGuestEmail(),
+                           "phone", tempOrder.getGuestPhone(),
+                           "address", tempOrder.getShippingAddress()
+                                   + ", " + tempOrder.getWard()
+                                   + ", " + tempOrder.getDistrict()
+                                   + ", " + tempOrder.getCity()
+                   ));
+
+                   List<Map<String, Object>> ordersForEmail = tempOrders.stream()
+                           .map(order -> Map.of(
+                                   "code", order.getOrderNumber(),
+                                   "date", order.getCreatedAt(),
+                                   "status", order.getPaymentStatus().name(),
+                                   "items", order.getOrderItems(),
+                                   "totalAmount", order.getTotalAmount()
+                           ))
+                           .toList();
+
+                   emailModel.put("orders", ordersForEmail);
+                   emailModel.put("grandTotal", ordersForEmail.stream()
+                           .map(o -> (BigDecimal) o.get("totalAmount"))
+                           .reduce(BigDecimal.ZERO, BigDecimal::add)
+                   );
+
+                   emailModel.put("paymentUrl", gatewayResponse.getPayUrl());
+
+                   emailService.sendOrderConfirmationEmail(tempOrder.getGuestEmail(), emailModel);
+               } catch (Exception e) {
+                   // log error nhưng không rollback order
+                   System.err.println("Failed to send confirmation email: " + e.getMessage());
+               }
+           }
 
         paymentRepository.save(payment);
         return gatewayResponse;
@@ -112,31 +129,22 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (payment.getOrders() != null && !payment.getOrders().isEmpty()) {
             for (Order order : payment.getOrders()) {
-                if (newStatus == PaymentStatus.SUCCESS) {
-                    orderService.updateOrderStatus(
-                            UpdateOrderStatusRequest.builder()
-                                    .orderId(order.getOrderId())
-                                    .status(OrderStatus.CONFIRMED)
-                                    .build()
-                    );
-                } else {
-                    orderService.updateOrderStatus(
-                            UpdateOrderStatusRequest.builder()
-                                    .orderId(order.getOrderId())
-                                    .status(OrderStatus.CANCELLED)
-                                    .build()
-                    );
-                }
+                OrderStatus status = newStatus == PaymentStatus.SUCCESS ? OrderStatus.CONFIRMED : OrderStatus.CANCELLED;
+                orderService.updateOrderStatus(UpdateOrderStatusRequest.builder()
+                        .orderId(order.getOrderId())
+                        .status(status)
+                        .build());
             }
-        } else if (payment.getTempOrders() != null && !payment.getTempOrders().isEmpty()) {
+        }
+        else if (payment.getTempOrders() != null && !payment.getTempOrders().isEmpty()) {
+            List<TempOrder> tempOrdersToRemove = new ArrayList<>();
+
             for (TempOrder tempOrder : payment.getTempOrders()) {
                 List<OrderItem> orderItems = orderMapper.tempOrderToOrderItemsEntity(tempOrder.getOrderItems());
 
 
                 if (newStatus == PaymentStatus.SUCCESS) {
                     AppUser user = userService.getOrCreateGuestUser(tempOrder.getGuestEmail(), tempOrder.getGuestName(), tempOrder.getGuestPhone());
-
-
                     Address address = addressService.getOrCreateAddress(
                             user.getId(),
                             AddressCreateRequest.builder()
@@ -147,7 +155,7 @@ public class PaymentServiceImpl implements PaymentService {
                                     .phoneNumber(tempOrder.getGuestPhone())
                                     .recipientName(tempOrder.getGuestName())
                                     .street(tempOrder.getShippingAddress())
-                                    .isDefault(false)
+                                    .isDefault(true)
                                     .build());
 
 
@@ -177,26 +185,23 @@ public class PaymentServiceImpl implements PaymentService {
                     });
 
                     order.setOrderItems(orderItems);
-                    order.setPayment(payment);
-
                     payment.addOrder(order);
-                    payment.setTempOrders(null);
+
+                    tempOrdersToRemove.add(tempOrder);
 
                     orderRepository.save(order);
-                    tempOrder.setPaymentStatus(PaymentStatus.SUCCESS);
-                    tempOrderRepository.save(tempOrder);
-
                 } else {
                     tempOrder.setPaymentStatus(PaymentStatus.FAILED);
                     tempOrder.setExpiresAt(null);
-                    tempOrderRepository.save(tempOrder);
 
                     tempOrder.getOrderItems().forEach(item ->
                             productVariantService.retrieveProductVariantStock(item.getProductVariant().getProductVariantId(), item.getQuantity())
                     );
-
+                    tempOrder.getOrderItems().clear();
+                    tempOrderRepository.save(tempOrder);
                 }
             }
+            payment.getTempOrders().removeAll(tempOrdersToRemove);
         }
 
         paymentRepository.save(payment);

@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -13,12 +14,12 @@ public record RateResponse(
 ) {
     public record ShippingRate(
             String id,
-            @JsonProperty("carrier_name") String carrierName,
-            @JsonProperty("carrier_logo") String carrierLogo,
+            @JsonAlias("carrier_name") String carrierName,
+            @JsonAlias("carrier_logo") String carrierLogo,
             String service,
             String expected,
-            @JsonProperty("cod_fee") String codFee,
-            @JsonProperty("total_fee") String totalFee,
-            @JsonProperty("total_amount") String totalAmount
+            @JsonAlias("cod_fee") String codFee,
+            @JsonAlias("total_fee") String totalFee,
+            @JsonAlias("total_amount") String totalAmount
     ) {}
 }
