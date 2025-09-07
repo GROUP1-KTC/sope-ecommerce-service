@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record GuestOrderResponse(
+        UUID paymentId,
         GuestInfo guestInfo,
         ShopOrderResponse order
 ) implements OrderResponse {

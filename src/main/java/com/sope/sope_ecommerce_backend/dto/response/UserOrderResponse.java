@@ -13,6 +13,7 @@ import java.util.UUID;
 
 @Builder
 public record UserOrderResponse(
+        UUID paymentId,
         AddressResponse shippingAddress,
         ShopOrderResponse order
 

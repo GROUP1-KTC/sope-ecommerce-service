@@ -168,7 +168,7 @@ payment-gateway:
   momo:
     partner-code: MOMO
     endpoint: https://test-payment.momo.vn/v2/gateway/api
-    return-url: http://localhost:3000
+    return-url: http://localhost:3000/payment-status
     ipn-url: http://localhost:8082/api/v1/payment/webhook/momo
     access-key: F8BBA842ECF85
     secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
