@@ -17,6 +17,10 @@
 
             auth.requestMatchers("/api/**").permitAll();
 
+            // Test Socket
+            auth.requestMatchers("/api/messages/**").permitAll();
+            auth.requestMatchers("/ws-chat/**").permitAll();
+
 
             // User APIs
             auth.requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN");

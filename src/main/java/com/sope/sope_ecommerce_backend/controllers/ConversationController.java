@@ -2,7 +2,7 @@ package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.request.ConversationCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ConversationResponse;
-import com.sope.sope_ecommerce_backend.services.impl.ConversationServiceImpl;
+import com.sope.sope_ecommerce_backend.services.ConversationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +13,9 @@ import java.util.UUID;
 @RequestMapping("/api/conversations")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ConversationController {
-    private final ConversationServiceImpl conversationService;
+    private final ConversationService conversationService;
 
-    public ConversationController(ConversationServiceImpl conversationService) {
+    public ConversationController(ConversationService conversationService) {
         this.conversationService = conversationService;
     }
 
