@@ -157,7 +157,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = cartRepository.findByAppUser(appUser)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        cart.getItems().removeIf(item -> cartItemIds.contains(item.getId()));
+        cart.getItems().removeIf(item -> cartItemIds.contains(item.getProductVariant().getProductVariantId()));
     }
 
 
