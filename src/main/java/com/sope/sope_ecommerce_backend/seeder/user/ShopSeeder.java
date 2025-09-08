@@ -43,11 +43,10 @@ public class ShopSeeder {
             // Kiểm tra shop của user đã tồn tại chưa
             if (shopRepository.findByAppUser_Id(user.getId()).isEmpty()) {
                   Shop shop = new Shop();
-                  shop.setAppUser(user); // Lấy id tự động của user
+                  shop.setAppUser(user);
                   shop.setName(name);
                   shop.setPhone(phone);
                   shop.setEmail(email);
-                  shop.setAddress(address);
                   shop.setDescription(description);
                   shop.setLogoUrl(logoUrl);
                   shop.setMall(isMall);

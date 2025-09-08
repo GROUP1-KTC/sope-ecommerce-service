@@ -6,6 +6,7 @@ import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
 import com.sope.sope_ecommerce_backend.entities.Shop;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
+import com.sope.sope_ecommerce_backend.entities.ShopAddress;
 import com.sope.sope_ecommerce_backend.mapper.ShopMapper;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
@@ -36,6 +37,19 @@ public class ShopServiceImpl implements ShopService {
 
         Shop shop = shopMapper.toEntity(request);
         shop.setAppUser(appUser);
+
+        if (request.address() != null) {
+            ShopAddress address = ShopAddress.builder()
+                    .street(request.address().street())
+                    .ward(request.address().ward())
+                    .district(request.address().district())
+                    .city(request.address().city())
+                    .country(request.address().country())
+                    .zipCode(request.address().zipCode())
+                    .shop(shop)
+                    .build();
+            shop.setAddress(address);
+        }
 
         Shop savedShop = shopRepository.save(shop);
 
@@ -87,10 +101,6 @@ public class ShopServiceImpl implements ShopService {
 
         if (request.email() != null) {
             shop.setEmail(request.email());
-        }
-
-        if (request.address() != null) {
-            shop.setAddress(request.address());
         }
 
         if (request.description() != null) {
