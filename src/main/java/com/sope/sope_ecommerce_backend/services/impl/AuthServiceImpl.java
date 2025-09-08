@@ -46,7 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final RedisService redisService;
     private final EmailService emailService;
     private final UserSettingService userSettingService;
-    private final CookieServiceImpl cookieService;
+    private final CookieService cookieService;
 
     @Override
     public UserResponse register(UserRegisterRequest request) throws MessagingException {

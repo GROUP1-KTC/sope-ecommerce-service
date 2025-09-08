@@ -31,15 +31,14 @@ public class Shop {
     @Column(nullable = false)
     private String email;
 
-    @Column(nullable = false)
-    private String address;
-
     @Column(columnDefinition = "Text")
     private String description;
 
     private String logoUrl;
 
     private boolean isMall;
+
+    private String taxCode;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -53,4 +52,9 @@ public class Shop {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @OneToOne(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private ShopAddress address;
+
 }

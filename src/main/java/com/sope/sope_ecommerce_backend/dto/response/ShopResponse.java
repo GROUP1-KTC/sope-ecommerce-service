@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.dto.response;
 
 import com.sope.sope_ecommerce_backend.entities.Shop;
+import com.sope.sope_ecommerce_backend.entities.ShopAddress;
 
 import java.util.UUID;
 
@@ -9,7 +10,7 @@ public record ShopResponse (
         String name,
         String phone,
         String email,
-        String address,
+        ShopAddress address,
         String description,
         String logoUrl,
         boolean isMall,
