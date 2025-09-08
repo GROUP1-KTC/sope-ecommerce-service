@@ -57,6 +57,13 @@ public interface OrderMapper {
 
     // Ánh xạ OrderItem
     @Mapping(target = "productVariantId", source = "productVariant.productVariantId")
+    @Mapping(
+            target = "imageUrl",
+            expression = "java(entity.getProductVariant().getImageVariant() != null "
+                    + "? entity.getProductVariant().getImageVariant() "
+                    + ": entity.getProductVariant().getProduct().getDefaultImage())"
+    )
+    @Mapping(target = "productName", source = "productVariant.product.name")
     OrderItemResponse toOrderItemResponse(OrderItem entity);
 
     List<OrderItemResponse> toOrderItemResponses(List<OrderItem> entities);
