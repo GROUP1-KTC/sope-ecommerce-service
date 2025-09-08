@@ -10,7 +10,7 @@ public record ShopResponse (
         String name,
         String phone,
         String email,
-        ShopAddress address,
+        ShopAddressResponse address,
         String description,
         String logoUrl,
         boolean isMall,
