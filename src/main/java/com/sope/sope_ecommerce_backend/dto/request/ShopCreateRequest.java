@@ -4,7 +4,7 @@ public record ShopCreateRequest (
         String name,
         String phone,
         String email,
-        String address,
+        ShopAddressRequest address,
         String description,
         String logoUrl,
         boolean isMall

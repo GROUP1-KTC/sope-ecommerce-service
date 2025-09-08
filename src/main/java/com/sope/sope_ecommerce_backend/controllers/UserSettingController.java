@@ -21,12 +21,13 @@ public class UserSettingController {
         return ResponseEntity.ok(userSettingService.getUserSetting(userId));
     }
 
-    @PutMapping
-    public ResponseEntity<Void> updateUserSetting(
+    @PatchMapping
+    public ResponseEntity<Void> updateUserSettingPartial(
             @PathVariable UUID userId,
             @RequestBody UserSettingRequest request) {
         userSettingService.updateUserSetting(userId, request);
-        return ResponseEntity.noContent().build(); // trả về 204 No Content
+        return ResponseEntity.noContent().build();
     }
+
 }
 
