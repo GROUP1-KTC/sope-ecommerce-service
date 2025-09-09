@@ -3,7 +3,9 @@ package com.sope.sope_ecommerce_backend.controllers;
 import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.CancelOrderRequest;
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
+import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.OrderService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
@@ -90,5 +92,15 @@ public class OrderController {
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to cancel order", List.of(e.getMessage()));
        }
+    }
+
+    @PatchMapping("/update-status")
+    public ResponseEntity<ApiResponse<String>> updateOrderStatus(@RequestBody UpdateOrderStatusRequest request) {
+        try {
+            orderService.updateOrderStatus(request);
+            return ApiResponseUtil.success(null, "Order status updated successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to update order status", List.of(e.getMessage()));
+        }
     }
 }
