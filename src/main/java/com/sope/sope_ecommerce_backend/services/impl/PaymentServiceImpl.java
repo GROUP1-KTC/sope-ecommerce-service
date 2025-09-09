@@ -36,7 +36,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderService orderService;
     private final PaymentGatewayFactory gatewayFactory;
     private final PaymentMapper paymentMapper;
-    private  final OrderRepository orderRepository;
     private final TempOrderRepository tempOrderRepository;
     private final ProductVariantService productVariantService;
     private final UserService userService;
@@ -188,8 +187,7 @@ public class PaymentServiceImpl implements PaymentService {
                     payment.addOrder(order);
 
                     tempOrdersToRemove.add(tempOrder);
-
-                    orderRepository.save(order);
+                    orderService.saveOrder(order);
                 } else {
                     tempOrder.setPaymentStatus(PaymentStatus.FAILED);
                     tempOrder.setExpiresAt(null);

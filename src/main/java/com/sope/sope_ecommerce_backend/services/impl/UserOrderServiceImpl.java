@@ -239,10 +239,11 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
         discounts.forEach(d -> d.setOrder(order));
 
         // === Xử lý cart ===
-        if (Boolean.TRUE.equals(request.isOrderedFromCart()) && shopOrder.items() != null) {
+        if (request.isOrderedFromCart() && shopOrder.items() != null) {
             List<UUID> productVariantIds = shopOrder.items().stream()
                     .map(OrderItemRequest::productVariantId)
                     .toList();
+
             cartService.removeItemsFromCart(userId, productVariantIds);
         }
 

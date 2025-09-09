@@ -28,4 +28,6 @@ public interface OrderService {
 
 
     List<Order> findOrderByStatusPendingAndExpireAtBefore(LocalDateTime now);
+
+    void saveOrder(Order order);
 }

@@ -10,6 +10,7 @@ import java.util.UUID;
 public record ShopInfo(
             UUID id,
             String name,
-            String avatarUrl
+            String avatarUrl,
+            ShopAddressResponse address
 ) {
 }

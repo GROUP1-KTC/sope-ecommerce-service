@@ -19,6 +19,9 @@ public interface CartMapper {
 
     List<CartItemResponse> toCartItemResponseDTOs(List<CartItem> entities);
 
+
+
+
     default CartGroupResponse toCartGroupResponseDTO(Shop shop, List<CartItem> items) {
         return new CartGroupResponse(
                 ShopInfo.builder()

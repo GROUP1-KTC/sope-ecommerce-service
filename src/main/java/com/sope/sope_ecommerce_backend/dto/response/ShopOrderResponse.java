@@ -23,6 +23,7 @@ public record ShopOrderResponse(
 
         OrderStatus status,
         String note,
+        String cancelReason,
         Set<OrderDiscountResponse> orderDiscounts,
         List<OrderItemResponse> items,
         PaymentMethod paymentMethod,

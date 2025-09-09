@@ -76,6 +76,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
+    public void saveOrder(Order order) {
+        addStatusHistory(order, order.getStatus());
+        orderRepository.save(order);
+    }
+
+    @Override
     public List<? extends OrderResponse> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
         if (orders.isEmpty()) {

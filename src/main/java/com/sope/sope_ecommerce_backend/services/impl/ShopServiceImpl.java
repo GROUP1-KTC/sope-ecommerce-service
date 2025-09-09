@@ -115,10 +115,42 @@ public class ShopServiceImpl implements ShopService {
             shop.setMall(request.isMall());
         }
 
+        if(request.address() != null){
+            ShopAddress address = getShopAddress(request, shop);
+            shop.setAddress(address);
+        }
+
         shopMapper.updateShopFromDTO(request, shop);
         shop.setUpdatedAt(LocalDateTime.now());
 
         return shopMapper.toResponse(shopRepository.save(shop));
+    }
+
+    private static ShopAddress getShopAddress(ShopUpdateRequest request, Shop shop) {
+        ShopAddress address = shop.getAddress();
+        if (address == null) {
+            address = new ShopAddress();
+            address.setShop(shop);
+        }
+        if (request.address().street() != null) {
+            address.setStreet(request.address().street());
+        }
+        if (request.address().ward() != null) {
+            address.setWard(request.address().ward());
+        }
+        if (request.address().district() != null) {
+            address.setDistrict(request.address().district());
+        }
+        if (request.address().city() != null) {
+            address.setCity(request.address().city());
+        }
+        if (request.address().country() != null) {
+            address.setCountry(request.address().country());
+        }
+        if (request.address().zipCode() != null) {
+            address.setZipCode(request.address().zipCode());
+        }
+        return address;
     }
 
     @Override
