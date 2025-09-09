@@ -10,7 +10,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "temp_orders")
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.stream.Collectors;
 
@@ -42,11 +43,19 @@ public class GlobalExceptionHandler {
                 .body(new ApiError(HttpStatus.CONFLICT, ex.getMessage(), req.getRequestURI()));
     }
 
+    @ExceptionHandler(HttpClientErrorException.Forbidden.class)
+    public ResponseEntity<ApiError> handleForbidden(HttpClientErrorException.Forbidden ex,
+                                                   HttpServletRequest req) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ApiError(HttpStatus.FORBIDDEN, ex.getMessage(), req.getRequestURI()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnknown(Exception ex,
                                                   HttpServletRequest req) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", req.getRequestURI()));
+                .body(new ApiError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), req.getRequestURI()));
     }
 }

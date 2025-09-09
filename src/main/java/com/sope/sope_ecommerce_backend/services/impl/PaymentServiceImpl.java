@@ -1,15 +1,14 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
 import com.sope.sope_ecommerce_backend.dto.BasePaymentDTO;
-import com.sope.sope_ecommerce_backend.dto.request.AddressCreateRequest;
-import com.sope.sope_ecommerce_backend.dto.request.PaymentRequest;
-import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
+import com.sope.sope_ecommerce_backend.dto.request.*;
 import com.sope.sope_ecommerce_backend.dto.response.PaymentResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
 import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
 import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
+import com.sope.sope_ecommerce_backend.event.PaymentCreatedEvent;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
 import com.sope.sope_ecommerce_backend.mapper.PaymentMapper;
@@ -20,6 +19,7 @@ import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.gateways.PaymentGateway;
 import com.sope.sope_ecommerce_backend.services.gateways.PaymentGatewayFactory;
 import lombok.AllArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +42,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final OrderMapper orderMapper;
     private final AddressService addressService;
     private final EmailService emailService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -58,8 +59,6 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findById(request.paymentId())
                 .orElseThrow(() -> new CustomException("Payment not found"));
 
-        List<TempOrder> tempOrders = payment.getTempOrders();
-        List<Order> orders = payment.getOrders();
 
 
         PaymentGateway<? extends PaymentResponse> gateway = gatewayFactory.getGateway(request.provider());
@@ -69,46 +68,48 @@ public class PaymentServiceImpl implements PaymentService {
            payment.setProviderPayUrl(gatewayResponse.getPayUrl());
            payment.setRequestId(request.requestId());
 
-           if(!tempOrders.isEmpty()){
-               TempOrder tempOrder = tempOrders.get(0);
-               try {
-                   Map<String, Object> emailModel = new HashMap<>();
-                   emailModel.put("user", Map.of(
-                           "name", tempOrder.getGuestName(),
-                           "email", tempOrder.getGuestEmail(),
-                           "phone", tempOrder.getGuestPhone(),
-                           "address", tempOrder.getShippingAddress()
-                                   + ", " + tempOrder.getWard()
-                                   + ", " + tempOrder.getDistrict()
-                                   + ", " + tempOrder.getCity()
-                   ));
+        Payment newpayment = paymentRepository.save(payment);
 
-                   List<Map<String, Object>> ordersForEmail = tempOrders.stream()
-                           .map(order -> Map.of(
-                                   "code", order.getOrderNumber(),
-                                   "date", order.getCreatedAt(),
-                                   "status", order.getPaymentStatus().name(),
-                                   "items", order.getOrderItems(),
-                                   "totalAmount", order.getTotalAmount()
-                           ))
-                           .toList();
+        System.out.println(newpayment);
 
-                   emailModel.put("orders", ordersForEmail);
-                   emailModel.put("grandTotal", ordersForEmail.stream()
-                           .map(o -> (BigDecimal) o.get("totalAmount"))
-                           .reduce(BigDecimal.ZERO, BigDecimal::add)
-                   );
 
-                   emailModel.put("paymentUrl", gatewayResponse.getPayUrl());
+        List<TempOrder> tempOrders = payment.getTempOrders();
 
-                   emailService.sendOrderConfirmationEmail(tempOrder.getGuestEmail(), emailModel);
-               } catch (Exception e) {
-                   // log error nhưng không rollback order
-                   System.err.println("Failed to send confirmation email: " + e.getMessage());
-               }
-           }
 
-        paymentRepository.save(payment);
+        List<OrderEmailRequest> ordersForEmail = tempOrders.stream()
+                .map(o -> {
+                    List<OrderItemEmailRequest> items = o.getOrderItems().stream()
+                            .map(i -> new OrderItemEmailRequest(
+                                    i.getProductVariant() != null && i.getProductVariant().getProduct() != null
+                                            ? i.getProductVariant().getProduct().getName()
+                                            : "Unknown",
+                                    i.getQuantity(),
+                                    i.getPrice()
+                            ))
+                            .toList();
+
+
+                    return OrderEmailRequest.builder()
+                            .code(o.getOrderNumber())
+                            .date(o.getCreatedAt())
+                            .status(o.getPaymentStatus().name())
+                            .items(items)
+                            .totalAmount(o.getTotalAmount())
+                            .guestName(o.getGuestName())
+                            .guestEmail(o.getGuestEmail())
+                            .guestPhone(o.getGuestPhone())
+                            .guestAddress(o.getShippingAddress() + ", " + o.getWard() + ", " + o.getDistrict() + ", " + o.getCity())
+                            .build();
+                })
+                .toList();
+
+        System.out.println("Publishing PaymentCreatedEvent for " + ordersForEmail.size() + " orders." + ordersForEmail);
+
+
+
+
+        eventPublisher.publishEvent(new PaymentCreatedEvent(ordersForEmail, gatewayResponse));
+
         return gatewayResponse;
     }
 
