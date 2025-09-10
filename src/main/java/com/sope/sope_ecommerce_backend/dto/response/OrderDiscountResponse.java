@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public record OrderDiscountResponse(
         String code,
-        String discription,
+        String description,
         BigDecimal discountAmount
 ) {
 }

@@ -6,15 +6,13 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 
-@Data
+@Setter
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -31,6 +29,9 @@ public class Order {
     @JoinColumn(name = "user_id", nullable = false)
     private AppUser appUser;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Shop shop;
+
     @ManyToOne
     @JoinColumn(name = "address_id", nullable = false)
     private Address shippingAddress;
@@ -40,7 +41,7 @@ public class Order {
 
     private LocalDateTime expireAt;
 
-    private BigDecimal subtotal;
+    private BigDecimal subTotal;
 
     @Column(name = "shipping_charges")
     private BigDecimal shippingCharges;
@@ -75,10 +76,12 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderDiscount> discounts = new HashSet<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderStatusHistory> statusHistory;
+    private List<OrderStatusHistory> statusHistory = new ArrayList<>();
 
-    @OneToOne(mappedBy = "order", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "payment_id")
     private Payment payment;
 
 

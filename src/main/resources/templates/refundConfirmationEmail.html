@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        h2 { color: #28a745; }
+        p { color: #333333; line-height: 1.5; }
+        .order-info, .refund-info { background-color: #fafafa; padding: 15px; border-radius: 6px; margin-top: 10px; border: 1px solid #eeeeee; }
+        .order-info strong, .refund-info strong { color: #000000; }
+        .footer { font-size: 12px; color: #999999; text-align: center; margin-top: 20px; }
+        .company-info { font-size: 12px; color: #999999; text-align: center; margin-top: 10px; border-top: 1px solid #eeeeee; padding-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Xác nhận hoàn tiền thành công</h2>
+    <p>Chào <strong th:text="${userName}">Nguyễn Văn A</strong>,</p>
+    <p>Yêu cầu hoàn tiền của bạn cho đơn hàng <strong th:text="${orderId}">#SOPE123456</strong> đã được xử lý thành công.</p>
+
+    <div class="order-info">
+        <p><strong>Mã đơn hàng:</strong> <span th:text="${orderId}">#SOPE123456</span></p>
+        <p><strong>Ngày đặt:</strong> <span th:text="${orderDate}">01/09/2025</span></p>
+    </div>
+
+    <div class="refund-info">
+        <p><strong>Số tiền hoàn:</strong> <span th:text="${refundAmount}">500.000 VNĐ</span></p>
+        <p><strong>Phương thức hoàn tiền:</strong> <span th:text="${refundMethod}">Ví Momo</span></p>
+        <p><strong>Ngày hoàn:</strong> <span th:text="${refundDate}">01/09/2025</span></p>
+    </div>
+
+    <p>Số tiền sẽ được chuyển về tài khoản trong vòng <strong th:text="${processingTime}">3-5 ngày làm việc</strong> tùy theo ngân hàng/đơn vị trung gian.</p>
+
+    <p>Nếu bạn có thắc mắc, vui lòng liên hệ với chúng tôi qua email <a href="mailto:support@sope.vn">support@sope.vn</a>.</p>
+
+    <div class="company-info">
+        Công ty TNHH Sope<br>
+        Email: support@sope.vn | Website: www.sope.vn
+    </div>
+</div>
+</body>
+</html>

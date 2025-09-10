@@ -27,4 +27,5 @@ public interface ShopRepository extends JpaRepository<Shop, UUID> {
     List<ShopSearchResult> searchShopsByName(@Param("name") String name);
 
 
+
 }

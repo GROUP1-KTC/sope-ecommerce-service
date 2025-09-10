@@ -1,29 +1,22 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sope.sope_ecommerce_backend.dto.request.GuestOrderCreateRequest;
-import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
-import com.sope.sope_ecommerce_backend.dto.request.OrderItemRequest;
+import com.sope.sope_ecommerce_backend.dto.request.*;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
-import com.sope.sope_ecommerce_backend.dto.response.UserOrderResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 
-import com.sope.sope_ecommerce_backend.enums.DiscountScope;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
 import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
+import com.sope.sope_ecommerce_backend.repositories.PaymentRepository;
 import com.sope.sope_ecommerce_backend.repositories.TempOrderRepository;
-import com.sope.sope_ecommerce_backend.services.AddressService;
-import com.sope.sope_ecommerce_backend.services.ProductVariantService;
-import com.sope.sope_ecommerce_backend.services.UserService;
+import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
 import com.sope.sope_ecommerce_backend.utils.IdempotencyUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,6 +31,9 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
     private final ProductVariantService productVariantService;
     private final TempOrderRepository tempOrderRepository;
     private final OrderMapper orderMapper;
+    private final ShopService shopService;
+    private final PaymentRepository paymentRepository;
+
 
     @Override
     public boolean supports(OrderCreateRequest request) {
@@ -45,8 +41,12 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
     }
 
     @Override
-    public OrderResponse createOrder(GuestOrderCreateRequest request, UUID userId) {
-        if (request.guestInfo().fullName() == null || request.guestInfo().phone() == null) {
+    @Transactional
+    public List<OrderResponse> createOrder(GuestOrderCreateRequest request, UUID userId) {
+        String idempotencyKey = request.idempotencyKey();
+
+        if (request.guestInfo() == null || request.guestInfo().fullName() == null
+                || request.guestInfo().phone() == null) {
             throw new IllegalArgumentException("Guest info incomplete");
         }
 
@@ -54,82 +54,123 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
             throw new IllegalArgumentException("Guest cannot pay by COD");
         }
 
-        if (request.items() == null || request.items().isEmpty()) {
-            throw new IllegalArgumentException("Order items cannot be empty");
+        if (request.shopOrders() == null || request.shopOrders().isEmpty()) {
+            throw new IllegalArgumentException("No shop orders provided");
         }
 
-
-        // Calculate subtotal and orderItems
-        BigDecimal subtotal = BigDecimal.ZERO;
-        List<TempOrderItem> tempOrderItems = new ArrayList<>();
-        for (OrderItemRequest orderItemRequest : request.items()) {
-            if (orderItemRequest.productVariantId() == null || orderItemRequest.quantity() <= 0) {
-                throw new IllegalArgumentException("Invalid order item: " + orderItemRequest);
-            }
-
-            ProductVariant variant = productVariantService.getProductVariantEntityById(orderItemRequest.productVariantId()) ;
-            if (variant.getStock() < orderItemRequest.quantity()) {
-                throw new CustomException("Insufficient stock for " + variant.getProduct().getName());
-            }
-            BigDecimal itemPrice = variant.getPrice().multiply(BigDecimal.valueOf(orderItemRequest.quantity()));
-            subtotal = subtotal.add(itemPrice);
+        List<TempOrderItem> allOrderItems = new ArrayList<>();
 
 
-            TempOrderItem tempOrderItem = TempOrderItem.builder()
-                    .productVariant(variant)
-                    .quantity(orderItemRequest.quantity())
-                    .price(variant.getPrice())
-                    .build();
+        List<TempOrder> tempOrdersToSave = request.shopOrders().stream()
+                .map(shopOrder -> buildOrder(shopOrder, request, allOrderItems))
+                .toList();
 
-            tempOrderItems.add(tempOrderItem);
-        }
+        batchUpdateStock(allOrderItems);
+
+        BigDecimal grandTotal = tempOrdersToSave.stream()
+                .map(TempOrder::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
 
-        BigDecimal shippingCharges = request.shippingCharge() != null ? request.shippingCharge() : BigDecimal.ZERO;
-        BigDecimal totalAmount = subtotal.add(shippingCharges);
-        String orderNumber = generateKey(
-                "ORDER",
-                Optional.ofNullable(userId).map(Object::toString).orElse(UUID.randomUUID().toString()),
-                true
-        );
-
-        TempOrder tempOrder = TempOrder.builder()
-                    .guestEmail(request.guestInfo().email())
-                    .guestName(request.guestInfo().fullName())
-                    .guestPhone(request.guestInfo().phone())
-                    .shippingAddress(request.guestInfo().shippingAddress())
-                    .city(request.guestInfo().city())
-                    .district(request.guestInfo().district())
-                    .ward(request.guestInfo().ward())
-                    .orderItems(tempOrderItems)
-                    .subtotal(subtotal)
-                    .shippingCharges(shippingCharges)
-                    .totalAmount(totalAmount)
-                    .paymentStatus(PaymentStatus.PENDING)
-                    .createdAt(LocalDateTime.now())
-                    .expiresAt(LocalDateTime.now().plusHours(24))
-                    .idempotencyKey(request.idempotencyKey())
-                    .orderNumber(orderNumber)
-                    .shippingRateId(request.shippingRateId())
-                    .build();
-
-        Payment payment = Payment.builder()
-                .tempOrder(tempOrder)
-                .amount(totalAmount)
+        Payment sharedPayment = Payment.builder()
+                .amount(grandTotal)
                 .paymentMethod(request.paymentMethod())
                 .provider(request.paymentProvider())
                 .status(PaymentStatus.PENDING)
                 .build();
 
-        tempOrder.setPayment(payment);
+        sharedPayment.setTempOrders(tempOrdersToSave);
 
-        TempOrder newTempOrder = IdempotencyUtils.saveWithIdempotency(
-                () -> tempOrderRepository.save(tempOrder),
-                () -> tempOrderRepository.findByIdempotencyKey(tempOrder.getIdempotencyKey()),
-                new RuntimeException("Order not found after duplicate key")
-        );
+        List<TempOrder> savedTempOrders = IdempotencyUtils.saveWithIdempotency(
+                        () -> paymentRepository.save(sharedPayment).getTempOrders(),
+                        () -> Optional.of(tempOrderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
+                        new RuntimeException("TempOrder not found after duplicate key")
+                );
 
-        return orderMapper.toOrderResponseDTO(newTempOrder);
+        return orderMapper.toGuestOrderResponseDTOs(savedTempOrders);
+    }
+
+
+    private TempOrder buildOrder(ShopOrderRequest shopOrder,
+                             GuestOrderCreateRequest request,
+                             List<TempOrderItem> allOrderItems) {
+
+        Shop shop = shopService.getShopEntityById(shopOrder.shopId());
+
+
+        List<TempOrderItem> orderItems = new ArrayList<>();
+        BigDecimal subTotal = BigDecimal.ZERO;
+
+        for (OrderItemRequest itemReq : shopOrder.items()) {
+            ProductVariant variant = productVariantService.getProductVariantEntityById(itemReq.productVariantId());
+            if (variant.getStock() < itemReq.quantity() || variant.getStock() <= 0) {
+                throw new CustomException("Insufficient stock for " + variant.getProduct().getName());
+            } else if (itemReq.quantity() <= 0) {
+                throw new CustomException("Quantity must be greater than zero for " + variant.getProduct().getName());
+            } else if (!variant.getProduct().getShop().getId().equals(shop.getId())) {
+                throw new CustomException("Product " + variant.getProduct().getName() + " does not belong to shop " + shop.getName());
+
+            }
+
+            TempOrderItem orderItem = TempOrderItem.builder()
+                    .productVariant(variant)
+                    .quantity(itemReq.quantity())
+                    .price(variant.getPrice())
+                    .build();
+
+            orderItems.add(orderItem);
+            allOrderItems.add(orderItem);
+
+            BigDecimal itemPrice =  orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+            subTotal = subTotal.add(itemPrice);
+        }
+
+        BigDecimal shippingCharges = shopOrder.shippingCharge() != null ? shopOrder.shippingCharge() : BigDecimal.ZERO;
+
+
+        BigDecimal totalAmount = subTotal.add(shippingCharges);
+        if (totalAmount.compareTo(BigDecimal.ZERO) < 0) totalAmount = BigDecimal.ZERO;
+
+        // === Build Order ===
+        TempOrder tempOrder = TempOrder.builder()
+                .guestEmail(request.guestInfo().email())
+                .guestName(request.guestInfo().fullName())
+                .guestPhone(request.guestInfo().phone())
+                .shippingAddress(request.guestInfo().shippingAddress())
+                .city(request.guestInfo().city())
+                .district(request.guestInfo().district())
+                .ward(request.guestInfo().ward())
+                .subTotal(subTotal)
+                .shippingCharges(shippingCharges)
+                .totalAmount(totalAmount)
+                .paymentStatus(PaymentStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .expiresAt(LocalDateTime.now().plusHours(24))
+                .idempotencyKey(request.idempotencyKey() + "-" + shop.getId())
+                .shop(shop)
+                .orderNumber(generateKey(
+                        "ORDER",
+                        UUID.randomUUID().toString(),
+                        true
+                ))
+                .shippingRateId(shopOrder.shippingRateId())
+                .orderItems(orderItems)
+                .build();
+
+        return tempOrder;
+    }
+
+
+    private void batchUpdateStock(List<TempOrderItem> allOrderItems) {
+        Map<UUID, Integer> stockUpdates = new HashMap<>();
+        for (TempOrderItem item : allOrderItems) {
+            stockUpdates.merge(
+                    item.getProductVariant().getProductVariantId(),
+                    item.getQuantity(),
+                    Integer::sum
+            );
+        }
+        productVariantService.updateStockBatch(stockUpdates);
     }
 
 

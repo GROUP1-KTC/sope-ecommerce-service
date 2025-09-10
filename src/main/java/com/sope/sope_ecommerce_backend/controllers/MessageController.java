@@ -5,6 +5,8 @@ import com.sope.sope_ecommerce_backend.dto.response.MessageResponse;
 import com.sope.sope_ecommerce_backend.services.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,11 +18,7 @@ import java.util.UUID;
 public class MessageController {
 
     private final MessageService messageService;
-
-    @PostMapping
-    public ResponseEntity<MessageResponse> sendMessage(@RequestBody MessageSendRequest request) {
-        return ResponseEntity.ok(messageService.sendMessage(request));
-    }
+    private final SimpMessageSendingOperations simpMessagingTemplate;
 
     @GetMapping("/conversation/{conversationId}")
     public ResponseEntity<List<MessageResponse>> getMessagesByConversation(@PathVariable String conversationId) {
@@ -32,4 +30,16 @@ public class MessageController {
         messageService.deleteMessage(messageId);
         return ResponseEntity.noContent().build();
     }
+
+    @MessageMapping("/chat")
+    public void handleWebSocketMessage(MessageSendRequest request) {
+        // Lưu message vào DB
+        MessageResponse savedMessage = messageService.sendMessage(request);
+
+        simpMessagingTemplate.convertAndSend(
+                "/topic/conversation/" + request.conversationId(),
+                savedMessage
+        );
+    }
+
 }

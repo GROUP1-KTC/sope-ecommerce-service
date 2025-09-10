@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Our Shop</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color:#f9f9f9; padding:20px;">
+<div style="max-width:600px; margin:auto; background:#ffffff; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.1);">
+
+    <h2 style="color:#2c3e50;">🎉 Welcome, <span th:text="${name}">User</span>!</h2>
+
+    <p>
+        Thank you for placing your first order with <strong>Our Shop</strong>.
+        To make it easier for you to track your order and future purchases,
+        we’ve created a default account for you.
+    </p>
+
+    <h3 style="color:#34495e;">🔑 Your Account Details</h3>
+    <ul style="line-height:1.6;">
+        <li><b>Email (username):</b> <span th:text="${email}">user@example.com</span></li>
+        <li><b>Temporary Password:</b> password is your phone</li>
+    </ul>
+    <p style="font-size:14px; color:#888;">(Please change your password after logging in for the first time.)</p>
+
+    <p>
+        👉 You can log in to your account anytime to check your order history and track shipping:
+        <a th:href="${loginUrl}" style="color:#1e90ff;">Go to Login</a>
+    </p>
+
+    <hr style="border:none; border-top:1px solid #eee; margin:20px 0;">
+    <p style="font-size:12px; color:#999; text-align:center;">
+        This is an automated message. Please do not reply.
+        If you have questions, contact our support team at <a href="mailto:support@ourshop.com">support@ourshop.com</a>.
+    </p>
+</div>
+</body>
+</html>

@@ -20,6 +20,8 @@ public interface ShopService {
 
     public ShopResponse getShopById(UUID shopId);
 
+    public Shop getShopEntityById(UUID shopId);
+
     public ShopResponse updateShop(ShopUpdateRequest shopUpdateRequest, UUID userId);
 
     public ShopResponse changeShopStatus(UUID shopId, Shop.Status shopStatus);

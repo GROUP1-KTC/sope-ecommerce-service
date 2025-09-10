@@ -6,15 +6,21 @@ import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
 
+import com.sope.sope_ecommerce_backend.entities.Role;
+import com.sope.sope_ecommerce_backend.entities.UserRole;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.enums.UserStatus;
 
 import com.sope.sope_ecommerce_backend.mapper.UserMapper;
+import com.sope.sope_ecommerce_backend.repositories.RoleRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
+import com.sope.sope_ecommerce_backend.services.EmailService;
 import com.sope.sope_ecommerce_backend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +32,10 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final RoleRepository roleRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    private final EmailService emailService;
 
 
     @Override
@@ -71,14 +81,33 @@ public class UserServiceImpl implements UserService {
         AppUser guestUser = userRepository.findByEmail(email).orElse(null);
         if (guestUser == null) {
             guestUser = AppUser.builder()
+                    .username(UUID.randomUUID().toString())
                     .email(email)
-                    .name(fullName)
+                    .password(passwordEncoder.encode(phone))
                     .phone(phone)
-//                    .roles()
-                    .status(UserStatus.INACTIVE)
+                    .name(fullName)
+                    .status(UserStatus.ACTIVE)
                     .build();
 
+            RoleName roleName = RoleName.USER;
+            Role role = roleRepository.findByRoleName(roleName)
+                    .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
+
+            UserRole userRole = UserRole.builder()
+                    .user(guestUser)
+                    .role(role)
+                    .grantedBy("SYSTEM")
+                    .build();
+
+            guestUser.getUserRoles().add(userRole);
+
             userRepository.save(guestUser);
+
+            try {
+                emailService.sendAccountCreationEmail(guestUser);
+            } catch (Exception e) {
+                System.err.println("Failed to send welcome email to " + email + ": " + e.getMessage());
+            }
         }
         return guestUser;
     }
@@ -95,32 +124,25 @@ public class UserServiceImpl implements UserService {
         AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (request.username() != null) {
-            appUser.setUsername(request.username());
-        }
-        if (request.email() != null) {
-            appUser.setEmail(request.email());
-        }
         if (request.name() != null) {
             appUser.setName(request.name());
         }
-        if (request.phone() != null) {
-            appUser.setPhone(request.phone());
+
+        if (request.gender() != null) {
+            appUser.setGender(request.gender());
         }
-        if (request.address() != null) {
-            appUser.setAddress(request.address());
+
+        if (request.birthday() != null) {
+            appUser.setBirthday(request.birthday());
         }
-        if (request.note() != null) {
-            appUser.setNote(request.note());
-        }
-        if (request.status() != null) {
-            appUser.setStatus(UserStatus.valueOf(request.status()));
+
+        if (request.avatarUrl() != null) {
+            appUser.setAvatarUrl(request.avatarUrl());
         }
 
         appUser = userRepository.save(appUser);
         return userMapper.toInfoResponse(appUser);
     }
-
 
     @Override
     public void changeUserStatus(UUID id, UserStatusRequest request) {

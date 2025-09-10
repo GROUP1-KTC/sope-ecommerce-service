@@ -13,17 +13,9 @@ import java.util.UUID;
 
 @Builder
 public record UserOrderResponse(
-        UUID orderId,
-        String orderNumber,
-        LocalDateTime orderDate,
-        BigDecimal subtotal,
-        BigDecimal shippingCharges,
-        BigDecimal totalAmount,
-        String note,
-        OrderStatus status,
-        List<OrderItemResponse> orderItems, // Nested DTO
-        Set<OrderDiscountResponse> orderDiscounts,
-        PaymentMethod paymentMethod,
-        PaymentProvider paymentProvider
+        UUID paymentId,
+        AddressResponse shippingAddress,
+        ShopOrderResponse order
+
 ) implements OrderResponse {
 }

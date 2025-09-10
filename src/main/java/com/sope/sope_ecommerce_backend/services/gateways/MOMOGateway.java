@@ -47,10 +47,8 @@ public class MOMOGateway implements PaymentGateway<CreateMomoResponse>{
     @Override
     public CreateMomoResponse createPaymentIntent(PaymentRequest request) {
 
-        String orderId = request.orderId() != null
-                ? request.orderId().toString()
-                : request.tempOrderCode();
-        String orderInfo = "Payment for order " + orderId;
+        String orderId = request.paymentId().toString();
+        String orderInfo = request.orderInfo() != null ? request.orderInfo() : "Payment Sope";
         String requestId =  request.requestId();
         String extraData = "";
         String amount = String.valueOf(request.amount().longValue());
@@ -68,6 +66,8 @@ public class MOMOGateway implements PaymentGateway<CreateMomoResponse>{
                         "&requestType=captureWallet";
 
         String secureHash = HmacUtil.hmacSha256Hex(rawSignature, secretKey);
+
+
 
         CreateMomoRequest momoRequest = CreateMomoRequest.builder()
                 .partnerCode(partnerCode)

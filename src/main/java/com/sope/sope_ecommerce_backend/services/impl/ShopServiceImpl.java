@@ -6,6 +6,7 @@ import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
 import com.sope.sope_ecommerce_backend.entities.Shop;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
+import com.sope.sope_ecommerce_backend.entities.ShopAddress;
 import com.sope.sope_ecommerce_backend.mapper.ShopMapper;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
@@ -37,6 +38,19 @@ public class ShopServiceImpl implements ShopService {
         Shop shop = shopMapper.toEntity(request);
         shop.setAppUser(appUser);
 
+        if (request.address() != null) {
+            ShopAddress address = ShopAddress.builder()
+                    .street(request.address().street())
+                    .ward(request.address().ward())
+                    .district(request.address().district())
+                    .city(request.address().city())
+                    .country(request.address().country())
+                    .zipCode(request.address().zipCode())
+                    .shop(shop)
+                    .build();
+            shop.setAddress(address);
+        }
+
         Shop savedShop = shopRepository.save(shop);
 
         return shopMapper.toResponse(savedShop);
@@ -63,6 +77,12 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public Shop getShopEntityById(UUID shopId) {
+        return shopRepository.findById(shopId)
+                .orElseThrow(() -> new RuntimeException("Shop không tồn tại: " + shopId));
+    }
+
+    @Override
     public ShopResponse updateShop(ShopUpdateRequest request, UUID currentUserId) {
         Shop shop = shopRepository.findByAppUser_Id(currentUserId)
                 .orElseThrow(() -> new RuntimeException("Shop không tồn tại: " + currentUserId));
@@ -83,10 +103,6 @@ public class ShopServiceImpl implements ShopService {
             shop.setEmail(request.email());
         }
 
-        if (request.address() != null) {
-            shop.setAddress(request.address());
-        }
-
         if (request.description() != null) {
             shop.setDescription(request.description());
         }
@@ -99,10 +115,42 @@ public class ShopServiceImpl implements ShopService {
             shop.setMall(request.isMall());
         }
 
+        if(request.address() != null){
+            ShopAddress address = getShopAddress(request, shop);
+            shop.setAddress(address);
+        }
+
         shopMapper.updateShopFromDTO(request, shop);
         shop.setUpdatedAt(LocalDateTime.now());
 
         return shopMapper.toResponse(shopRepository.save(shop));
+    }
+
+    private static ShopAddress getShopAddress(ShopUpdateRequest request, Shop shop) {
+        ShopAddress address = shop.getAddress();
+        if (address == null) {
+            address = new ShopAddress();
+            address.setShop(shop);
+        }
+        if (request.address().street() != null) {
+            address.setStreet(request.address().street());
+        }
+        if (request.address().ward() != null) {
+            address.setWard(request.address().ward());
+        }
+        if (request.address().district() != null) {
+            address.setDistrict(request.address().district());
+        }
+        if (request.address().city() != null) {
+            address.setCity(request.address().city());
+        }
+        if (request.address().country() != null) {
+            address.setCountry(request.address().country());
+        }
+        if (request.address().zipCode() != null) {
+            address.setZipCode(request.address().zipCode());
+        }
+        return address;
     }
 
     @Override

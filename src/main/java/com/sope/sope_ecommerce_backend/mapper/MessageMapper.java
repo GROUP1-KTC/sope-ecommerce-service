@@ -17,7 +17,7 @@ public interface MessageMapper {
         if (dateTime == null) return null;
         return dateTime.format(DateTimeFormatter.ISO_DATE_TIME);
     }
-
+    @Mapping(target = "senderId", source = "sender")
     @Mapping(target = "type", expression = "java(getType(message))")
     @Mapping(target = "sentAt", source = "sentAt", qualifiedByName = "formatDateTime")
     @Mapping(target = "content", expression = "java(getContent(message))")

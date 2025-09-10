@@ -5,6 +5,7 @@ import java.util.UUID;
 public record MessageSendRequest(
         UUID conversationId,
         UUID senderId,
+        UUID receiverId,
         String type,
         String content,
         String imageUrl,

@@ -1,12 +1,12 @@
 package com.sope.sope_ecommerce_backend.entities;
 
+import com.sope.sope_ecommerce_backend.enums.Gender;
 import com.sope.sope_ecommerce_backend.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalDate;
+import java.util.*;
 
 @Entity
 @Getter
@@ -22,10 +22,19 @@ public class AppUser {
     private String username;
     private String password;
     private String name;
-    private String email;
     private String phone;
-    private String address;
+    private String email;
+    private LocalDate birthday;
+    private String avatarUrl;
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+
     private String note;
+
+    @OneToMany(mappedBy = "appUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Address> addresses = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     private UserStatus status = UserStatus.INACTIVE;

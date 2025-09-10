@@ -17,9 +17,9 @@ public class UserSetting {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    private boolean orderUpdateNoti;
-    private boolean promotionNoti;
-    private boolean surveyNoti;
+    private Boolean orderUpdateNoti;
+    private Boolean promotionNoti;
+    private Boolean surveyNoti;
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false, unique = true)

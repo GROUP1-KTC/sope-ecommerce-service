@@ -2,6 +2,7 @@ package com.sope.sope_ecommerce_backend.controllers;
 
 
 import com.sope.sope_ecommerce_backend.constant.MomoVariable;
+import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.MomoCallBackRequest;
 import com.sope.sope_ecommerce_backend.dto.request.PaymentRequest;
 import com.sope.sope_ecommerce_backend.dto.response.PaymentResponse;
@@ -9,6 +10,7 @@ import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.PaymentService;
+import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
 import com.sope.sope_ecommerce_backend.utils.ParamUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +29,13 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/initiate")
-    public ResponseEntity<PaymentResponse> initiatePayment(@RequestBody PaymentRequest request,
-                                                            @AuthenticationPrincipal CustomUserDetails currentUser
+    public ResponseEntity<
+    ApiResponse<PaymentResponse>> initiatePayment(@RequestBody PaymentRequest request,
+                                                 @AuthenticationPrincipal CustomUserDetails currentUser
     ) {
         UUID userId = (currentUser != null) ? currentUser.getUserId() : null;
         PaymentResponse response = paymentService.initiatePayment(request, userId);
-        return ResponseEntity.ok(response);
+        return ApiResponseUtil.success(response, "Payment initiated");
     }
 
     @PostMapping("/webhook/momo")
@@ -40,7 +43,7 @@ public class PaymentController {
 
         String callbackStatus = String.valueOf(request.resultCode());
 
-        paymentService.handlePaymentCallback(UUID.fromString(request.orderId()), callbackStatus, PaymentProvider.MOMO);
+        paymentService.handlePaymentCallback(request.requestId(), callbackStatus, PaymentProvider.MOMO);
         return ResponseEntity.ok(callbackStatus.equals("0") ? "Payment success" : "Payment failed");
     }
 
