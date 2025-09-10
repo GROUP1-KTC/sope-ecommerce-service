@@ -1,25 +1,16 @@
-// package com.sope.sope_ecommerce_backend.repositories;
+package com.sope.sope_ecommerce_backend.repositories;
 
-// import java.util.UUID;
+import java.util.List;
+import java.util.UUID;
 
-// import org.springframework.data.jpa.repository.JpaRepository;
-// import org.springframework.data.jpa.repository.Query;
-// import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-// import com.sope.sope_ecommerce_backend.entities.OrderItem;
-// import com.sope.sope_ecommerce_backend.enums.OrderStatus;
+import com.sope.sope_ecommerce_backend.entities.OrderItem;
+import com.sope.sope_ecommerce_backend.entities.OrderItemId;
+import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 
-// public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
+public interface OrderItemRepository extends JpaRepository<OrderItem, OrderItemId> {
 
-// @Query("""
-// SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END
-// FROM OrderItem oi
-// WHERE oi.order.appUser.id = :userId
-// AND oi.order.status = :status
-// AND oi.productVariant.id = :productVariantId
-// """)
-// boolean existsByUserAndStatusAndProductVariant(
-// @Param("userId") UUID userId,
-// @Param("status") OrderStatus status,
-// @Param("productVariantId") UUID productVariantId);
-// }
+	boolean existsByOrder_AppUser_IdAndOrder_StatusInAndProductVariant_ProductVariantId(
+			UUID userId, List<OrderStatus> statuses, UUID productVariantId);
+}

@@ -62,9 +62,6 @@ public class Product {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ImageEntity> imagesList;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<ReviewEntity> reviews;
-
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WishlistEntity> wishlists;
 

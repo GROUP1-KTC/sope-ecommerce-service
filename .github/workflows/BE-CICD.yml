@@ -1,0 +1,106 @@
+name: CI/CD pipeline for Backend Service
+
+on:
+  push:
+    branches: [feature/api-product]
+
+jobs:
+  build:
+    name: Build Backend Service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Docker BuildX
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER_SON }}
+          password: ${{ secrets.DOCKER_TOKEN_SON}}
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build --no-cache -t ${{vars.DOCKER_IMAGE_SON}}:${{vars.DOCKER_TAG}} .
+          docker push ${{vars.DOCKER_IMAGE_SON}}:${{vars.DOCKER_TAG}}
+      - name: Ensure remote dir exists
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p ~/${{vars.SERV_DIR}}
+      - name: Copy necessary files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: compose.yml
+          target: ~/${{vars.SERV_DIR}}
+
+      - name: Copy .env file to server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cat > ~/${{ vars.SERV_DIR }}/.env << EOF
+            SERV_PORT=${{ vars.SERV_PORT }}
+            SERV_DIR=${{ vars.SERV_DIR }}
+            PROFILE=${{ vars.PROFILE }}
+            PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
+            PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
+            EXPIRATION=${{ secrets.EXPIRATION }}
+            REFRESH_EXPIRATION=${{ secrets.REFRESH_EXPIRATION }}
+            DB_URL=${{ secrets.DB_URL }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DOCKER_IMAGE_SON=${{ vars.DOCKER_IMAGE_SON }}
+            DOCKER_TAG=${{ vars.DOCKER_TAG }}
+            DOCKER_CONTAINER=${{ vars.DOCKER_CONTAINER }}
+            CORS_ALLOWED_ORIGINS=${{ secrets.CORS_ALLOWED_ORIGINS }}
+            CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}
+            CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}
+            CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+            EOF
+            chmod 600 ~/${{ vars.SERV_DIR }}/.env
+  deploy:
+    name: Deploy Backend Service
+    runs-on: ubuntu-latest
+    needs: ["build"]
+
+    steps:
+      - name: Deploy Backend Service
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Moving to deployment directory..."
+            cd ~/${{ vars.SERV_DIR }}
+            echo "Ensuring sope-ecommerce-backend-network exists..."
+            docker network inspect sope-ecommerce-backend-network >/dev/null 2>&1 || \
+              docker network create sope-ecommerce-backend-network
+            echo "Stopping and removing old container if exists..."
+            if [ "$(docker ps -aq -f name=${{ vars.DOCKER_CONTAINER }})" ]; then
+              docker stop ${{ vars.DOCKER_CONTAINER }} || true
+              docker rm -f ${{ vars.DOCKER_CONTAINER }} || true
+            fi
+            echo "Pulling latest image..."
+            docker compose -f compose.yml pull ${{ vars.DOCKER_CONTAINER }}
+            echo "Starting new container..."
+            docker compose -f compose.yml up -d --remove-orphans ${{ vars.DOCKER_CONTAINER }}
+            echo "Deployment completed!"

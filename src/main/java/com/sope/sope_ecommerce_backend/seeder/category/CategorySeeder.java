@@ -3,9 +3,9 @@ package com.sope.sope_ecommerce_backend.seeder.category;
 import com.sope.sope_ecommerce_backend.entities.Category;
 import com.sope.sope_ecommerce_backend.repositories.CategoryRepository;
 import lombok.AllArgsConstructor;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.text.Normalizer;
 import java.util.Locale;
 import java.util.Optional;
@@ -17,36 +17,39 @@ public class CategorySeeder {
       private final CategoryRepository categoryRepository;
 
       public void run() {
-            // Cấp 1
-            Category menFashion = createCategory("Thời trang nam", null);
-            Category womenFashion = createCategory("Thời trang nữ", null);
-            Category phoneAccessory = createCategory("Điện thoại & Phụ kiện", null);
-            Category kidFashion = createCategory("Thời trang trẻ em", null);
-            Category homeAppliance = createCategory("Thiết bị gia dụng", null);
-            Category computerLaptop = createCategory("Computer & Laptop", null);
+            // ===== Cấp 1 =====
+            Category menFashion = createCategory("Thời trang nam", null, 1, new BigDecimal("5.5"));
+            Category womenFashion = createCategory("Thời trang nữ", null, 1, new BigDecimal("5.5"));
+            Category phoneAccessory = createCategory("Điện thoại & Phụ kiện", null, 1, new BigDecimal("8.5"));
+            Category kidFashion = createCategory("Thời trang trẻ em", null, 1, new BigDecimal("5.5"));
+            Category homeAppliance = createCategory("Thiết bị gia dụng", null, 1, new BigDecimal("10.0"));
+            Category computerLaptop = createCategory("Computer & Laptop", null, 1, new BigDecimal("8.5"));
 
-            // Cấp 2
-            Category jacket = createCategory("Áo khoác", menFashion);
-            Category aoThun = createCategory("Áo thun", menFashion);
-            Category quanNu = createCategory("Quần", womenFashion);
-            Category aoVest = createCategory("Áo Vest", womenFashion);
-            Category vayCuoi = createCategory("Váy cưới", womenFashion);
+            // ===== Cấp 2 =====
+            Category jacket = createCategory("Áo khoác", menFashion, 2, new BigDecimal("5.5"));
+            Category aoThun = createCategory("Áo thun", menFashion, 2, new BigDecimal("5.5"));
+            Category quanNu = createCategory("Quần", womenFashion, 2, new BigDecimal("5.5"));
+            Category aoVest = createCategory("Áo Vest", womenFashion, 2, new BigDecimal("5.5"));
+            Category vayCuoi = createCategory("Váy cưới", womenFashion, 2, new BigDecimal("8.5"));
 
-            // Cấp 3
-            createCategory("Áo khoác mùa đông", jacket);
+            // ===== Cấp 3 =====
+            createCategory("Áo khoác mùa đông", jacket, 3, new BigDecimal("5.5"));
       }
 
-      private Category createCategory(String name, Category parent) {
+      private Category createCategory(String name, Category parent, int level, BigDecimal commissionFeePercent) {
             Optional<Category> existing = categoryRepository.findByName(name);
             if (existing.isPresent()) {
                   return existing.get();
             }
 
-            // Tạo category tạm
+            // Tạo category mới
             Category category = new Category();
             category.setName(name);
             category.setParent(parent);
-            category = categoryRepository.save(category); // Lưu để có id
+            category.setLevel(level);
+            category.setCommissionFeePercent(commissionFeePercent);
+
+            category = categoryRepository.save(category); // Lưu lần đầu để lấy id
 
             // Tạo slug
             String slug = generateSlug(name, category, parent);

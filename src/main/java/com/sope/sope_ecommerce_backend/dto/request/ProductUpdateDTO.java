@@ -7,12 +7,7 @@ import com.sope.sope_ecommerce_backend.dto.response.ProductDetailDTO;
 public record ProductUpdateDTO(
 		Boolean hidden,
 		String description,
-
 		List<String> imageUrlsToKeep,
-
 		List<ProductVariantRequestDTO> variants,
-
-		List<ProductDetailDTO> productDetails
-
-) {
+		List<ProductDetailDTO> productDetails) {
 }
