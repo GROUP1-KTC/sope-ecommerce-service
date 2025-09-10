@@ -87,6 +87,8 @@ dependencies {
 //	testRuntimeOnly(libs.junit.platform.launcher)
 	testImplementation(libs.mockito)
 	testImplementation(libs.h2database)
+//  livekit
+	implementation("io.livekit:livekit-server:0.10.0")
 }
 
 //tasks.withType<Test> {

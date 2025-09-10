@@ -211,3 +211,10 @@ web:
     allowed-credentials: true
     max-age: 3600
 
+
+
+livekit:
+  url: "https://localhost:7880"
+  api:
+    key: "devkey"
+    secret: "devsecret"
