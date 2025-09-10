@@ -1,18 +1,15 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.dto.BasePaymentDTO;
 import com.sope.sope_ecommerce_backend.dto.request.*;
 import com.sope.sope_ecommerce_backend.dto.response.PaymentResponse;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
-import com.sope.sope_ecommerce_backend.enums.PaymentMethod;
 import com.sope.sope_ecommerce_backend.enums.PaymentProvider;
 import com.sope.sope_ecommerce_backend.enums.PaymentStatus;
-import com.sope.sope_ecommerce_backend.event.PaymentCreatedEvent;
+import com.sope.sope_ecommerce_backend.events.PaymentCreatedEvent;
 import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.mapper.OrderMapper;
 import com.sope.sope_ecommerce_backend.mapper.PaymentMapper;
-import com.sope.sope_ecommerce_backend.repositories.OrderRepository;
 import com.sope.sope_ecommerce_backend.repositories.PaymentRepository;
 import com.sope.sope_ecommerce_backend.repositories.TempOrderRepository;
 import com.sope.sope_ecommerce_backend.services.*;
@@ -23,8 +20,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.security.Provider;
 import java.time.LocalDateTime;
 import java.util.*;
 

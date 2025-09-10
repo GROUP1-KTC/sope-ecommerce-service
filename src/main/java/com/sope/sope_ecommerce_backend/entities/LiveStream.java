@@ -25,6 +25,7 @@ public class LiveStream {
     @Column
     private String description;
 
+    @Column
     private String thumbnail;
 
     @Column(nullable=false)

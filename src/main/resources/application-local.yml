@@ -197,6 +197,7 @@ web:
       - "http://localhost:5173"
       - "http://localhost:3000"
       - "http://localhost:3001"
+      - "http://10.19.82.225:3000"
     allowed-methods:
       - GET
       - POST
@@ -214,7 +215,7 @@ web:
 
 
 livekit:
-  url: "https://localhost:7880"
+  url: "http://localhost:7880"
   api:
     key: "devkey"
     secret: "devsecret"

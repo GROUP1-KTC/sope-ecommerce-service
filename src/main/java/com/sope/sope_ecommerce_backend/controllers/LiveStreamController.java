@@ -1,6 +1,8 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.ApiResponse;
+import com.sope.sope_ecommerce_backend.dto.request.EndLiveRequest;
+import com.sope.sope_ecommerce_backend.dto.request.StartLiveRequest;
 import com.sope.sope_ecommerce_backend.dto.response.LiveStreamResponse;
 import com.sope.sope_ecommerce_backend.services.LiveStreamService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
@@ -19,13 +21,13 @@ public class LiveStreamController {
 
     @PostMapping("/start")
     public ResponseEntity<ApiResponse<LiveStreamResponse>> start(@RequestBody StartLiveRequest req){
-        LiveStreamResponse dto = liveStreamService.startLive(req.getShopSlug(), req.getTitle(), req.getThumbnail());
+        LiveStreamResponse dto = liveStreamService.startLive(req);
         return ApiResponseUtil.success(dto, "Live stream started successfully");
     }
 
     @PostMapping("/end")
     public ResponseEntity<ApiResponse<LiveStreamResponse>> end(@RequestBody EndLiveRequest req){
-        LiveStreamResponse dto = liveStreamService.endLive(req.getShopSlug());
+        LiveStreamResponse dto = liveStreamService.endLive(req.shopId());
         return ApiResponseUtil.success(dto, "Live stream ended successfully");
     }
 
