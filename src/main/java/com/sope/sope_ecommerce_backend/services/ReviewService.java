@@ -8,7 +8,7 @@ import com.sope.sope_ecommerce_backend.dto.request.ReviewUpdateDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ReviewDTO;
 
 public interface ReviewService {
-      ReviewDTO createReview(ReviewCreateDTO dto, List<MultipartFile> mediaFiles);
+      ReviewDTO createReview(ReviewCreateDTO dto, List<MultipartFile> mediaFiles, MultipartFile videoFile);
 
       ReviewDTO updateReview(UUID reviewId, ReviewUpdateDTO dto, List<MultipartFile> newFiles);
 

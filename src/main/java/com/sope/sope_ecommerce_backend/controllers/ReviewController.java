@@ -14,7 +14,6 @@ import com.sope.sope_ecommerce_backend.dto.request.ReviewCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ReviewUpdateDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ReviewDTO;
 import com.sope.sope_ecommerce_backend.services.ReviewService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
@@ -37,10 +36,11 @@ public class ReviewController {
 
       @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
       public ResponseEntity<ReviewDTO> createReview(
-                  @RequestPart("review") @Valid ReviewCreateDTO dto,
-                  @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles) {
+                  @RequestPart("review") ReviewCreateDTO dto,
+                  @RequestPart(value = "mediaFiles", required = false) List<MultipartFile> mediaFiles,
+                  @RequestPart(value = "videoFile", required = false) MultipartFile videoFile) {
 
-            ReviewDTO review = reviewService.createReview(dto, mediaFiles);
+            ReviewDTO review = reviewService.createReview(dto, mediaFiles, videoFile);
             return ResponseEntity.ok(review);
       }
 

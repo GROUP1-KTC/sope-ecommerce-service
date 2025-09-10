@@ -6,6 +6,8 @@ import com.sope.sope_ecommerce_backend.dto.request.ProductVariantRequestDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductBasicWithVariantsDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductByCategory;
 import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
+import com.sope.sope_ecommerce_backend.dto.response.ProductDetailDTO;
+import com.sope.sope_ecommerce_backend.dto.response.ProductSearchDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ProductVariantByCategory;
 import com.sope.sope_ecommerce_backend.dto.response.ProductVariantDetailDTO;
 import com.sope.sope_ecommerce_backend.entities.*;
@@ -14,12 +16,14 @@ import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
 import com.sope.sope_ecommerce_backend.mapper.ProductVariantMapper;
 import com.sope.sope_ecommerce_backend.repositories.*;
 import com.sope.sope_ecommerce_backend.services.ProductService;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
-import org.hibernate.annotations.Cache;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,8 +32,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -61,6 +68,24 @@ public class ProductServiceImpl implements ProductService {
             return productRepository.findBySlug(slug)
                         .map(productMapper::toDto)
                         .orElseThrow(() -> new EntityNotFoundException("Product not found with slug: " + slug));
+      }
+
+      @Override
+      @Transactional(readOnly = true)
+      public Page<ProductDTO> getProductsByShop(UUID shopId, int page, int size) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<Product> products = productRepository.findByShopId(shopId, pageable);
+            return products.map(productMapper::toDto);
+      }
+
+      @Override
+      @Transactional(readOnly = true)
+      public List<ProductSearchDTO> searchByName(String keyword) {
+            return productRepository.findAll().stream()
+                        .filter(p -> p.getName() != null &&
+                                    p.getName().toLowerCase().contains(keyword.toLowerCase()))
+                        .map(productMapper::toSearchDto) // dùng mapper thay vì new thủ công
+                        .toList();
       }
 
       @Override
@@ -169,11 +194,15 @@ public class ProductServiceImpl implements ProductService {
                   }).collect(Collectors.toList()));
             }
 
-            // Xử lý attributes cho từng variant
             for (ProductVariant variant : entity.getVariants()) {
-                  Set<Attribute> managedAttributes = new HashSet<>();
+                  List<Attribute> managedAttributes = new ArrayList<>();
                   if (variant.getAttributes() != null) {
+                        Set<String> seen = new HashSet<>();
                         for (Attribute attr : variant.getAttributes()) {
+                              String key = attr.getName() + ":" + attr.getValue();
+                              if (seen.contains(key))
+                                    continue;
+                              seen.add(key);
                               Optional<Attribute> existingAttr = attributeRepository
                                           .findByNameAndValue(attr.getName(), attr.getValue());
                               managedAttributes.add(existingAttr.orElseGet(() -> attributeRepository.save(attr)));
@@ -226,11 +255,11 @@ public class ProductServiceImpl implements ProductService {
                                     detail.setLabel(detailDTO.label());
                                     detail.setData(detailDTO.data());
                                     detail.setPriority(detailDTO.priority());
-                                    detail.setProduct(entity); // liên kết với Product
+                                    detail.setProduct(entity);
                                     return detail;
                               })
                               .collect(Collectors.toList());
-                  entity.setProductDetails(details); // Product phải có field productDetails với @OneToMany
+                  entity.setProductDetails(details);
             }
             productRepository.save(entity);
 
@@ -250,6 +279,7 @@ public class ProductServiceImpl implements ProductService {
       public ProductDTO updateProduct(
                   String slug,
                   ProductUpdateDTO dto,
+                  MultipartFile defaultImage,
                   MultipartFile defaultVideoIntro,
                   List<MultipartFile> productImages,
                   List<MultipartFile> variantFiles) {
@@ -264,21 +294,40 @@ public class ProductServiceImpl implements ProductService {
                   entity.setDescription(dto.description());
             }
 
-            if (dto.productDetails() != null && !dto.productDetails().isEmpty()) {
-                  List<ProductDetailEntity> updatedDetails = dto.productDetails().stream()
-                              .map(detailDTO -> {
-                                    ProductDetailEntity detail = new ProductDetailEntity();
-                                    detail.setLabel(detailDTO.label());
-                                    detail.setData(detailDTO.data());
-                                    detail.setPriority(detailDTO.priority());
-                                    detail.setProduct(entity);
-                                    return detail;
-                              })
-                              .collect(Collectors.toList());
+            if (dto.productDetails() != null) {
+                  Map<UUID, ProductDetailEntity> existingDetails = entity.getProductDetails() == null
+                              ? new HashMap<>()
+                              : entity.getProductDetails().stream()
+                                          .filter(d -> d.getProductDetailId() != null)
+                                          .collect(Collectors.toMap(ProductDetailEntity::getProductDetailId, d -> d));
+
+                  List<ProductDetailEntity> updatedDetails = new ArrayList<>();
+
+                  for (ProductDetailDTO detailDTO : dto.productDetails()) {
+                        ProductDetailEntity detail;
+                        if (detailDTO.productDetailId() != null
+                                    && existingDetails.containsKey(detailDTO.productDetailId())) {
+                              // update detail cũ
+                              detail = existingDetails.get(detailDTO.productDetailId());
+                        } else {
+                              // thêm mới
+                              detail = new ProductDetailEntity();
+                              detail.setProduct(entity);
+                        }
+                        detail.setLabel(detailDTO.label());
+                        detail.setData(detailDTO.data());
+                        detail.setPriority(detailDTO.priority());
+                        updatedDetails.add(detail);
+                  }
+
                   entity.setProductDetails(updatedDetails);
             }
 
             productMapper.updateEntityFromDto(dto, entity);
+
+            if (defaultImage != null && !defaultImage.isEmpty()) {
+                  entity.setDefaultImage(uploadFileToCloudinary(defaultImage, "image"));
+            }
 
             if (defaultVideoIntro != null && !defaultVideoIntro.isEmpty()) {
                   entity.setDefaultVideoIntro(uploadFileToCloudinary(defaultVideoIntro, "video"));
@@ -290,13 +339,10 @@ public class ProductServiceImpl implements ProductService {
                         currentImages = new ArrayList<>();
                         entity.setImagesList(currentImages);
                   }
-
-                  // 1. Xóa ảnh nào không còn trong danh sách giữ lại
                   if (dto.imageUrlsToKeep() != null) {
                         currentImages.removeIf(img -> !dto.imageUrlsToKeep().contains(img.getUrl()));
                   }
 
-                  // 2. Thêm ảnh mới
                   if (productImages != null && !productImages.isEmpty()) {
                         int maxPriority = currentImages.stream()
                                     .mapToInt(ImageEntity::getPriority)
@@ -316,24 +362,64 @@ public class ProductServiceImpl implements ProductService {
                   }
             }
 
-            if (dto.variants() != null) {
-                  Map<UUID, ProductVariant> existingVariants = entity.getVariants().stream()
+            if (dto.variants() != null && !dto.variants().isEmpty()) {
+                  List<ProductVariant> variants = entity.getVariants();
+                  if (variants == null) {
+                        variants = new ArrayList<>();
+                        entity.setVariants(variants);
+                  }
+
+                  // Map theo id để update variant cũ
+                  Map<UUID, ProductVariant> existingVariants = variants.stream()
+                              .filter(v -> v.getProductVariantId() != null)
                               .collect(Collectors.toMap(ProductVariant::getProductVariantId, v -> v));
 
+                  // Map theo attributeKey để tránh duplicate
+                  Map<String, ProductVariant> attributeKeyToVariant = new LinkedHashMap<>();
+                  for (ProductVariant v : variants) {
+                        String key = v.getAttributes().stream()
+                                    .map(a -> a.getName() + ":" + a.getValue())
+                                    .collect(Collectors.joining("|"));
+                        attributeKeyToVariant.putIfAbsent(key, v);
+                  }
+
                   for (ProductVariantRequestDTO variantDTO : dto.variants()) {
-                        ProductVariant variantEntity;
+                        ProductVariant variantEntity = null;
+
                         if (variantDTO.productVariantId() != null
                                     && existingVariants.containsKey(variantDTO.productVariantId())) {
-                              // --- Variant cũ ---
                               variantEntity = existingVariants.get(variantDTO.productVariantId());
-                              updateVariantFromDTO(variantEntity, variantDTO);
                         } else {
-                              // --- Variant mới ---
-                              variantEntity = new ProductVariant();
-                              variantEntity.setProduct(entity);
-                              updateVariantFromDTO(variantEntity, variantDTO);
-                              entity.getVariants().add(variantEntity);
+                              String newKey = variantDTO.attributes().stream()
+                                          .map(a -> a.name() + ":" + a.value())
+                                          .collect(Collectors.joining("|"));
+
+                              if (attributeKeyToVariant.containsKey(newKey)) {
+                                    variantEntity = attributeKeyToVariant.get(newKey);
+                              } else {
+                                    variantEntity = new ProductVariant();
+                                    variantEntity.setProduct(entity);
+
+                                    if (variantDTO.attributes().size() > 1) {
+                                          String primaryAttrName = variantDTO.attributes().get(0).name();
+                                          String primaryAttrValue = variantDTO.attributes().get(0).value();
+                                          variants.stream()
+                                                      .filter(v -> v.getImageVariant() != null)
+                                                      .filter(v -> v.getAttributes().stream()
+                                                                  .anyMatch(a -> a.getName()
+                                                                              .equalsIgnoreCase(primaryAttrName)
+                                                                              && a.getValue().equalsIgnoreCase(
+                                                                                          primaryAttrValue)))
+                                                      .map(ProductVariant::getImageVariant)
+                                                      .findFirst()
+                                                      .ifPresent(variantEntity::setImageVariant);
+                                    }
+
+                                    variants.add(variantEntity);
+                                    attributeKeyToVariant.put(newKey, variantEntity);
+                              }
                         }
+                        updateVariantFromDTO(variantEntity, variantDTO);
                   }
             }
 
@@ -347,49 +433,61 @@ public class ProductServiceImpl implements ProductService {
                   Map<String, String> uploadedUrls = new HashMap<>();
 
                   for (ProductVariant variant : entity.getVariants()) {
-                        String fileName = normalizeFileName(variant.getImageVariant());
-                        if (fileName != null && variantFileMap.containsKey(fileName)) {
-                              if (!uploadedUrls.containsKey(fileName)) {
-                                    String url = uploadFileToCloudinary(variantFileMap.get(fileName), "image");
-                                    uploadedUrls.put(fileName, url);
+                        String imagePath = variant.getImageVariant();
+                        if (imagePath != null && variantFileMap.containsKey(imagePath)) {
+                              if (!uploadedUrls.containsKey(imagePath)) {
+                                    String url = uploadFileToCloudinary(variantFileMap.get(imagePath), "image");
+                                    uploadedUrls.put(imagePath, url);
                               }
-                              variant.setImageVariant(uploadedUrls.get(fileName));
+                              variant.setImageVariant(uploadedUrls.get(imagePath));
                         }
                   }
             }
 
             entity.setUpdatedAt(LocalDateTime.now());
-
             productRepository.save(entity);
 
             return productMapper.toDto(entity);
       }
 
       private void updateVariantFromDTO(ProductVariant entity, ProductVariantRequestDTO dto) {
-            if (dto.price() != null)
-                  entity.setPrice(dto.price());
-            if (dto.stock() != null)
+            if (dto.price() != null) {
+                  entity.setPrice(new BigDecimal(dto.price().toString()));
+            }
+            if (dto.stock() != null) {
                   entity.setStock(dto.stock());
-
-            if (dto.weight() != null)
+            }
+            if (dto.weight() != null) {
                   entity.setWeight(dto.weight());
-            else if (entity.getWeight() == null)
-                  entity.setWeight(BigDecimal.ZERO); // mặc định 0 nếu chưa có
-
-            // Kích thước
-            if (dto.dimension() != null)
+            } else if (entity.getWeight() == null) {
+                  entity.setWeight(BigDecimal.ZERO);
+            }
+            if (dto.dimension() != null) {
                   entity.setDimension(dto.dimension());
-            else if (entity.getDimension() == null)
+            } else if (entity.getDimension() == null) {
                   entity.setDimension(new Dimension(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO));
-
-            if (dto.attributes() != null && !dto.attributes().isEmpty()) {
-                  Set<Attribute> updatedAttributes = dto.attributes().stream()
+            }
+            if (dto.attributes() != null) {
+                  List<Attribute> updatedAttributes = dto.attributes().stream()
                               .map(attrDTO -> getOrCreateAttribute(attrDTO.name(), attrDTO.value()))
-                              .collect(Collectors.toSet());
+                              .collect(Collectors.collectingAndThen(
+                                          Collectors.toMap(
+                                                      a -> a.getName() + ":" + a.getValue(),
+                                                      a -> a,
+                                                      (a, b) -> a,
+                                                      LinkedHashMap::new),
+
+                                          m -> new ArrayList<>(m.values())));
                   entity.setAttributes(updatedAttributes);
             }
-            if (dto.imageVariant() != null)
-                  entity.setImageVariant(dto.imageVariant());
+            if (dto.imageVariant() != null) {
+                  String iv = dto.imageVariant();
+                  if (iv.startsWith("http://") || iv.startsWith("https://")) {
+                        entity.setImageVariant(iv);
+                  } else {
+                        entity.setImageVariant(normalizeFileName(iv));
+                  }
+            }
       }
 
       private Attribute getOrCreateAttribute(String name, String value) {

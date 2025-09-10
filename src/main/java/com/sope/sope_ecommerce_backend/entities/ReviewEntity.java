@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "reviews", uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "product_id" }) })
+@Table(name = "reviews", uniqueConstraints = { @UniqueConstraint(columnNames = { "user_id", "product_variant_id" }) })
 public class ReviewEntity {
         @Id
         @GeneratedValue(strategy = GenerationType.UUID)
@@ -23,8 +23,8 @@ public class ReviewEntity {
         private UUID reviewId;
 
         @ManyToOne
-        @JoinColumn(name = "product_id", nullable = false)
-        private Product product;
+        @JoinColumn(name = "product_variant_id", nullable = false)
+        private ProductVariant productVariant;
 
         @ManyToOne
         @JoinColumn(name = "user_id")
@@ -37,6 +37,8 @@ public class ReviewEntity {
         private Integer rating;
 
         private String content;
+
+        private String videoReviewUrl;
 
         @Builder.Default
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)

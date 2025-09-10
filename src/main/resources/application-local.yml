@@ -204,6 +204,7 @@ web:
       - GET
       - POST
       - PUT
+      - PATCH
       - DELETE
       - OPTIONS
     allowed-headers: "*"

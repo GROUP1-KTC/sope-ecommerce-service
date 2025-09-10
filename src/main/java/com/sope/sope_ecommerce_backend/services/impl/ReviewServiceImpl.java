@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,11 +17,10 @@ import com.sope.sope_ecommerce_backend.dto.request.ReviewUpdateDTO;
 import com.sope.sope_ecommerce_backend.dto.response.ReviewDTO;
 import com.sope.sope_ecommerce_backend.entities.ReviewEntity;
 import com.sope.sope_ecommerce_backend.entities.ReviewMediaEntity;
-import com.sope.sope_ecommerce_backend.enums.MediaType;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.mapper.ReviewMapper;
 import com.sope.sope_ecommerce_backend.repositories.OrderItemRepository;
-import com.sope.sope_ecommerce_backend.repositories.ProductRepository;
+import com.sope.sope_ecommerce_backend.repositories.ProductVariantRepository;
 import com.sope.sope_ecommerce_backend.repositories.ReviewRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
@@ -40,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 public class ReviewServiceImpl implements ReviewService {
       private final ReviewRepository reviewRepository;
       private final UserRepository appUserRepository;
-      private final ProductRepository productRepository;
+      private final ProductVariantRepository productVariantRepository;
       private final ReviewMapper reviewMapper;
       private final OrderItemRepository orderItemRepository;
       private final Cloudinary cloudinary;
@@ -48,65 +46,60 @@ public class ReviewServiceImpl implements ReviewService {
       @Override
       @Transactional(readOnly = true)
       public List<ReviewDTO> getReviewsByProductId(UUID productId) {
-            List<ReviewEntity> reviews = reviewRepository.findByProduct_ProductId(productId);
+            List<ReviewEntity> reviews = reviewRepository.findByProductVariant_Product_ProductId(productId);
             return reviewMapper.toDtoList(reviews);
       }
 
       @Override
       @Transactional
-      public ReviewDTO createReview(ReviewCreateDTO dto, List<MultipartFile> mediaFiles) {
+      public ReviewDTO createReview(ReviewCreateDTO dto, List<MultipartFile> mediaFiles, MultipartFile videoFile) {
             UUID userId = dto.appUserId();
-            UUID productId = dto.productId();
+            UUID productVariantId = dto.productVariantId();
 
             boolean hasBought = orderItemRepository
-                        .existsByOrder_AppUser_IdAndOrder_StatusInAndProductVariant_Product_ProductId(
+                        .existsByOrder_AppUser_IdAndOrder_StatusInAndProductVariant_ProductVariantId(
                                     userId,
                                     List.of(OrderStatus.DELIVERED, OrderStatus.COMPLETED),
-                                    productId);
+                                    productVariantId);
 
             if (!hasBought) {
-                  throw new IllegalStateException("User chưa mua sản phẩm này, không thể review");
+                  throw new IllegalStateException("User chưa mua variant này, không thể review");
             }
 
-            // 2. Kiểm tra xem review đã tồn tại chưa (mỗi user chỉ 1 review cho 1 product)
             ReviewEntity review = reviewRepository
-                        .findByAppUser_IdAndProduct_ProductId(userId, productId)
+                        .findByAppUser_IdAndProductVariant_ProductVariantId(userId, productVariantId)
                         .orElseGet(() -> {
                               ReviewEntity newReview = new ReviewEntity();
                               newReview.setAppUser(appUserRepository.getReferenceById(userId));
-                              newReview.setProduct(productRepository.getReferenceById(productId));
+                              newReview.setProductVariant(productVariantRepository.getReferenceById(productVariantId));
                               newReview.setCreatedAt(LocalDateTime.now());
                               return newReview;
                         });
 
-            // 3. Cập nhật nội dung review
             review.setRating(dto.rating());
             review.setContent(dto.content());
             review.setUpdatedAt(LocalDateTime.now());
 
-            // 4. Upload media (nếu có)
+            if (videoFile != null && !videoFile.isEmpty()) {
+                  String videoUrl = uploadFileToCloudinary(videoFile, "video");
+                  review.setVideoReviewUrl(videoUrl);
+            }
+
+            // 5. Upload ảnh (nếu có)
             if (mediaFiles != null && !mediaFiles.isEmpty()) {
-                  AtomicInteger priority = new AtomicInteger(1);
+                  int base = review.getMediaList() == null ? 0 : review.getMediaList().size();
+                  AtomicInteger priority = new AtomicInteger(base + 1);
 
-                  review.setMediaList(
-                              mediaFiles.stream()
-                                          .map(file -> {
-                                                String type = file.getContentType() != null
-                                                            && file.getContentType().startsWith("video")
-                                                                        ? "video"
-                                                                        : "image";
+                  for (MultipartFile file : mediaFiles) {
+                        String imageUrl = uploadFileToCloudinary(file, "image");
 
-                                                String url = uploadFileToCloudinary(file, type);
+                        ReviewMediaEntity media = new ReviewMediaEntity();
+                        media.setUrl(imageUrl);
+                        media.setPriority(priority.getAndIncrement());
+                        media.setReview(review);
 
-                                                ReviewMediaEntity media = new ReviewMediaEntity();
-                                                media.setUrl(url);
-                                                media.setType("video".equals(type) ? MediaType.VIDEO : MediaType.IMAGE);
-                                                media.setPriority(priority.getAndIncrement()); // giống productImages
-                                                media.setReview(review);
-
-                                                return media;
-                                          })
-                                          .collect(Collectors.toList()));
+                        review.getMediaList().add(media);
+                  }
             }
 
             ReviewEntity saved = reviewRepository.save(review);
@@ -125,23 +118,18 @@ public class ReviewServiceImpl implements ReviewService {
                         .getAuthentication()
                         .getPrincipal()).getUserId();
 
-            // 1. Check quyền sở hữu
             if (!review.getAppUser().getId().equals(currentUserId)) {
                   throw new AccessDeniedException("Bạn không có quyền sửa review này");
             }
 
-            // 2. Update nội dung
             reviewMapper.updateReviewMapper(dto, review);
             review.setUpdatedAt(LocalDateTime.now());
 
-            // 3. Giữ lại ảnh cũ nếu có
             if (dto.imageUrlsToKeep() != null) {
                   review.getMediaList().removeIf(media -> !dto.imageUrlsToKeep().contains(media.getUrl()));
             }
 
-            // 4. Thêm ảnh/video mới
             if (newFiles != null && !newFiles.isEmpty()) {
-                  // giống cách anh làm productImages
             }
 
             ReviewEntity saved = reviewRepository.save(review);

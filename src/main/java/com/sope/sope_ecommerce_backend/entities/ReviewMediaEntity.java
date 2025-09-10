@@ -1,6 +1,5 @@
 package com.sope.sope_ecommerce_backend.entities;
 
-import com.sope.sope_ecommerce_backend.enums.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,9 +17,6 @@ public class ReviewMediaEntity {
       private int priority;
 
       private String url;
-
-      @Enumerated(EnumType.STRING)
-      private MediaType type; // IMAGE, VIDEO
 
       @ManyToOne
       @JoinColumn(name = "review_id")

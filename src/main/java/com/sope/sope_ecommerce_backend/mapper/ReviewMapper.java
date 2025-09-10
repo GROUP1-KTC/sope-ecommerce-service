@@ -17,30 +17,26 @@ import com.sope.sope_ecommerce_backend.entities.ReviewEntity;
 public interface ReviewMapper {
       @Mapping(source = "appUser.id", target = "user.id")
       @Mapping(source = "appUser.username", target = "user.username")
-      @Mapping(source = "product.productId", target = "product.productId")
-      @Mapping(source = "product.name", target = "product.name")
+      @Mapping(source = "productVariant", target = "productVariant")
       ReviewDTO toDto(ReviewEntity review); // GET
 
       @Mapping(source = "appUser.id", target = "user.id")
       @Mapping(source = "appUser.username", target = "user.username")
-      @Mapping(source = "product.productId", target = "product.productId")
-      @Mapping(source = "product.name", target = "product.name")
+      @Mapping(source = "productVariant", target = "productVariant")
       List<ReviewDTO> toDtoList(List<ReviewEntity> entities); // GET
-
-      // List<ReviewDTO> toDtoList(List<ReviewEntity> reviewEntities);
 
       @Mapping(target = "createdAt", ignore = true)
       @Mapping(target = "updatedAt", ignore = true)
       @Mapping(target = "appUser", ignore = true)
-      @Mapping(target = "product", ignore = true)
+      @Mapping(target = "productVariant", ignore = true)
       @Mapping(target = "reviewId", ignore = true)
-      @Mapping(target = "mediaList", ignore = true) // handled separately
+      @Mapping(target = "mediaList", ignore = true)
       ReviewEntity toEntity(ReviewCreateDTO reviewCreateDTO); // POST
 
       @Mapping(target = "createdAt", ignore = true)
       @Mapping(target = "updatedAt", ignore = true)
       @Mapping(target = "appUser", ignore = true)
-      @Mapping(target = "product", ignore = true)
+      @Mapping(target = "productVariant", ignore = true)
       @Mapping(target = "reviewId", ignore = true)
       @Mapping(target = "mediaList", ignore = true)
       @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

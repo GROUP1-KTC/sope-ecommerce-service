@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.sope.sope_ecommerce_backend.entities.ReviewEntity;
 
 public interface ReviewRepository extends JpaRepository<ReviewEntity, UUID> {
-      Optional<ReviewEntity> findByAppUser_IdAndProduct_ProductId(UUID userId, UUID productId);
+      Optional<ReviewEntity> findByAppUser_IdAndProductVariant_ProductVariantId(UUID userId, UUID productVariantId);
 
-      List<ReviewEntity> findByProduct_ProductId(UUID productId);
+      List<ReviewEntity> findByProductVariant_Product_ProductId(UUID productId);
 
 }

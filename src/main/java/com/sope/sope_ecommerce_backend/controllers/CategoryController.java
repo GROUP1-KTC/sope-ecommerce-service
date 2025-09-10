@@ -3,7 +3,7 @@ package com.sope.sope_ecommerce_backend.controllers;
 import com.sope.sope_ecommerce_backend.dto.request.CategoryCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.CategoryUpdateCommissionDTO;
 import com.sope.sope_ecommerce_backend.dto.response.CategoryDTO;
-import com.sope.sope_ecommerce_backend.dto.response.CategoryTreeDTO;
+// import com.sope.sope_ecommerce_backend.dto.response.CategoryTreeDTO;
 import com.sope.sope_ecommerce_backend.services.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
