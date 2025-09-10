@@ -13,8 +13,8 @@ public interface UserService {
     UserInformationResponse getCurrentUserInfo();
     UserResponse getUserById(UUID id);
     AppUser getUserEntityById(UUID id);
-    AppUser getUserEntityByEmail(String email);
 
+    UUID getCurrentUserId();
     List<UserInformationResponse> getAllUsers();
     UserInformationResponse updateUser(UUID id,UserUpdateRecord request);
     void changeUserStatus(UUID id, UserStatusRequest request);

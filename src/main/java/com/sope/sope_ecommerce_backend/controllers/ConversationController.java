@@ -3,21 +3,19 @@ package com.sope.sope_ecommerce_backend.controllers;
 import com.sope.sope_ecommerce_backend.dto.request.ConversationCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ConversationResponse;
 import com.sope.sope_ecommerce_backend.services.ConversationService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/conversations")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ConversationController {
     private final ConversationService conversationService;
-
-    public ConversationController(ConversationService conversationService) {
-        this.conversationService = conversationService;
-    }
 
     @PostMapping
     public ResponseEntity<ConversationResponse> createConversation(@RequestBody ConversationCreateRequest request) {
