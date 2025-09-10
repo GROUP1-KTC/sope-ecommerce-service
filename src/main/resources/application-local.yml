@@ -25,7 +25,14 @@ spring:
     restart:
       enabled: true
       additional-paths: src/main/java
-
+  ai:
+    openai:
+      api-key: ${GEMINI_KEY}
+      chat:
+        base-url: https://generativelanguage.googleapis.com
+        completions-path: /v1beta/openai/chat/completions
+        options:
+          model: gemini-2.0-flash
 
   datasource:
     url: jdbc:postgresql://localhost:5432/sope?TimeZone=Asia/Ho_Chi_Minh
@@ -199,6 +206,7 @@ web:
       - "http://localhost:5000"
       - "http://localhost:3000"
       - "http://localhost:3001"
+      - "http://10.19.82.225:3000"
     allowed-methods:
       - GET
       - POST
@@ -213,3 +221,10 @@ web:
     allowed-credentials: true
     max-age: 3600
 
+
+
+livekit:
+  url: "http://localhost:7880"
+  api:
+    key: "devkey"
+    secret: "devsecret"

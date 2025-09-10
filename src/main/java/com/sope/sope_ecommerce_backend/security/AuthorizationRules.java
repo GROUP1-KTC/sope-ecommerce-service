@@ -19,7 +19,7 @@
 
             // Test Socket
             auth.requestMatchers("/api/messages/**").permitAll();
-            auth.requestMatchers("/ws-chat/**").permitAll();
+            auth.requestMatchers("/ws/**").permitAll();
 
 
             // User APIs
