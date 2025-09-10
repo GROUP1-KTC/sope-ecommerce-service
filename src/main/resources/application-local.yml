@@ -25,7 +25,14 @@ spring:
     restart:
       enabled: true
       additional-paths: src/main/java
-
+  ai:
+    openai:
+      api-key: ${GEMINI_KEY}
+      chat:
+        base-url: https://generativelanguage.googleapis.com
+        completions-path: /v1beta/openai/chat/completions
+        options:
+          model: gemini-2.0-flash
 
   datasource:
     url: jdbc:postgresql://localhost:5432/sope?TimeZone=Asia/Ho_Chi_Minh

@@ -54,6 +54,19 @@ public class UserServiceImpl implements UserService {
         return userMapper.toInfoResponse(appUser);
     }
 
+    @Override
+    public UUID getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User chưa đăng nhập");
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userDetails.getUserId();
+    }
+
+
 
     @Override
     public UserResponse getUserById(UUID id) {
@@ -68,12 +81,6 @@ public class UserServiceImpl implements UserService {
         AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return appUser;
-    }
-
-
-    @Override
-    public AppUser getUserEntityByEmail(String email) {
-        return userRepository.findByEmail(email).orElse(null);
     }
 
     @Override
