@@ -10,6 +10,8 @@ import com.sope.sope_ecommerce_backend.repositories.ConversationRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.ConversationService;
+import com.sope.sope_ecommerce_backend.services.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 @Service
 public class ConversationServiceImpl implements ConversationService {
 
@@ -24,14 +27,8 @@ public class ConversationServiceImpl implements ConversationService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final ConversationMapper conversationMapper;
+    private final UserService userService;
 
-    public ConversationServiceImpl(ConversationRepository conversationRepository,
-                                   UserRepository userRepository, UserMapper userMapper, ConversationMapper conversationMapper) {
-        this.conversationRepository = conversationRepository;
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-        this.conversationMapper = conversationMapper;
-    }
 
     @Override
     public ConversationResponse createConversation(ConversationCreateRequest request) {
@@ -40,36 +37,34 @@ public class ConversationServiceImpl implements ConversationService {
         AppUser u2 = userRepository.findById(request.user2())
                 .orElseThrow(() -> new RuntimeException("User 2 not found"));
 
+        UUID currentUserId = userService.getCurrentUserId();
+
         return conversationRepository.findByParticipants(u1.getId(), u2.getId())
-                .map(conversationMapper::toResponse)
+                .map(conv -> conversationMapper.toResponse(conv, currentUserId))
                 .orElseGet(() -> {
                     Conversation newConversation = new Conversation();
                     newConversation.setParticipants(List.of(u1, u2));
-                    return conversationMapper.toResponse(conversationRepository.save(newConversation));
+                    return conversationMapper.toResponse(conversationRepository.save(newConversation), currentUserId);
                 });
     }
 
     @Override
     public List<ConversationResponse> getUserConversations() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UUID currentUserId = userService.getCurrentUserId();
 
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User chưa đăng nhập");
-        }
-
-        CustomUserDetails user = (CustomUserDetails) authentication.getPrincipal();
-
-        return conversationRepository.findByParticipants_Id(user.getUserId())
+        return conversationRepository.findByParticipants_Id(currentUserId)
                 .stream()
-                .map(conversationMapper::toResponse)
+                .map(conv -> conversationMapper.toResponse(conv, currentUserId))
                 .toList();
     }
 
     @Override
     public List<ConversationResponse> getConversationById(UUID conversationId) {
+        UUID currentUserId = userService.getCurrentUserId();
+
         return conversationRepository.findById(conversationId)
                 .stream()
-                .map(conversationMapper::toResponse)
+                .map(conv -> conversationMapper.toResponse(conv, currentUserId))
                 .toList();
     }
 }

@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.entities.message_entity;
 
 import com.sope.sope_ecommerce_backend.entities.Message;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
@@ -11,6 +12,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @DiscriminatorValue("FILE")
+@Schema(description = "File message object")
 public class FileMessage extends Message {
     @Column(name = "file_url")
     private String fileUrl;

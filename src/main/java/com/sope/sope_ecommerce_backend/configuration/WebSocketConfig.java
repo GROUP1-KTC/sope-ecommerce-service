@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // endpoint để client connect
-        registry.addEndpoint("/ws-chat")
+        registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*") // CORS
                 .withSockJS();
     }

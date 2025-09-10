@@ -19,6 +19,14 @@ configurations {
 	}
 }
 
+extra["springAiVersion"] = "1.0.1"
+
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.ai:spring-ai-bom:${extra["springAiVersion"]}")
+	}
+}
+
 repositories {
 	mavenCentral()
 }
@@ -80,6 +88,8 @@ dependencies {
 	// ===== Thymelaf ======
 	implementation("org.springframework.boot:spring-boot-starter-thymeleaf:3.5.4")
 
+	// ===== Gemini AI ======
+	implementation("org.springframework.ai:spring-ai-starter-model-openai")
 
 	// ===== Test =====
 	testImplementation(libs.spring.boot.starter.test)

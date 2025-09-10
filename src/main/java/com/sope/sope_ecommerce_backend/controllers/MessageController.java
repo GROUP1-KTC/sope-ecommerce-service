@@ -20,7 +20,7 @@ public class MessageController {
     private final MessageService messageService;
     private final SimpMessageSendingOperations simpMessagingTemplate;
 
-    @GetMapping("/conversation/{conversationId}")
+    @GetMapping("/{conversationId}")
     public ResponseEntity<List<MessageResponse>> getMessagesByConversation(@PathVariable String conversationId) {
         return ResponseEntity.ok(messageService.getMessagesByConversation(conversationId));
     }
@@ -33,7 +33,6 @@ public class MessageController {
 
     @MessageMapping("/chat")
     public void handleWebSocketMessage(MessageSendRequest request) {
-        // Lưu message vào DB
         MessageResponse savedMessage = messageService.sendMessage(request);
 
         simpMessagingTemplate.convertAndSend(
