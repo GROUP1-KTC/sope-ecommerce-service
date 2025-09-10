@@ -67,6 +67,8 @@ public class MOMOGateway implements PaymentGateway<CreateMomoResponse>{
 
         String secureHash = HmacUtil.hmacSha256Hex(rawSignature, secretKey);
 
+
+
         CreateMomoRequest momoRequest = CreateMomoRequest.builder()
                 .partnerCode(partnerCode)
                 .requestType("captureWallet")
