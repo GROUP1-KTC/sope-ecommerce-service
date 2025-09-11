@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.UUID;
 
 public record ReviewDTO(
-        UUID reviewId,
-        Integer rating,
-        String content,
-        UserInfo user,
-        ProductVariantInfo productVariant,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt,
-        List<ReviewMediaDTO> mediaList) {
+                UUID reviewId,
+                Integer rating,
+                String content,
+                UserInfo user,
+                String videoReviewUrl,
+                ProductVariantInfo productVariant,
+                LocalDateTime createdAt,
+                LocalDateTime updatedAt,
+                List<ReviewMediaDTO> mediaList) {
 }
