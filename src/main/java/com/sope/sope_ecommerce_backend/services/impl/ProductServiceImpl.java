@@ -14,6 +14,7 @@ import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
 import com.sope.sope_ecommerce_backend.mapper.ProductVariantMapper;
 import com.sope.sope_ecommerce_backend.repositories.*;
+import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import com.sope.sope_ecommerce_backend.services.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +61,8 @@ public class ProductServiceImpl implements ProductService {
       private final ShopRepository shopRepository;
       private final Cloudinary cloudinary;
       private final AttributeRepository attributeRepository;
+
+      private final PhobertEmbeddedService phobertEmbeddedService;
 
       @Override
       @Transactional(readOnly = true)
@@ -250,6 +253,9 @@ public class ProductServiceImpl implements ProductService {
                               .collect(Collectors.toList());
                   entity.setProductDetails(details);
             }
+
+            entity.setEmbedding(null);
+
             productRepository.save(entity);
 
             String first8ProductId = entity.getProductId().toString().substring(0, 8);
@@ -258,7 +264,13 @@ public class ProductServiceImpl implements ProductService {
             Slugify slugify = Slugify.builder().build();
             entity.setSlug(slugify.slugify(dto.name()) + "-" + first8ProductId + "-" + first8ShopId);
 
+            float[] embeddingVector = phobertEmbeddedService.getEmbedding(
+                    "Name:" + entity.getName() + ", Description:" + entity.getDescription()
+            );
+
             Product savedEntity = productRepository.save(entity);
+
+            savedEntity.setEmbedding(embeddingVector);
 
             return productMapper.toDto(savedEntity);
       }

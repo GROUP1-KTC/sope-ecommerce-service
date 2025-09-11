@@ -2,12 +2,14 @@ package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.*;
+import com.sope.sope_ecommerce_backend.dto.response.ChatAIResponse;
 import com.sope.sope_ecommerce_backend.dto.response.TokenRefreshResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.services.AuthService;
 import com.sope.sope_ecommerce_backend.services.CookieService;
 import com.sope.sope_ecommerce_backend.services.impl.CookieServiceImpl;
+import com.sope.sope_ecommerce_backend.services.impl.GeminiServiceImpl;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -153,4 +155,21 @@ public class AuthController {
             return ApiResponseUtil.internalError("Failed to reset password", List.of(e.getMessage()));
         }
     }
+
+
+    final private GeminiServiceImpl geminiService;
+
+    @PostMapping("/chat")
+    public ResponseEntity<ApiResponse<String>> chat(@RequestParam String message) {
+        try {
+            // Tạm thời dùng GeminiServiceImpl để test
+            ChatRequest chatRequest = new ChatRequest(message); // Nếu chưa có constructor, tạo tạm
+            ChatAIResponse response = geminiService.sendMessage(chatRequest); // autowire GeminiServiceImpl
+
+            return ApiResponseUtil.success(response.reply(), "Chat successful");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Chat failed", List.of(e.getMessage()));
+        }
+    }
+
 }

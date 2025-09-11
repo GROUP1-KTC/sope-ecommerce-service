@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sope.sope_ecommerce_backend.integration.gemini.GeminiProperties;
 import com.sope.sope_ecommerce_backend.integration.shipping.GoshipProperties;
 import feign.RequestInterceptor;
 import feign.codec.Decoder;
@@ -28,4 +29,21 @@ public class FeignConfig {
             requestTemplate.header("Authorization", "Bearer " + props.getAuthToken());
         };
     }
+
+    @Bean
+    public RequestInterceptor geminiInterceptor(GeminiProperties props) {
+        return requestTemplate -> {
+            requestTemplate.header("Accept", "application/json");
+            requestTemplate.header("Content-Type", "application/json");
+            requestTemplate.header("Authorization", "Bearer " + props.getApiKey());
+        };
+    }
+
+
+    @Bean
+    public feign.Logger.Level feignLoggerLevel() {
+        return feign.Logger.Level.FULL;
+    }
+
+
 }

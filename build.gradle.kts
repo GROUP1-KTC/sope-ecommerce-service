@@ -99,6 +99,9 @@ dependencies {
 	testImplementation(libs.h2database)
 //  livekit
 	implementation("io.livekit:livekit-server:0.10.0")
+
+	// https://mvnrepository.com/artifact/com.pgvector/pgvector
+	implementation("com.pgvector:pgvector:0.1.6")
 }
 
 //tasks.withType<Test> {
