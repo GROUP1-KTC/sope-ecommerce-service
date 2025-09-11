@@ -8,11 +8,11 @@ import com.sope.sope_ecommerce_backend.dto.response.AttributeDTO;
 import com.sope.sope_ecommerce_backend.entities.Dimension;
 
 public record ProductVariantRequestDTO(
-            UUID productVariantId,
-            BigDecimal price,
-            Integer stock,
-            List<AttributeDTO> attributes,
-            String imageVariant,
-            Dimension dimension,
-            BigDecimal weight) {
+        UUID productVariantId,
+        BigDecimal price,
+        Integer stock,
+        List<AttributeDTO> attributes,
+        String imageVariant,
+        Dimension dimension,
+        BigDecimal weight) {
 }

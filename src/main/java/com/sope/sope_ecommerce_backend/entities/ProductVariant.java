@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,13 +36,21 @@ public class ProductVariant {
 
     private BigDecimal weight;
 
+    // @Column(name = "sku", unique = true, nullable = false, length = 100)
+    // private String sku;
+
+    @OneToMany(mappedBy = "productVariant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ReviewEntity> reviews = new ArrayList<>();
+
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @ManyToMany(cascade = { CascadeType.PERSIST })
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinTable(name = "product_variant_attributes", joinColumns = @JoinColumn(name = "product_variant_id"), inverseJoinColumns = @JoinColumn(name = "attribute_id"))
+    @OrderColumn(name = "attribute_order")
     @Builder.Default
-    private Set<Attribute> attributes = new HashSet<>();
+    private List<Attribute> attributes = new ArrayList<>();
 
 }

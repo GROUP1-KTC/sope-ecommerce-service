@@ -1,15 +1,16 @@
-// package com.sope.sope_ecommerce_backend.repositories;
+package com.sope.sope_ecommerce_backend.repositories;
 
-// import java.util.Optional;
-// import java.util.UUID;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-// import org.springframework.data.jpa.repository.JpaRepository;
-// import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-// import com.sope.sope_ecommerce_backend.entities.ReviewEntity;
+import com.sope.sope_ecommerce_backend.entities.ReviewEntity;
 
-// @Repository
-// public interface ReviewRepository extends JpaRepository<ReviewEntity, Long> {
-// Optional<ReviewEntity> findByAppUser_IdAndProductVariant_Id(UUID userId, UUID
-// productVariantId);
-// }
+public interface ReviewRepository extends JpaRepository<ReviewEntity, UUID> {
+      Optional<ReviewEntity> findByAppUser_IdAndProductVariant_ProductVariantId(UUID userId, UUID productVariantId);
+
+      List<ReviewEntity> findByProductVariant_Product_ProductId(UUID productId);
+
+}

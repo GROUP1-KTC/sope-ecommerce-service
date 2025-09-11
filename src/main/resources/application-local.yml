@@ -177,7 +177,7 @@ payment-gateway:
     partner-code: MOMO
     endpoint: https://test-payment.momo.vn/v2/gateway/api
     return-url: http://localhost:3000/payment-status
-    ipn-url:  https://955e8fbdb4c0.ngrok-free.app/api/payments/webhook/momo
+    ipn-url:  https://0e2551b16edb.ngrok-free.app/api/payments/webhook/momo
     access-key: F8BBA842ECF85
     secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
     request-type: captureWallet
@@ -194,14 +194,16 @@ shipping-unit:
 api:
 
 cloudinary:
-  cloud-name: dybo8zd4y123
-  api-key: 111854312673546
-  api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
 
 web:
   cors:
     allowed-origins:
       - "http://localhost:5173"
+      - "http://localhost:5000"
       - "http://localhost:3000"
       - "http://localhost:3001"
       - "http://10.19.82.225:3000"
