@@ -1,6 +1,10 @@
 package com.sope.sope_ecommerce_backend.dto.request;
 
+import com.sope.sope_ecommerce_backend.enums.UserStatus;
+
 public record UserStatusRequest(
-        String status
+        UserStatus status,
+        String note
+
 ) {
 }

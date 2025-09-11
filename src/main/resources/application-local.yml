@@ -177,7 +177,7 @@ payment-gateway:
     partner-code: MOMO
     endpoint: https://test-payment.momo.vn/v2/gateway/api
     return-url: http://localhost:3000/payment-status
-    ipn-url:  https://0e2551b16edb.ngrok-free.app/api/payments/webhook/momo
+    ipn-url:  https://5dec006a5639.ngrok-free.app/api/payments/webhook/momo
     access-key: F8BBA842ECF85
     secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
     request-type: captureWallet

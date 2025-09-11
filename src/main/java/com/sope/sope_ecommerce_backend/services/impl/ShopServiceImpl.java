@@ -2,11 +2,13 @@ package com.sope.sope_ecommerce_backend.services.impl;
 
 import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
 import com.sope.sope_ecommerce_backend.entities.Shop;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.ShopAddress;
+import com.sope.sope_ecommerce_backend.enums.UserStatus;
 import com.sope.sope_ecommerce_backend.mapper.ShopMapper;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
@@ -154,12 +156,18 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public ShopResponse changeShopStatus(UUID shopId, Shop.Status shopStatus) {
-        Shop shop = shopRepository.findById(shopId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy shop với id: " + shopId));
+    public ShopResponse changeShopStatus(ShopUpdateStatusRequest request) {
+        Shop shop = shopRepository.findById(request.shopId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy shop với id: " + request.shopId()));
 
-        shop.setStatus(shopStatus);
+        shop.setStatus(request.status());
         shop.setUpdatedAt(LocalDateTime.now());
+
+        if (shop.getStatus() == Shop.Status.BANNED) {
+            shop.setNote(request.note());
+        } else {
+            shop.setNote(null);
+        }
 
         Shop savedShop = shopRepository.save(shop);
 
