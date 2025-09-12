@@ -30,6 +30,8 @@ public record ShopOrderResponse(
         PaymentProvider paymentProvider,
         PaymentStatus paymentStatus,
 
+        String paymentPayUrl,
+
         List<OrderStatusHistoryResponse> statusHistory,
 
         LocalDateTime createdAt

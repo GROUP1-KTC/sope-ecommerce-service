@@ -27,6 +27,7 @@ public interface OrderMapper {
     @Mapping(target = "orderDiscounts", source = "discounts")
     @Mapping(target = "paymentMethod", source = "payment.paymentMethod")
     @Mapping(target = "paymentProvider", source = "payment.provider")
+    @Mapping(target = "paymentPayUrl", source = "payment.providerPayUrl")
     @Mapping(target = "paymentStatus", source = "payment.status")
     @Mapping(target = "items", source = "orderItems")
     ShopOrderResponse toShopOrderResponse(Order entity);

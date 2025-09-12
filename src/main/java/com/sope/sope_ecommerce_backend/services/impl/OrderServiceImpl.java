@@ -15,6 +15,7 @@ import com.sope.sope_ecommerce_backend.repositories.TempOrderRepository;
 import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -151,6 +153,7 @@ public class OrderServiceImpl implements OrderService {
             productVariantService.saveProductVariant(productVariant);
         }
 
+
         order.setStatus(newStatus);
         order.setCancelReason(reason);
         addStatusHistory(order, newStatus);
@@ -174,11 +177,23 @@ public class OrderServiceImpl implements OrderService {
         OrderStatus newStatus = request.status();
 
         if (order.getStatus() == newStatus) {
-            return;
+            throw new CustomException("Order is already in status " + newStatus);
         }
 
         if (!isValidStatusTransition(order.getStatus(), newStatus)) {
             throw new CustomException("Invalid status transition from " + order.getStatus() + " to " + newStatus);
+        }
+
+        if(newStatus == OrderStatus.CANCELLED){
+            List<OrderItem> items = order.getOrderItems();
+            for (OrderItem item : items) {
+                ProductVariant productVariant = item.getProductVariant();
+                productVariant.setStock(productVariant.getStock() + item.getQuantity());
+                productVariant.setSold(productVariant.getSold() - item.getQuantity());
+                productVariantService.saveProductVariant(productVariant);
+            }
+
+            order.setCancelReason(request.reason());
         }
 
         order.setExpireAt(null);
