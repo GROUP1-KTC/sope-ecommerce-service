@@ -16,12 +16,16 @@ import com.sope.sope_ecommerce_backend.services.*;
 import com.sope.sope_ecommerce_backend.services.patterns.OrderCreationStrategy;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-
 
 @Slf4j
 @Service
@@ -39,11 +43,11 @@ public class OrderServiceImpl implements OrderService {
 
     private final List<OrderCreationStrategy<?>> strategies;
 
-
     /**
      * Creates a new order based on the provided request.
      *
-     * @param request the order creation request containing user ID, shipping address ID, and other details
+     * @param request the order creation request containing user ID, shipping
+     *                address ID, and other details
      * @return the created order response
      */
     @Override
@@ -73,7 +77,6 @@ public class OrderServiceImpl implements OrderService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unsupported order request type"));
 
-
         return strategy.createOrder(request, userId);
     }
 
@@ -82,6 +85,42 @@ public class OrderServiceImpl implements OrderService {
     public void saveOrder(Order order) {
         addStatusHistory(order, order.getStatus());
         orderRepository.save(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<? extends OrderResponse> getRevenueByShop(UUID shopId) {
+        List<Order> orders = orderRepository.findByShop_Id(shopId);
+
+        if (orders.isEmpty()) {
+            throw new CustomException("No orders found for shopId: " + shopId);
+        }
+
+        return orderMapper.toUserOrderResponseDTOs(orders);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse getOrderByOrderNumber(String orderNumber) {
+        return orderRepository.findByOrderNumber(orderNumber)
+                .map(orderMapper::toOrderResponseDTO) // ánh xạ sang UserOrderResponse
+                .orElseThrow(() -> new NoSuchElementException("Order not found with orderNumber: " + orderNumber));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<? extends OrderResponse> getAllOrdersByShop(UUID shopId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orders = orderRepository.findByShop_Id(shopId, pageable);
+
+        if (orders.isEmpty()) {
+            throw new CustomException("No orders found for shopId: " + shopId);
+        }
+
+        return new PageImpl<>(
+                orderMapper.toUserOrderResponseDTOs(orders.getContent()), // convert list
+                pageable,
+                orders.getTotalElements());
     }
 
     @Override
@@ -104,7 +143,6 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("No orders found for user");
         }
 
-
         return orderMapper.toUserOrderResponseDTOs(orders);
     }
 
@@ -115,9 +153,8 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.toOrderResponseDTO(order);
     }
 
-
     @Override
-    public  List<Order> findOrderByStatusPendingAndExpireAtBefore(LocalDateTime now){
+    public List<Order> findOrderByStatusPendingAndExpireAtBefore(LocalDateTime now) {
         List<Order> orders = orderRepository.findByStatusAndExpireAtBefore(OrderStatus.PENDING, now);
         if (orders.isEmpty()) {
             throw new CustomException("No pending orders found that are expired");
@@ -153,7 +190,6 @@ public class OrderServiceImpl implements OrderService {
             productVariantService.saveProductVariant(productVariant);
         }
 
-
         order.setStatus(newStatus);
         order.setCancelReason(reason);
         addStatusHistory(order, newStatus);
@@ -165,9 +201,6 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponse updateOrder(UUID id, OrderCreateRequest order) {
         return null;
     }
-
-
-
 
     @Transactional
     public void updateOrderStatus(UpdateOrderStatusRequest request) {
@@ -184,7 +217,7 @@ public class OrderServiceImpl implements OrderService {
             throw new CustomException("Invalid status transition from " + order.getStatus() + " to " + newStatus);
         }
 
-        if(newStatus == OrderStatus.CANCELLED){
+        if (newStatus == OrderStatus.CANCELLED) {
             List<OrderItem> items = order.getOrderItems();
             for (OrderItem item : items) {
                 ProductVariant productVariant = item.getProductVariant();
@@ -201,8 +234,6 @@ public class OrderServiceImpl implements OrderService {
         addStatusHistory(order, newStatus);
         orderRepository.save(order);
     }
-
-
 
     /**
      * Adds a status history entry for the given order.

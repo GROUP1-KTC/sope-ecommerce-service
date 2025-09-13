@@ -14,26 +14,26 @@ import java.util.Set;
 import java.util.UUID;
 
 public record ShopOrderResponse(
-        ShopInfo shopInfo,
-        UUID orderId,
-        String orderNumber,
-        BigDecimal shippingCharges,
-        BigDecimal subTotal,
-        BigDecimal totalAmount,
+                ShopInfo shopInfo,
+                UUID orderId,
+                String orderNumber,
+                BigDecimal shippingCharges,
+                BigDecimal subTotal,
+                BigDecimal totalAmount,
 
-        OrderStatus status,
-        String note,
-        String cancelReason,
-        Set<OrderDiscountResponse> orderDiscounts,
-        List<OrderItemResponse> items,
-        PaymentMethod paymentMethod,
-        PaymentProvider paymentProvider,
-        PaymentStatus paymentStatus,
+                OrderStatus status,
+                String note,
+                String cancelReason,
+                String shippingRateId,
+                Set<OrderDiscountResponse> orderDiscounts,
+                List<OrderItemResponse> items,
+                PaymentMethod paymentMethod,
+                PaymentProvider paymentProvider,
+                PaymentStatus paymentStatus,
 
-        String paymentPayUrl,
+                String paymentPayUrl,
 
-        List<OrderStatusHistoryResponse> statusHistory,
+                List<OrderStatusHistoryResponse> statusHistory,
 
-        LocalDateTime createdAt
-) {
+                LocalDateTime createdAt) {
 }

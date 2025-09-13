@@ -30,4 +30,7 @@ public class OrderItem {
 
     @Column(nullable = false)
     private BigDecimal price;
+
+    @Column(nullable = false, name = "commission_fee_percent", precision = 5, scale = 2)
+    private BigDecimal commissionFeePercent;
 }

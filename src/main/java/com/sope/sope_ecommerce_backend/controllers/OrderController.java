@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.UUID;
@@ -45,6 +46,40 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/{orderNumber}")
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrderByOrderNumber(
+            @PathVariable String orderNumber) {
+        try {
+            OrderResponse order = orderService.getOrderByOrderNumber(orderNumber);
+            return ApiResponseUtil.success(order, "Order fetched successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to fetch order", List.of(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/shop/{shopId}")
+    public ResponseEntity<ApiResponse<Page<? extends OrderResponse>>> getAllOrdersByShop(
+            @PathVariable UUID shopId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            Page<? extends OrderResponse> orders = orderService.getAllOrdersByShop(shopId, page, size);
+            return ApiResponseUtil.success(orders, "Orders for shop fetched successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to fetch orders", List.of(e.getMessage()));
+        }
+    }
+
+    @GetMapping("/revenue/{shopId}")
+    public ResponseEntity<ApiResponse<List<? extends OrderResponse>>> getRevenueByShop(@PathVariable UUID shopId) {
+        try {
+            List<? extends OrderResponse> orders = orderService.getRevenueByShop(shopId);
+            return ApiResponseUtil.success(orders, "Orders for shop fetched successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to fetch orders", List.of(e.getMessage()));
+        }
+    }
+
     @GetMapping("/user")
     public ResponseEntity<ApiResponse<List<? extends OrderResponse>>> getAllOrdersByUserAccount(
             @AuthenticationPrincipal CustomUserDetails currentUser) {
@@ -59,7 +94,6 @@ public class OrderController {
             return ApiResponseUtil.internalError("Failed to fetch orders", List.of(e.getMessage()));
         }
     }
-
 
     @PostMapping()
     public ResponseEntity<ApiResponse<List<? extends OrderResponse>>> createOrder(
@@ -76,22 +110,21 @@ public class OrderController {
 
     @PatchMapping("/cancel/{id}")
     public ResponseEntity<ApiResponse<String>> cancelOrder(@PathVariable UUID id,
-                                                           @RequestBody CancelOrderRequest request,
-                                                           @AuthenticationPrincipal CustomUserDetails currentUser
-    ) {
-       try {
+            @RequestBody CancelOrderRequest request,
+            @AuthenticationPrincipal CustomUserDetails currentUser) {
+        try {
 
             if (currentUser == null) {
                 return ApiResponseUtil.unauthorized("User is not logged in");
             }
 
-           String cancelReason = request.reason();
+            String cancelReason = request.reason();
 
             orderService.cancelOrder(id, cancelReason, currentUser.getUserId());
             return ApiResponseUtil.success(null, "Order cancelled successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to cancel order", List.of(e.getMessage()));
-       }
+        }
     }
 
     @PatchMapping("/update-status")

@@ -57,18 +57,18 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
 
     @Override
     @Transactional
-    public List<? extends  OrderResponse> createOrder(UserOrderCreateRequest request, UUID userId) {
+    public List<? extends OrderResponse> createOrder(UserOrderCreateRequest request, UUID userId) {
         // 1. Lấy địa chỉ giao hàng + user
         AppUser user = userService.getUserEntityById(userId);
         Address shippingAddress = addressService.getAddressEntityById(request.shippingAddressId());
 
-//        List<Order> ordersToSave = new ArrayList<>();
+        // List<Order> ordersToSave = new ArrayList<>();
         List<OrderItem> allOrderItems = new ArrayList<>();
 
         // 2. Build order cho từng shop
-            List<Order> ordersToSave = request.shopOrders().stream()
-                    .map(shopOrder -> buildOrder(shopOrder, user, shippingAddress, request, allOrderItems, userId))
-                    .toList();
+        List<Order> ordersToSave = request.shopOrders().stream()
+                .map(shopOrder -> buildOrder(shopOrder, user, shippingAddress, request, allOrderItems, userId))
+                .toList();
 
         // 3. Batch update stock
         batchUpdateStock(allOrderItems);
@@ -91,20 +91,18 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
             List<Order> persistedOrders = IdempotencyUtils.saveWithIdempotency(
                     () -> paymentRepository.save(sharedPayment).getOrders(),
                     () -> Optional.of(orderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
-                    new RuntimeException("Order not found after duplicate key")
-            );
+                    new RuntimeException("Order not found after duplicate key"));
 
             return persistedOrders.stream()
                     .map(orderMapper::toOrderResponseDTO)
                     .toList();
         }
 
-
         // 6. Apply idempotency
         List<Order> persistedOrders = IdempotencyUtils.saveWithIdempotency(
-                            () -> orderRepository.saveAll(ordersToSave),
-                            () ->  Optional.of(orderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
-                            new RuntimeException("Order not found after duplicate key"));
+                () -> orderRepository.saveAll(ordersToSave),
+                () -> Optional.of(orderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
+                new RuntimeException("Order not found after duplicate key"));
 
         return persistedOrders.stream()
                 .map(orderMapper::toOrderResponseDTO)
@@ -112,11 +110,11 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
     }
 
     private Order buildOrder(ShopOrderRequest shopOrder,
-                             AppUser user,
-                             Address shippingAddress,
-                             UserOrderCreateRequest request,
-                             List<OrderItem> allOrderItems,
-                             UUID userId) {
+            AppUser user,
+            Address shippingAddress,
+            UserOrderCreateRequest request,
+            List<OrderItem> allOrderItems,
+            UUID userId) {
 
         Shop shop = shopService.getShopEntityById(shopOrder.shopId());
 
@@ -130,7 +128,8 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
             } else if (itemReq.quantity() <= 0) {
                 throw new CustomException("Quantity must be greater than zero for " + variant.getProduct().getName());
             } else if (!variant.getProduct().getShop().getId().equals(shop.getId())) {
-                throw new CustomException("Product " + variant.getProduct().getName() + " does not belong to shop " + shop.getName());
+                throw new CustomException(
+                        "Product " + variant.getProduct().getName() + " does not belong to shop " + shop.getName());
 
             }
 
@@ -138,12 +137,13 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                     .productVariant(variant)
                     .quantity(itemReq.quantity())
                     .price(variant.getPrice())
+                    .commissionFeePercent(variant.getProduct().getCategory().getCommissionFeePercent())
                     .build();
 
             orderItems.add(orderItem);
             allOrderItems.add(orderItem);
 
-            BigDecimal itemPrice =  orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+            BigDecimal itemPrice = orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
             subTotal = subTotal.add(itemPrice);
         }
 
@@ -179,11 +179,14 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
         BigDecimal subtotalAfterDiscount = subTotal.subtract(discountOnOrder);
         BigDecimal shippingAfterDiscount = shippingCharges.subtract(discountOnShipping);
 
-        if (subtotalAfterDiscount.compareTo(BigDecimal.ZERO) < 0) subtotalAfterDiscount = BigDecimal.ZERO;
-        if (shippingAfterDiscount.compareTo(BigDecimal.ZERO) < 0) shippingAfterDiscount = BigDecimal.ZERO;
+        if (subtotalAfterDiscount.compareTo(BigDecimal.ZERO) < 0)
+            subtotalAfterDiscount = BigDecimal.ZERO;
+        if (shippingAfterDiscount.compareTo(BigDecimal.ZERO) < 0)
+            shippingAfterDiscount = BigDecimal.ZERO;
 
         BigDecimal totalAmount = subtotalAfterDiscount.add(shippingAfterDiscount);
-        if (totalAmount.compareTo(BigDecimal.ZERO) < 0) totalAmount = BigDecimal.ZERO;
+        if (totalAmount.compareTo(BigDecimal.ZERO) < 0)
+            totalAmount = BigDecimal.ZERO;
 
         // === Build Order ===
         Order order = Order.builder()
@@ -203,15 +206,6 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                 .shippingRateId(shopOrder.shippingRateId())
                 .idempotencyKey(request.idempotencyKey() + "-" + shop.getId())
                 .build();
-
-        // === Commission ===
-        CommissionEntity commission = CommissionEntity.builder()
-                .commissionRate(new BigDecimal("0.05"))
-                .commissionAmount(subTotal.multiply(new BigDecimal("0.05")))
-                .recordedAt(LocalDateTime.now())
-                .order(order)
-                .build();
-        order.setCommission(commission);
 
         // === Payment ===
         if (request.paymentMethod() == PaymentMethod.COD) {
@@ -233,8 +227,7 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                     OrderItemId.builder()
                             .orderId(order.getOrderId())
                             .productVariantId(item.getProductVariant().getProductVariantId())
-                            .build()
-            );
+                            .build());
         });
         discounts.forEach(d -> d.setOrder(order));
 
@@ -257,13 +250,10 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
             stockUpdates.merge(
                     item.getProductVariant().getProductVariantId(),
                     item.getQuantity(),
-                    Integer::sum
-            );
+                    Integer::sum);
         }
         productVariantService.updateStockBatch(stockUpdates);
     }
-
-
 
     private void addStatusHistory(Order order, OrderStatus status) {
         OrderStatusHistory history = OrderStatusHistory.builder()
