@@ -19,6 +19,12 @@ public class ShopAddress {
     private UUID id;
 
     @Column(nullable = false)
+    private String senderName;
+
+    @Column(nullable = false)
+    private String senderPhone;
+
+    @Column(nullable = false)
     private String street;
 
     @Column(nullable = false)
@@ -32,8 +38,6 @@ public class ShopAddress {
 
     @Column(nullable = false)
     private String country;
-
-    private String zipCode;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_id", nullable = false)

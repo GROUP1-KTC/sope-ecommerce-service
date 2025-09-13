@@ -7,5 +7,8 @@ public record ShopCreateRequest (
         ShopAddressRequest address,
         String description,
         String logoUrl,
+        String taxCode,
+        String taxDocumentUrl,
+        ShopIdentificationRequest identification,
         boolean isMall
 ) {}

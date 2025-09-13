@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
+import com.sope.sope_ecommerce_backend.dto.form.ShopCreateForm;
 import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
@@ -9,6 +10,7 @@ import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.ShopService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,14 +26,15 @@ public class ShopController {
     private final ShopService shopService;
 
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ShopResponse> createShop(
-            @Valid @RequestBody ShopCreateRequest request,
-            @AuthenticationPrincipal CustomUserDetails currentUser) {
-
-        ShopResponse createdShop = shopService.createShop(request, currentUser.getUserId());
-        return ResponseEntity.ok(createdShop);
+            @ModelAttribute ShopCreateForm form,
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        ShopResponse response = shopService.createShop(form, user.getUserId());
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/me")
     public ResponseEntity<ShopResponse> getShop(@AuthenticationPrincipal CustomUserDetails currentUser) {
@@ -46,10 +49,11 @@ public class ShopController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ShopResponse> getShopById(UUID shopId) {
+    public ResponseEntity<ShopResponse> getShopById(@PathVariable("id") UUID shopId) {
         ShopResponse getShop = shopService.getShopById(shopId);
         return ResponseEntity.ok(getShop);
     }
+
 
     @PatchMapping()
     public ResponseEntity<ShopResponse> updateShop(

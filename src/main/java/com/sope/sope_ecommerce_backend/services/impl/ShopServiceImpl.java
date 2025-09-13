@@ -1,18 +1,25 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sope.sope_ecommerce_backend.dto.form.ShopCreateForm;
 import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.ShopIdentificationRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
 import com.sope.sope_ecommerce_backend.entities.Shop;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.ShopAddress;
+import com.sope.sope_ecommerce_backend.entities.ShopIdentification;
 import com.sope.sope_ecommerce_backend.mapper.ShopMapper;
+import com.sope.sope_ecommerce_backend.repositories.ShopIdentificationRepository;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
+import com.sope.sope_ecommerce_backend.services.FileUploadService;
 import com.sope.sope_ecommerce_backend.services.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +37,12 @@ public class ShopServiceImpl implements ShopService {
 
     private final UserRepository userRepository;
 
+    private final FileUploadService fileUploadService;
+
+    private final ObjectMapper objectMapper;
+
+    private final ShopIdentificationRepository shopIdentificationRepository;
+
     @Override
     public ShopResponse createShop(ShopCreateRequest request, UUID userId) {
         AppUser appUser = userRepository.findById(userId)
@@ -45,11 +58,72 @@ public class ShopServiceImpl implements ShopService {
                     .district(request.address().district())
                     .city(request.address().city())
                     .country(request.address().country())
-                    .zipCode(request.address().zipCode())
                     .shop(shop)
                     .build();
             shop.setAddress(address);
         }
+
+        Shop savedShop = shopRepository.save(shop);
+
+        return shopMapper.toResponse(savedShop);
+    }
+
+    @Transactional
+    @Override
+    public ShopResponse createShop(ShopCreateForm form, UUID userId) {
+        // parse JSON sang ShopCreateRequest
+        ShopCreateRequest request;
+        try {
+            request = objectMapper.readValue(form.getRequestJson(), ShopCreateRequest.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid shop metadata JSON", e);
+        }
+
+        AppUser appUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User không tồn tại: " + userId));
+
+        // Upload các file
+        ShopIdentificationRequest idReq = request.identification();
+        if (idReq == null || idReq.idName() == null || idReq.idNumber() == null || idReq.idType() == null) {
+            throw new IllegalArgumentException("Thông tin định danh không đầy đủ");
+        }
+
+        String logoUrl = form.getLogoFile() != null ? fileUploadService.uploadImage(form.getLogoFile()) : request.logoUrl();
+        String taxUrl = form.getTaxFile() != null ? fileUploadService.uploadImage(form.getTaxFile()) : request.taxDocumentUrl();
+        String idFrontUrl = form.getIdFront() != null ? fileUploadService.uploadImage(form.getIdFront()) : idReq.idFront();
+        String idBackUrl = form.getIdBack() != null ? fileUploadService.uploadImage(form.getIdBack()) : idReq.idBack();
+        String selfieUrl = form.getSelfie() != null ? fileUploadService.uploadImage(form.getSelfie()) : idReq.selfie();
+
+        Shop shop = shopMapper.toEntity(request);
+        shop.setAppUser(appUser);
+        shop.setLogoUrl(logoUrl);
+        shop.setTaxDocumentUrl(taxUrl);
+
+        if (request.address() != null) {
+            ShopAddress address = ShopAddress.builder()
+                    .senderName(request.address().senderName())
+                    .senderPhone(request.address().senderPhone())
+                    .street(request.address().street())
+                    .ward(request.address().ward())
+                    .district(request.address().district())
+                    .city(request.address().city())
+                    .country(request.address().country())
+                    .shop(shop)
+                    .build();
+            shop.setAddress(address);
+        }
+
+        ShopIdentification identification = ShopIdentification.builder()
+                .idType(idReq.idType())
+                .idName(idReq.idName())
+                .idNumber(idReq.idNumber())
+                .idFront(idFrontUrl)
+                .idBack(idBackUrl)
+                .selfie(selfieUrl)
+                .shop(shop)
+                .build();
+
+        shop.setIdentification(identification);
 
         Shop savedShop = shopRepository.save(shop);
 
@@ -71,10 +145,12 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public  ShopResponse getShopById(UUID shopId) {
-        Optional<Shop> shop = shopRepository.findById(shopId);
-        return shopMapper.toResponse(shop.orElse(null));
+    public ShopResponse getShopById(UUID shopId) {
+        Shop shop = shopRepository.findById(shopId)
+                .orElseThrow(() -> new RuntimeException("Shop not found with id: " + shopId));
+        return shopMapper.toResponse(shop);
     }
+
 
     @Override
     public Shop getShopEntityById(UUID shopId) {
@@ -146,9 +222,6 @@ public class ShopServiceImpl implements ShopService {
         }
         if (request.address().country() != null) {
             address.setCountry(request.address().country());
-        }
-        if (request.address().zipCode() != null) {
-            address.setZipCode(request.address().zipCode());
         }
         return address;
     }
