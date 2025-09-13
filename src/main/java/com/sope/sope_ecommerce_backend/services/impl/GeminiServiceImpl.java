@@ -29,7 +29,11 @@ public class GeminiServiceImpl implements GeminiService {
         Map<String, Object> keywordMsg = new HashMap<>();
         keywordMsg.put("role", "user");
         keywordMsg.put("content",
-                "Extract important keywords from this question, return as a JSON array of strings only:\n" + userQuestion);
+                "Extract the important keywords from the following question. " +
+                        "Return **only** a JSON array of strings, without any extra explanation, text, or formatting:\n" +
+                        userQuestion
+        );
+
 
         Map<String, Object> keywordBody = new HashMap<>();
         keywordBody.put("model", "gemini-2.0-flash");
@@ -45,8 +49,6 @@ public class GeminiServiceImpl implements GeminiService {
                 Map<String, Object> messageResp = (Map<String, Object>) first.get("message");
                 String content = messageResp.get("content").toString();
 
-                // parse thủ công (có thể thay bằng Jackson)
-                // parse thủ công (có thể thay bằng Jackson)
                 content = content
                         .replaceAll("(?s)```json", "") // bỏ code fence mở
                         .replaceAll("```", "")         // bỏ code fence đóng
@@ -75,19 +77,25 @@ public class GeminiServiceImpl implements GeminiService {
         List<Product> candidates = productRepository.searchByKeywords(patterns, 50);
 
         if (candidates.isEmpty()) {
-            return new ChatAIResponse("Không tìm thấy sản phẩm nào phù hợp với từ khóa: " + keywords);
+            return new ChatAIResponse("Không tìm thấy sản phẩm nào phù hợp với yêu cầu của bạn");
         }
 
         // ==============================
         // 3. Build context cho Gemini
         // ==============================
-        StringBuilder context = new StringBuilder("Người dùng hỏi: " + userQuestion + "\n");
-        context.append("Các sản phẩm phù hợp trong kho dữ liệu:\n");
+        StringBuilder context = new StringBuilder();
+        context.append("You are Chatbot AI for an e-commerce store.\n");
+        context.append("Your role is to answer customer questions directly, clearly, and politely. ")
+                .append("Do NOT include explanations, reasoning, or extra commentary.\n\n");
+        context.append("Customer asks: ").append(userQuestion).append("\n\n");
+        context.append("Relevant products in inventory:\n");
         for (Product p : candidates) {
             context.append("- ").append(p.getName())
                     .append(": ").append(p.getDescription() != null ? p.getDescription() : "")
                     .append("\n");
         }
+        context.append("\nPlease respond to the customer directly based on the products above.");
+
 
         // ==============================
         // 4. Gọi Gemini để tạo câu trả lời cuối

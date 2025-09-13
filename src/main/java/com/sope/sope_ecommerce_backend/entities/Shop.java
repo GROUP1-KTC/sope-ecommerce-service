@@ -30,7 +30,6 @@ public class Shop {
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
 
-
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Product> products = new ArrayList<>();
@@ -60,9 +59,6 @@ public class Shop {
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Discount> discounts = new ArrayList<>();
-
-
-
 
     public enum Status {
         ACTIVE, INACTIVE, DELETED
