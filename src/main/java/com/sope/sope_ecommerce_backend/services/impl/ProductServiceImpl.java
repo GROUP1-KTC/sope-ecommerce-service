@@ -14,6 +14,7 @@ import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
 import com.sope.sope_ecommerce_backend.mapper.ProductVariantMapper;
 import com.sope.sope_ecommerce_backend.repositories.*;
+import com.sope.sope_ecommerce_backend.services.GeminiService;
 import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import com.sope.sope_ecommerce_backend.services.ProductService;
 import org.springframework.data.domain.Page;
@@ -63,6 +64,8 @@ public class ProductServiceImpl implements ProductService {
       private final AttributeRepository attributeRepository;
 
       private final PhobertEmbeddedService phobertEmbeddedService;
+
+      private final GeminiService geminiService;
 
       @Override
       @Transactional(readOnly = true)
@@ -157,6 +160,14 @@ public class ProductServiceImpl implements ProductService {
                   MultipartFile defaultVideoIntro,
                   List<MultipartFile> productImages,
                   List<MultipartFile> variantFiles) {
+
+            Map<String, Object> validation = geminiService.validateProduct(dto.name(), dto.description());
+            boolean isValid = (boolean) validation.getOrDefault("valid", false);
+            if (!isValid) {
+                  String reason = (String) validation.getOrDefault("reason", "Lý do không xác định");
+                  throw new IllegalArgumentException("Sản phẩm không hợp lệ: " + reason);
+            }
+
             Product entity = productMapper.toEntity(dto);
 
             // category and shop
