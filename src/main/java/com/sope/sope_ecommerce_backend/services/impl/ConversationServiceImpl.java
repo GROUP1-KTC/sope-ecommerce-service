@@ -4,16 +4,14 @@ import com.sope.sope_ecommerce_backend.dto.request.ConversationCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ConversationResponse;
 import com.sope.sope_ecommerce_backend.entities.Conversation;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
+import com.sope.sope_ecommerce_backend.entities.Shop;
 import com.sope.sope_ecommerce_backend.mapper.ConversationMapper;
-import com.sope.sope_ecommerce_backend.mapper.UserMapper;
 import com.sope.sope_ecommerce_backend.repositories.ConversationRepository;
+import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
-import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.ConversationService;
 import com.sope.sope_ecommerce_backend.services.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,34 +23,40 @@ public class ConversationServiceImpl implements ConversationService {
 
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
     private final ConversationMapper conversationMapper;
     private final UserService userService;
-
+    private final ShopRepository shopRepository;
 
     @Override
     public ConversationResponse createConversation(ConversationCreateRequest request) {
-        AppUser u1 = userRepository.findById(request.user1())
-                .orElseThrow(() -> new RuntimeException("User 1 not found"));
-        AppUser u2 = userRepository.findById(request.user2())
-                .orElseThrow(() -> new RuntimeException("User 2 not found"));
-
         UUID currentUserId = userService.getCurrentUserId();
 
-        return conversationRepository.findByParticipants(u1.getId(), u2.getId())
+        AppUser chatUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Current user not found"));
+
+        Shop shop = shopRepository.findById(request.shopId())
+                .orElseThrow(() -> new RuntimeException("Shop not found"));
+
+        AppUser shopOwnerUser = shop.getAppUser();
+
+        return conversationRepository.findByChatUserAndShopOwnerUser(chatUser, shopOwnerUser)
                 .map(conv -> conversationMapper.toResponse(conv, currentUserId))
                 .orElseGet(() -> {
                     Conversation newConversation = new Conversation();
-                    newConversation.setParticipants(List.of(u1, u2));
+                    newConversation.setChatUser(chatUser);
+                    newConversation.setShopOwnerUser(shopOwnerUser);
                     return conversationMapper.toResponse(conversationRepository.save(newConversation), currentUserId);
                 });
     }
 
+
     @Override
     public List<ConversationResponse> getUserConversations() {
         UUID currentUserId = userService.getCurrentUserId();
+        AppUser currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Current user not found"));
 
-        return conversationRepository.findByParticipants_Id(currentUserId)
+        return conversationRepository.findByChatUserOrShopOwnerUser(currentUser, currentUser)
                 .stream()
                 .map(conv -> conversationMapper.toResponse(conv, currentUserId))
                 .toList();

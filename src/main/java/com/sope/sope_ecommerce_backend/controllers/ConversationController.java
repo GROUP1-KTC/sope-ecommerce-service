@@ -22,6 +22,12 @@ public class ConversationController {
         return ResponseEntity.ok(conversationService.createConversation(request));
     }
 
+    @PostMapping("/with-shop")
+    public ConversationResponse createConversationWithShop(
+            @RequestBody ConversationCreateRequest request) {
+        return conversationService.createConversation(request);
+    }
+
     @GetMapping
     public ResponseEntity<List<ConversationResponse>> getUserConversations() {
         return ResponseEntity.ok(conversationService.getUserConversations());
