@@ -14,6 +14,8 @@ import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
 import com.sope.sope_ecommerce_backend.mapper.ProductVariantMapper;
 import com.sope.sope_ecommerce_backend.repositories.*;
+import com.sope.sope_ecommerce_backend.services.GeminiService;
+import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import com.sope.sope_ecommerce_backend.services.ProductService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +62,10 @@ public class ProductServiceImpl implements ProductService {
       private final ShopRepository shopRepository;
       private final Cloudinary cloudinary;
       private final AttributeRepository attributeRepository;
+
+      private final PhobertEmbeddedService phobertEmbeddedService;
+
+      private final GeminiService geminiService;
 
       @Override
       @Transactional(readOnly = true)
@@ -154,6 +160,14 @@ public class ProductServiceImpl implements ProductService {
                   MultipartFile defaultVideoIntro,
                   List<MultipartFile> productImages,
                   List<MultipartFile> variantFiles) {
+
+            Map<String, Object> validation = geminiService.validateProduct(dto.name(), dto.description());
+            boolean isValid = (boolean) validation.getOrDefault("valid", false);
+            if (!isValid) {
+                  String reason = (String) validation.getOrDefault("reason", "Lý do không xác định");
+                  throw new IllegalArgumentException("Sản phẩm không hợp lệ: " + reason);
+            }
+
             Product entity = productMapper.toEntity(dto);
 
             // category and shop
@@ -250,6 +264,9 @@ public class ProductServiceImpl implements ProductService {
                               .collect(Collectors.toList());
                   entity.setProductDetails(details);
             }
+
+            entity.setEmbedding(null);
+
             productRepository.save(entity);
 
             String first8ProductId = entity.getProductId().toString().substring(0, 8);
@@ -258,7 +275,13 @@ public class ProductServiceImpl implements ProductService {
             Slugify slugify = Slugify.builder().build();
             entity.setSlug(slugify.slugify(dto.name()) + "-" + first8ProductId + "-" + first8ShopId);
 
+            float[] embeddingVector = phobertEmbeddedService.getEmbedding(
+                    "Name:" + entity.getName() + ", Description:" + entity.getDescription()
+            );
+
             Product savedEntity = productRepository.save(entity);
+
+            savedEntity.setEmbedding(embeddingVector);
 
             return productMapper.toDto(savedEntity);
       }

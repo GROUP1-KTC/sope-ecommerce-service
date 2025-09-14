@@ -3,6 +3,8 @@ package com.sope.sope_ecommerce_backend.entities;
 import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -68,5 +70,9 @@ public class Product {
     @Builder.Default
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductDetailEntity> productDetails = new ArrayList<>();
+
+    @Column(name = "embedding", columnDefinition = "float8[]")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    private float[] embedding;
 
 }

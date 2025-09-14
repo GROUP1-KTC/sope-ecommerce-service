@@ -145,6 +145,8 @@ logging:
     io:
       lettuce:
         core=DEBUG:
+    feign:
+      Logger: DEBUG
 
 server:
   port: 8082
@@ -207,6 +209,7 @@ web:
       - "http://localhost:3000"
       - "http://localhost:3001"
       - "http://10.19.82.225:3000"
+      - "http://localhost:8000"
     allowed-methods:
       - GET
       - POST

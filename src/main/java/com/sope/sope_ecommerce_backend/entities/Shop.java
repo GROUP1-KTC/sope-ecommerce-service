@@ -30,7 +30,6 @@ public class Shop {
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
 
-
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Product> products = new ArrayList<>();
@@ -54,6 +53,8 @@ public class Shop {
     @Column(nullable = false)
     private String taxCode;
 
+    private String taxDocumentUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.ACTIVE;
@@ -64,8 +65,6 @@ public class Shop {
 
     private String note;
 
-
-
     public enum Status {
         ACTIVE, INACTIVE, BANNED
     }
@@ -74,7 +73,6 @@ public class Shop {
         discounts.add(discount);
         discount.setShop(this);
     }
-
 
     public void addOrder(Order order) {
         orders.add(order);
@@ -90,5 +88,8 @@ public class Shop {
     @OneToOne(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private ShopAddress address;
+
+    @OneToOne(mappedBy = "shop", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private ShopIdentification identification;
 
 }

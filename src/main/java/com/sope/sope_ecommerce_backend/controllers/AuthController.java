@@ -6,7 +6,6 @@ import com.sope.sope_ecommerce_backend.dto.response.TokenRefreshResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserLoginResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.services.AuthService;
-import com.sope.sope_ecommerce_backend.services.CookieService;
 import com.sope.sope_ecommerce_backend.services.impl.CookieServiceImpl;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
 import jakarta.validation.Valid;
@@ -153,4 +152,5 @@ public class AuthController {
             return ApiResponseUtil.internalError("Failed to reset password", List.of(e.getMessage()));
         }
     }
+
 }

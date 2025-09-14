@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.services;
 
+import com.sope.sope_ecommerce_backend.dto.form.ShopCreateForm;
 import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateStatusRequest;
@@ -14,6 +15,8 @@ import java.util.UUID;
 public interface ShopService {
 
     public ShopResponse createShop(ShopCreateRequest shopCreateRequest, UUID userId);
+
+    public ShopResponse createShop(ShopCreateForm form, UUID userId);
 
     public ShopResponse getShop(UUID userId);
 

@@ -15,17 +15,19 @@ import java.util.UUID;
 @AllArgsConstructor
 @Table(name = "conversations")
 public class Conversation {
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @ManyToMany
-    @JoinTable(
-            name = "conversation_participants",
-            joinColumns = @JoinColumn(name = "conversation_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<AppUser> participants = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "chat_user_id", nullable = false)
+    private AppUser chatUser;
+
+    // Chủ shop
+    @ManyToOne
+    @JoinColumn(name = "shop_owner_user_id", nullable = false)
+    private AppUser shopOwnerUser;
 
     @OneToOne
     @JoinColumn(name = "last_message_id")
@@ -34,6 +36,6 @@ public class Conversation {
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Message> messages = new ArrayList<>();
 
-    @JoinColumn(name = "last_sender_id")
+    @Column(name = "last_sender_id")
     private UUID lastSenderId;
 }
