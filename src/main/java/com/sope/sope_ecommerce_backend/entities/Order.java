@@ -71,7 +71,6 @@ public class Order {
     @Column(nullable = false)
     private String shippingRateId;
 
-
     @Builder.Default
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<OrderDiscount> discounts = new HashSet<>();
@@ -84,13 +83,4 @@ public class Order {
     @JoinColumn(name = "payment_id")
     private Payment payment;
 
-
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private CommissionEntity commission;
-
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private TransactionFeeEntity transactionFee;
-
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ReturnOrder returnOrder;
 }

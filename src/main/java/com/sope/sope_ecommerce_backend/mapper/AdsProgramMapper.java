@@ -8,7 +8,7 @@ import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface AdsProgramMapper {
-  @Mapping(target = "productId", source = "product.productId")
+  @Mapping(target = "productInfo", source = "product")
   AdsProgramDTO toDto(AdsProgram entity);
 
   @Mapping(target = "product", ignore = true)

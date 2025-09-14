@@ -58,13 +58,11 @@ public interface OrderMapper {
 
     // Ánh xạ OrderItem
     @Mapping(target = "productVariantId", source = "productVariant.productVariantId")
-    @Mapping(
-            target = "imageUrl",
-            expression = "java(entity.getProductVariant().getImageVariant() != null "
-                    + "? entity.getProductVariant().getImageVariant() "
-                    + ": entity.getProductVariant().getProduct().getDefaultImage())"
-    )
+    @Mapping(target = "imageUrl", expression = "java(entity.getProductVariant().getImageVariant() != null "
+            + "? entity.getProductVariant().getImageVariant() "
+            + ": entity.getProductVariant().getProduct().getDefaultImage())")
     @Mapping(target = "productName", source = "productVariant.product.name")
+    @Mapping(target = "attributes", source = "productVariant.attributes")
     OrderItemResponse toOrderItemResponse(OrderItem entity);
 
     List<OrderItemResponse> toOrderItemResponses(List<OrderItem> entities);
@@ -79,6 +77,7 @@ public interface OrderMapper {
     @Mapping(target = "code", source = "discount.code")
     @Mapping(target = "description", source = "discount.description")
     @Mapping(target = "discountAmount", source = "discountAmount")
+    @Mapping(target = "scope", source = "discount.scope")
     OrderDiscountResponse toOrderDiscountResponse(OrderDiscount entity);
 
     Set<OrderDiscountResponse> toOrderDiscountResponses(Set<OrderDiscount> entities);
@@ -89,6 +88,5 @@ public interface OrderMapper {
     OrderItem tempOrderItemToOrderItem(TempOrderItem tempOrderItem);
 
     List<OrderItem> tempOrderToOrderItemsEntity(List<TempOrderItem> tempOrderItems);
-
 
 }
