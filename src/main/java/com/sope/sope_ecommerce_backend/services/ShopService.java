@@ -3,6 +3,7 @@ package com.sope.sope_ecommerce_backend.services;
 import com.sope.sope_ecommerce_backend.dto.form.ShopCreateForm;
 import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
 import com.sope.sope_ecommerce_backend.entities.Shop;
@@ -27,7 +28,7 @@ public interface ShopService {
 
     public ShopResponse updateShop(ShopUpdateRequest shopUpdateRequest, UUID userId);
 
-    public ShopResponse changeShopStatus(UUID shopId, Shop.Status shopStatus);
+    public ShopResponse changeShopStatus(ShopUpdateStatusRequest shopUpdateStatusRequest);
 
     public List<ShopSearchResult> searchShopsByName(String name);
 

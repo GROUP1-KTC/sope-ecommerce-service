@@ -4,11 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record AdsProgramDTO(
-        String id,
-        String productId,
-        BigDecimal dailyFee,
-        LocalDate startDate,
-        LocalDate endDate,
-        String status,
-        boolean active) {
+                String id,
+                ProductAdsDTO productInfo,
+                BigDecimal dailyFee,
+                LocalDate startDate,
+                LocalDate endDate,
+                String status,
+                boolean active) {
 }
