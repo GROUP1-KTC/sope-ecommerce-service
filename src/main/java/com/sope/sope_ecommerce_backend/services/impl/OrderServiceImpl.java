@@ -33,10 +33,7 @@ import java.util.*;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderStatusHistoryRepository statusHistoryRepository;
-    private final CartService cartService;
     private final UserService userService;
-    private final AddressService addressService;
     private final OrderMapper orderMapper;
     private final ProductVariantService productVariantService;
     private final TempOrderRepository tempOrderRepository;
@@ -115,6 +112,21 @@ public class OrderServiceImpl implements OrderService {
 
         if (orders.isEmpty()) {
             throw new CustomException("No orders found for shopId: " + shopId);
+        }
+
+        return new PageImpl<>(
+                orderMapper.toUserOrderResponseDTOs(orders.getContent()), // convert list
+                pageable,
+                orders.getTotalElements());
+    }
+
+    @Override
+    public Page<? extends OrderResponse> getPendingOrdersByShop(UUID shopId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orders = orderRepository.findByShop_IdAndStatus(shopId, OrderStatus.PENDING, pageable);
+
+        if (orders.isEmpty()) {
+            throw new CustomException("No pending orders found for shopId: " + shopId);
         }
 
         return new PageImpl<>(

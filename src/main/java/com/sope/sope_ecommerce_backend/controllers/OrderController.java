@@ -70,6 +70,20 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/shop/{shopId}/pending")
+    public ResponseEntity<ApiResponse<Page<? extends OrderResponse>>> getPendingOrdersByShop(
+            @PathVariable UUID shopId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            Page<? extends OrderResponse> orders = orderService.getPendingOrdersByShop(shopId, page, size);
+            return ApiResponseUtil.success(orders, "Pending orders for shop fetched successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to fetch pending orders", List.of(e.getMessage()));
+        }
+    }
+
+
     @GetMapping("/revenue/{shopId}")
     public ResponseEntity<ApiResponse<List<? extends OrderResponse>>> getRevenueByShop(@PathVariable UUID shopId) {
         try {

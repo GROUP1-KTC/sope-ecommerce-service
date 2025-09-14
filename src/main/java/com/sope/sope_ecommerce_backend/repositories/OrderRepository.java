@@ -1,6 +1,5 @@
 package com.sope.sope_ecommerce_backend.repositories;
 
-import com.sope.sope_ecommerce_backend.entities.Cart;
 import com.sope.sope_ecommerce_backend.entities.Order;
 import com.sope.sope_ecommerce_backend.entities.Payment;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
@@ -38,6 +37,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByStatus(OrderStatus status);
 
     Page<Order> findByShop_Id(UUID shopId, Pageable pageable);
+
+    Page<Order> findByShop_IdAndStatus(UUID shopId, OrderStatus status, Pageable pageable);
 
     Optional<Order> findByOrderNumber(String orderNumber);
 

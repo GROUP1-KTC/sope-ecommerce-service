@@ -3,9 +3,7 @@ package com.sope.sope_ecommerce_backend.services;
 import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
-import com.sope.sope_ecommerce_backend.dto.response.UserOrderResponse;
 import com.sope.sope_ecommerce_backend.entities.Order;
-import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,6 +17,8 @@ public interface OrderService {
     public List<? extends OrderResponse> getAllOrders();
 
     public Page<? extends OrderResponse> getAllOrdersByShop(UUID shopId, int page, int size);
+
+    public Page<? extends OrderResponse> getPendingOrdersByShop(UUID shopId, int page, int size);
 
     public List<? extends OrderResponse> getRevenueByShop(UUID shopId);
 
