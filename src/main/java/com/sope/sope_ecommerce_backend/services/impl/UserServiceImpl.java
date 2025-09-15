@@ -156,7 +156,15 @@ public class UserServiceImpl implements UserService {
         AppUser appUser = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        appUser.setStatus(UserStatus.valueOf(request.status()));
+        appUser.setStatus(request.status());
+
+        if (appUser.getStatus() == UserStatus.BANNED) {
+            appUser.setNote(request.note());
+        } else {
+            appUser.setNote(null);
+        }
+
+
         userRepository.save(appUser);
     }
 

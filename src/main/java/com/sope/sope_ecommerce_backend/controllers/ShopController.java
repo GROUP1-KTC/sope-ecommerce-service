@@ -3,6 +3,7 @@ package com.sope.sope_ecommerce_backend.controllers;
 import com.sope.sope_ecommerce_backend.dto.form.ShopCreateForm;
 import com.sope.sope_ecommerce_backend.dto.request.ShopCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.ShopUpdateStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ShopResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult;
 import com.sope.sope_ecommerce_backend.entities.Shop;
@@ -66,8 +67,8 @@ public class ShopController {
     }
 
     @PatchMapping("/status")
-    public ResponseEntity<ShopResponse> updateShopStatus(UUID shopId, Shop.Status status) {
-        return ResponseEntity.ok(shopService.changeShopStatus(shopId, status));
+    public ResponseEntity<ShopResponse> updateShopStatus(@RequestBody ShopUpdateStatusRequest request) {
+        return ResponseEntity.ok(shopService.changeShopStatus(request));
     }
 
     @GetMapping("/search")

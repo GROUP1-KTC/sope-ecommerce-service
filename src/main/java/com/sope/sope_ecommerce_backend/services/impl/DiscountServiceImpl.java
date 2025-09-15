@@ -5,8 +5,6 @@ import com.sope.sope_ecommerce_backend.dto.response.DiscountResponse;
 import com.sope.sope_ecommerce_backend.entities.Discount;
 import com.sope.sope_ecommerce_backend.entities.Shop;
 import com.sope.sope_ecommerce_backend.enums.DiscountScope;
-import com.sope.sope_ecommerce_backend.enums.DiscountStatus;
-import com.sope.sope_ecommerce_backend.enums.DiscountType;
 import com.sope.sope_ecommerce_backend.mapper.DiscountMapper;
 import com.sope.sope_ecommerce_backend.repositories.DiscountRepository;
 import com.sope.sope_ecommerce_backend.repositories.specification.DiscountSpecification;
@@ -15,12 +13,13 @@ import com.sope.sope_ecommerce_backend.services.ShopService;
 import com.sope.sope_ecommerce_backend.services.patterns.DiscountStrategy;
 import com.sope.sope_ecommerce_backend.services.patterns.DiscountStrategyFactory;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -82,6 +81,15 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
     @Override
+    public Page<DiscountResponse> getDiscountOfShop(UUID shopId, int page, int size){
+        Page<Discount> discounts = discountRepository.findAll(
+                Specification.allOf(DiscountSpecification.byShopId(shopId)),
+                PageRequest.of(page, size)
+        );
+        return discounts.map(discountMapper::toResponse);
+    }
+
+    @Override
     public List<DiscountResponse> getActiveDiscountsOfPlatform() {
         List<Discount> discounts = discountRepository.findAll(
                 Specification.allOf(DiscountSpecification.isActive(LocalDateTime.now()))
@@ -120,6 +128,7 @@ public class DiscountServiceImpl implements DiscountService {
 
         return discount;
     }
+
 
     @Override
     @Transactional
