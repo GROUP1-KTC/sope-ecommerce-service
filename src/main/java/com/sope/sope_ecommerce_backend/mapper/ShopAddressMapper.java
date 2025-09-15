@@ -4,6 +4,7 @@ import com.sope.sope_ecommerce_backend.dto.request.ShopAddressRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ShopAddressResponse;
 import com.sope.sope_ecommerce_backend.entities.ShopAddress;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 

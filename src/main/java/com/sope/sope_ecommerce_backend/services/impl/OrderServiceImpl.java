@@ -136,6 +136,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Page<OrderResponse>getOrdersForShipper(OrderStatus status, int page, int size){
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> orders = orderRepository.findByStatus(status, pageable);
+
+        if (orders.isEmpty()) {
+            throw new CustomException("No orders found with status: " + status);
+        }
+
+        return new PageImpl<>(
+                orderMapper.toUserOrderResponseDTOs(orders.getContent()),
+                pageable,
+                orders.getTotalElements());
+    }
+
+
+    @Override
     public List<? extends OrderResponse> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
         if (orders.isEmpty()) {

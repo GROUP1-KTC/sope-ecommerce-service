@@ -1,14 +1,14 @@
 package com.sope.sope_ecommerce_backend.client;
 
-import com.sope.sope_ecommerce_backend.configuration.FeignConfig;
+import com.sope.sope_ecommerce_backend.configuration.GeminiFeignConfig;
+import com.sope.sope_ecommerce_backend.configuration.GoShipFeignConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
 
-@FeignClient(name = "geminiClient", url = "https://generativelanguage.googleapis.com", configuration = FeignConfig.class)
+@FeignClient(name = "geminiClient", url = "https://generativelanguage.googleapis.com", configuration = GeminiFeignConfig.class)
 public interface GeminiClient {
 
     @PostMapping("/v1beta/openai/chat/completions")
