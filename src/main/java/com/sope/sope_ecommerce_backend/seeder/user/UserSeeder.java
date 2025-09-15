@@ -18,22 +18,22 @@ import java.util.List;
 @AllArgsConstructor
 public class UserSeeder {
 
-    private UserRepository userRepository;
-    private RoleRepository roleRepository;
-    private BCryptPasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public void run() throws Exception {
-        // Mỗi user có nhiều role để test
+        // Tạo các người dùng với vai trò phù hợp
+        createUserIfNotExists("user1", "Nguyễn Văn A", "user1@example.com", "password123", Arrays.asList("SELLER", "USER"));
+        createUserIfNotExists("user2", "Trần Thị B", "user2@example.com", "password123", Arrays.asList("SELLER", "USER"));
+        createUserIfNotExists("user3", "Lê Văn C", "user3@example.com", "password123", Arrays.asList("SELLER", "USER"));
+        createUserIfNotExists("user4", "Phạm Thị D", "user4@example.com", "password123", Arrays.asList("SELLER", "USER"));
         createUserIfNotExists("admin", "Admin User", "admin@example.com", "admin123", Arrays.asList("ADMIN", "USER"));
-        createUserIfNotExists("user", "Regular User", "user@example.com", "user123", Arrays.asList("USER", "SELLER"));
-        createUserIfNotExists("seller", "Shop Seller", "seller@example.com", "seller123",
-                Arrays.asList("SELLER", "USER"));
     }
 
     private void createUserIfNotExists(String username, String name, String email, String rawPassword,
-            List<String> roleNames) {
+                                       List<String> roleNames) {
         if (userRepository.findByUsername(username).isEmpty()) {
-
             AppUser appUser = AppUser.builder()
                     .username(username)
                     .name(name)
@@ -42,11 +42,11 @@ public class UserSeeder {
                     .status(UserStatus.ACTIVE)
                     .build();
 
-            // Thêm nhiều role
+            // Thêm các vai trò
             roleNames.forEach(roleStr -> {
                 RoleName roleName = RoleName.valueOf(roleStr.toUpperCase());
                 Role role = roleRepository.findByRoleName(roleName)
-                        .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò: " + roleName));
 
                 UserRole userRole = UserRole.builder()
                         .user(appUser)
@@ -58,8 +58,7 @@ public class UserSeeder {
             });
 
             userRepository.save(appUser);
-            System.out.println("✅ Seeded user: " + username + " with roles: " + roleNames);
+            System.out.println("✅ Đã tạo người dùng: " + username + " với vai trò: " + roleNames);
         }
     }
-
 }

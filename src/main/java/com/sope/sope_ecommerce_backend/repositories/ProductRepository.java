@@ -19,6 +19,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
       Page<Product> findByShopId(UUID shopId, Pageable pageable);
 
+      Optional<Product> findByName(String name);
+
       @Query(value = """
           SELECT * FROM products 
           ORDER BY (embedding <=> cast(:queryVector as vector)) 

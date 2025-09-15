@@ -20,4 +20,6 @@ public interface UserService {
     void changeUserStatus(UUID id, UserStatusRequest request);
 
     AppUser getOrCreateGuestUser(String email, String fullName, String phone);
+    UserInformationResponse updateUserAvatar(String avatarUrl);
+
 }

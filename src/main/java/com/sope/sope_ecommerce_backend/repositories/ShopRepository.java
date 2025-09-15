@@ -15,6 +15,8 @@ import java.util.UUID;
 public interface ShopRepository extends JpaRepository<Shop, UUID> {
     Optional<Shop> findByAppUser_Id(UUID id);
 
+    Optional<Shop> findByName(String username);
+
     @Query("""
        SELECT new com.sope.sope_ecommerce_backend.dto.response.ShopSearchResult(
            s.id,

@@ -24,6 +24,8 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     List<Order> findByPayment(Payment payment);
 
+    Optional<Order> findByOrderNumber(String orderNumber);
+
     Optional<Order> findByIdempotencyKeyAndAppUser(String idempotencyKey, AppUser appUser);
 
     List<Order> findAllByIdempotencyKeyContaining(String pattern);
