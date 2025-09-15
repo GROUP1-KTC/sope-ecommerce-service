@@ -3,10 +3,10 @@ package com.sope.sope_ecommerce_backend.services;
 import com.sope.sope_ecommerce_backend.dto.request.DiscountCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.DiscountResponse;
 import com.sope.sope_ecommerce_backend.entities.Discount;
+import org.springframework.data.domain.Page;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface DiscountService {
@@ -27,5 +27,8 @@ public interface DiscountService {
 
     List<DiscountResponse> getActiveDiscountsByShop(UUID shopId);
 
+    Page< DiscountResponse> getDiscountOfShop(UUID shopId, int page, int size);
+
     DiscountResponse updateDiscount(UUID discountId, DiscountCreateRequest request);
+
 }

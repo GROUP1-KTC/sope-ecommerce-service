@@ -50,6 +50,7 @@ public class Shop {
 
     private boolean isMall;
 
+    @Column(nullable = false)
     private String taxCode;
 
     private String taxDocumentUrl;
@@ -62,8 +63,10 @@ public class Shop {
     @Builder.Default
     private List<Discount> discounts = new ArrayList<>();
 
+    private String note;
+
     public enum Status {
-        ACTIVE, INACTIVE, DELETED
+        ACTIVE, INACTIVE, BANNED
     }
 
     public void addDiscount(Discount discount) {

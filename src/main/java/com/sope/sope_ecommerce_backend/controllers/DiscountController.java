@@ -3,10 +3,13 @@ package com.sope.sope_ecommerce_backend.controllers;
 import com.cloudinary.Api;
 import com.sope.sope_ecommerce_backend.dto.ApiResponse;
 import com.sope.sope_ecommerce_backend.dto.request.DiscountCreateRequest;
+import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.DiscountResponse;
+import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
 import com.sope.sope_ecommerce_backend.services.DiscountService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,8 +47,22 @@ public class DiscountController {
         }
     }
 
-    @GetMapping("/shops/{shopId}")
-    public ResponseEntity<ApiResponse<List<? extends DiscountResponse>>> getAllDiscountsOfShop(
+    @GetMapping("/shop/{shopId}")
+    public ResponseEntity<ApiResponse<Page<? extends DiscountResponse>>> getDiscountOfShop(
+            @PathVariable UUID shopId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            Page<DiscountResponse> discounts = discountService.getDiscountOfShop(shopId, page, size);
+            return ApiResponseUtil.success(discounts, "Pending orders for shop fetched successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to fetch pending orders", List.of(e.getMessage()));
+        }
+    }
+
+
+    @GetMapping("/shops/{shopId}/active")
+    public ResponseEntity<ApiResponse<List<? extends DiscountResponse>>> getActiveDiscountsOfShop(
             @PathVariable UUID shopId
     ) {
         try {
@@ -106,6 +123,5 @@ public class DiscountController {
             return ApiResponseUtil.internalError("Failed to update discount", List.of(e.getMessage()));
         }
     }
-
 
 }

@@ -8,6 +8,7 @@ import java.util.UUID;
 @Builder
 public record UpdateOrderStatusRequest(
         UUID orderId,
-        OrderStatus status
+        OrderStatus status,
+        String reason
 ) {
 }
