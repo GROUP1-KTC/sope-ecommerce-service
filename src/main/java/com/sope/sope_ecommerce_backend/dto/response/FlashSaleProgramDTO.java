@@ -8,7 +8,7 @@ import com.sope.sope_ecommerce_backend.enums.ProgramStatus;
 
 public record FlashSaleProgramDTO(
 		String id,
-		String productVariantId,
+		VariantInfo variantInfo,
 		BigDecimal discountPercentage,
 		BigDecimal platformFeePercentage,
 		ProgramStatus status,

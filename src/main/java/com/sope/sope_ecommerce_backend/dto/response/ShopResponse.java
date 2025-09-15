@@ -10,6 +10,8 @@ public record ShopResponse (
         String name,
         String phone,
         String email,
+        String note,
+        String taxCode,
         ShopAddressResponse address,
         String description,
         String logoUrl,
