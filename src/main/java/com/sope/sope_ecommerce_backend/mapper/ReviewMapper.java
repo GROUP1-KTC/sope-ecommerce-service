@@ -17,6 +17,8 @@ import com.sope.sope_ecommerce_backend.entities.ReviewEntity;
 public interface ReviewMapper {
       @Mapping(source = "appUser.id", target = "user.id")
       @Mapping(source = "appUser.username", target = "user.username")
+      @Mapping(source = "appUser.name", target = "user.name")
+
       @Mapping(source = "productVariant", target = "productVariant")
       ReviewDTO toDto(ReviewEntity review); // GET
 

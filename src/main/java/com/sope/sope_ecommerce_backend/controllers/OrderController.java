@@ -96,7 +96,7 @@ public class OrderController {
                 return ApiResponseUtil.unauthorized("User is not logged in");
             }
 
-            if(!currentUser.getRoles().contains(RoleName.USER)){
+            if(!currentUser.getRoles().contains(RoleName.SHIPPER)){
                 return ApiResponseUtil.forbidden("Access denied: User is not a shipper");
             }
 

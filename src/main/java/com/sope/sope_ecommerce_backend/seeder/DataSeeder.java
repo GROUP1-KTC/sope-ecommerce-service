@@ -7,13 +7,14 @@
 //import com.sope.sope_ecommerce_backend.repositories.*;
 //import lombok.RequiredArgsConstructor;
 //import org.springframework.boot.CommandLineRunner;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //import org.springframework.stereotype.Component;
+//
 //
 //import java.math.BigDecimal;
 //import java.time.LocalDate;
-//import java.util.Arrays;
-//import java.util.List;
-//import java.util.UUID;
+//import java.time.LocalDateTime;
+//import java.util.*;
 //
 //@Component
 //@RequiredArgsConstructor
@@ -27,165 +28,53 @@
 //    private final ProductVariantRepository productVariantRepository;
 //    private final OrderRepository orderRepository;
 //    private final OrderItemRepository orderItemRepository;
+//    private final RoleRepository roleRepository;
+//    private final BCryptPasswordEncoder passwordEncoder;
+//
 //
 //    @Override
 //    public void run(String... args) throws Exception {
+//        // 1. Roles
 //
-//        // 1. Users - Thêm 3 users nữa (tổng 5: 2 shop owners + 3 customers)
-//        AppUser user1 = AppUser.builder()
-//                .username("phuc")
-//                .password("123456")
-//                .name("Phạm Văn Phúc")
-//                .phone("0123456789")
-//                .email("phuc@example.com")
-//                .birthday(LocalDate.of(2000, 1, 1))
-//                .gender(Gender.MALE)
-//                .status(UserStatus.ACTIVE)
-//                .build();
+//        createRoleIfNotExists("ADMIN");
+//        createRoleIfNotExists("USER");
+//        createRoleIfNotExists("SELLER");
+//        createRoleIfNotExists("SHIPPER");
 //
-//        AppUser user2 = AppUser.builder()
-//                .username("hao")
-//                .password("123456")
-//                .name("Võ Nhật Hào")
-//                .phone("0987654321")
-//                .email("hao@example.com")
-//                .birthday(LocalDate.of(2000, 5, 5))
-//                .gender(Gender.MALE)
-//                .status(UserStatus.ACTIVE)
-//                .build();
+//// 2. Users
 //
-//        AppUser user3 = AppUser.builder()  // Customer 1
-//                .username("lan")
-//                .password("123456")
-//                .name("Nguyễn Thị Lan")
-//                .phone("0111222333")
-//                .email("lan@example.com")
-//                .birthday(LocalDate.of(1995, 3, 15))
-//                .gender(Gender.FEMALE)
-//                .status(UserStatus.ACTIVE)
-//                .build();
+//        AppUser appUser1 = createUserIfNotExists("admin", "admin", "admin@example.com", "123456", List.of("ADMIN")
+//        );
 //
-//        AppUser user4 = AppUser.builder()  // Customer 2
-//                .username("minh")
-//                .password("123456")
-//                .name("Trần Văn Minh")
-//                .phone("0444555666")
-//                .email("minh@example.com")
-//                .birthday(LocalDate.of(1985, 7, 20))
-//                .gender(Gender.MALE)
-//                .status(UserStatus.ACTIVE)
-//                .build();
+//        AppUser appUser2 = createUserIfNotExists("shop", "shop", "shop@example.com", "123456", List.of("SELLER", "USER")
+//        );
 //
-//        AppUser user5 = AppUser.builder()  // Shop owner 3
-//                .username("shop3")
-//                .password("123456")
-//                .name("Lê Thị Hoa")
-//                .phone("0777888999")
-//                .email("hoa@example.com")
-//                .birthday(LocalDate.of(1990, 11, 10))
-//                .gender(Gender.FEMALE)
-//                .status(UserStatus.ACTIVE)
-//                .build();
+//        AppUser appUser3 = createUserIfNotExists("lan", "Nguyễn Thị Lan", "lan@example.com", "123456", List.of("USER")
+//        );
 //
-//        appUserRepository.saveAll(Arrays.asList(user1, user2, user3, user4, user5));
+//        AppUser appUser4 = createUserIfNotExists("minh", "Trần Văn Minh", "minh@example.com", "123456", List.of("USER")
+//        );
 //
-//        // 2. Addresses - Thêm 3 addresses nữa (tổng 5)
-//        Address addr1 = Address.builder()
-//                .appUser(user1)
-//                .recipientName("Phuc")
-//                .phoneNumber("0123456789")
-//                .street("123 Đường A")
-//                .ward("Phường 1")
-//                .district("Quận 1")
-//                .city("Hồ Chí Minh")
-//                .country("Vietnam")
-//                .isDefault(true)
-//                .build();
 //
-//        Address addr2 = Address.builder()
-//                .appUser(user2)
-//                .recipientName("Hao")
-//                .phoneNumber("0987654321")
-//                .street("456 Đường B")
-//                .ward("Phường 2")
-//                .district("Quận 3")
-//                .city("Hồ Chí Minh")
-//                .country("Vietnam")
-//                .isDefault(true)
-//                .build();
+//        AppUser appUser5 = createUserIfNotExists("shop3", "Lê Thị Hoa", "hoa@example.com", "123456", List.of("SELLER", "USER")
+//        );
 //
-//        Address addr3 = Address.builder()  // For user3
-//                .appUser(user3)
-//                .recipientName("Lan")
-//                .phoneNumber("0111222333")
-//                .street("789 Đường C")
-//                .ward("Phường 4")
-//                .district("Quận 7")
-//                .city("Hồ Chí Minh")
-//                .country("Vietnam")
-//                .isDefault(true)
-//                .build();
+//        AppUser appUser6 = createUserIfNotExists("shipper", "shipper", "shipper@example.com", "123456", List.of("SHIPPER")
+//        );
 //
-//        Address addr4 = Address.builder()  // For user4
-//                .appUser(user4)
-//                .recipientName("Minh")
-//                .phoneNumber("0444555666")
-//                .street("101 Đường D")
-//                .ward("Phường 5")
-//                .district("Quận Bình Thạnh")
-//                .city("Hồ Chí Minh")
-//                .country("Vietnam")
-//                .isDefault(true)
-//                .build();
-//
-//        Address addr5 = Address.builder()  // For user5
-//                .appUser(user5)
-//                .recipientName("Hoa")
-//                .phoneNumber("0777888999")
-//                .street("112 Đường E")
-//                .ward("Phường 6")
-//                .district("Quận 10")
-//                .city("Hồ Chí Minh")
-//                .country("Vietnam")
-//                .isDefault(true)
-//                .build();
-//
-//        addressRepository.saveAll(Arrays.asList(addr1, addr2, addr3, addr4, addr5));
 //
 //        // 3. Shops - Thêm 2 shops nữa (tổng 4)
-//        Shop shop1 = Shop.builder()
-//                .appUser(user1)
-//                .name("Shop Thời Trang Phúc")
-//                .email("shopphuc@example.com")
-//                .phone("0123456789")
-//                .status(Shop.Status.ACTIVE)
-//                .build();
 //
-//        Shop shop2 = Shop.builder()
-//                .appUser(user2)
-//                .name("Shop Thời Trang Hào")
-//                .email("shophao@example.com")
-//                .phone("0987654321")
-//                .status(Shop.Status.ACTIVE)
-//                .build();
+//        Shop shop1 = createShopIfNotExists(
+//                "shop",  "Shop bán đồ điện tử", "035782233", "shop@example.com", "987654321",
+//                "456 Another St, City", "Shop chuyên bán đồ điện tử", "http://example.com/logo2.png", false
+//        );
 //
-//        Shop shop3 = Shop.builder()
-//                .appUser(user5)
-//                .name("Shop Phụ Kiện Hoa")
-//                .email("shophua@example.com")
-//                .phone("0777888999")
-//                .status(Shop.Status.ACTIVE)
-//                .build();
+//        Shop shop3 = createShopIfNotExists(
+//                "shop3",  "Shop bán quần áo", "055782233", "shop3@example.com", "980654321",
+//                 "456 ", "Shop chuyên bán đồ điện tử", "http://example.com/logo2.png", false
+//        );
 //
-//        Shop shop4 = Shop.builder()
-//                .appUser(user3)
-//                .name("Shop Giày Phúc")
-//                .email("shopgiayphuc@example.com")
-//                .phone("0123456789")
-//                .status(Shop.Status.ACTIVE)
-//                .build();
-//
-//        shopRepository.saveAll(Arrays.asList(shop1, shop2, shop3, shop4));
 //
 //        // 4. Categories - Thêm 3 categories nữa (tổng 5, với level và commission khác)
 //        Category cat1 = Category.builder()
@@ -229,6 +118,7 @@
 //        Product prod1 = Product.builder()
 //                .name("Áo Sơ Mi Nam")
 //                .brand("XYZ Fashion")
+//                .slug("ao-so-mi-nam")
 //                .description("Áo sơ mi nam chất liệu cotton mềm mại, kiểu dáng trẻ trung")
 //                .defaultImage("default1.jpg")
 //                .status(StatusProduct.APPROVED)
@@ -238,16 +128,18 @@
 //
 //        Product prod2 = Product.builder()
 //                .name("Váy Nữ")
+//                .slug("vay-nu")
 //                .brand("ABC Style")
 //                .description("Váy nữ dịu dàng, phù hợp mọi dịp")
 //                .defaultImage("default2.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat2)
-//                .shop(shop2)
+//                .shop(shop1)
 //                .build();
 //
 //        Product prod3 = Product.builder()
 //                .name("Quần Jeans Nam")
+//                .slug("quan-jeans-nam")
 //                .brand("Denim Pro")
 //                .description("Quần jeans nam bền bỉ, form slim fit")
 //                .defaultImage("default3.jpg")
@@ -258,16 +150,18 @@
 //
 //        Product prod4 = Product.builder()
 //                .name("Áo Khoác Nữ")
+//                .slug("ao-khoac-nu")
 //                .brand("Winter Wear")
 //                .description("Áo khoác nữ ấm áp cho mùa đông")
 //                .defaultImage("default4.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat2)
-//                .shop(shop2)
+//                .shop(shop3)
 //                .build();
 //
 //        Product prod5 = Product.builder()
 //                .name("Túi Xách")
+//                .slug("tui-xach")
 //                .brand("Bag Lux")
 //                .description("Túi xách thời trang cao cấp")
 //                .defaultImage("default5.jpg")
@@ -278,16 +172,18 @@
 //
 //        Product prod6 = Product.builder()
 //                .name("Giày Thể Thao")
+//                .slug("giay-the-thao")
 //                .brand("Sport Shoe")
 //                .description("Giày thể thao nam thoải mái cho chạy bộ")
 //                .defaultImage("default6.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat5)
-//                .shop(shop4)
+//                .shop(shop3)
 //                .build();
 //
 //        Product prod7 = Product.builder()
 //                .name("Đồng Hồ")
+//                .slug("dong-ho")
 //                .brand("Watch Elite")
 //                .description("Đồng hồ nam cổ điển")
 //                .defaultImage("default7.jpg")
@@ -298,12 +194,13 @@
 //
 //        Product prod8 = Product.builder()
 //                .name("Sandal Nữ")
+//                .slug("sandal-nu")
 //                .brand("Summer Foot")
 //                .description("Sandal nữ nhẹ nhàng cho hè")
 //                .defaultImage("default8.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat5)
-//                .shop(shop4)
+//                .shop(shop1)
 //                .build();
 //
 //        productRepository.saveAll(Arrays.asList(prod1, prod2, prod3, prod4, prod5, prod6, prod7, prod8));
@@ -415,9 +312,9 @@
 //
 //        // 7. Orders - Thêm 5 orders nữa (tổng 6, với status đa dạng cho analytics)
 //        Order order1 = Order.builder()
-//                .appUser(user2)
+//                .appUser(appUser3)
 //                .shop(shop1)
-//                .shippingAddress(addr2)
+//                .shippingAddress(appUser3.getAddresses().get(0))
 //                .status(OrderStatus.PENDING)
 //                .subTotal(BigDecimal.valueOf(200000))
 //                .totalAmount(BigDecimal.valueOf(200000))
@@ -427,9 +324,9 @@
 //                .build();
 //
 //        Order order2 = Order.builder()
-//                .appUser(user3)
-//                .shop(shop2)
-//                .shippingAddress(addr3)
+//                .appUser(appUser4)
+//                .shop(shop1)
+//                .shippingAddress(appUser4.getAddresses().get(0))
 //                .status(OrderStatus.CONFIRMED)
 //                .subTotal(BigDecimal.valueOf(700000))
 //                .totalAmount(BigDecimal.valueOf(720000))  // + shipping
@@ -439,9 +336,9 @@
 //                .build();
 //
 //        Order order3 = Order.builder()
-//                .appUser(user4)
-//                .shop(shop1)
-//                .shippingAddress(addr4)
+//                .appUser(appUser2)
+//                .shop(shop3)
+//                .shippingAddress(appUser2.getAddresses().get(0))
 //                .status(OrderStatus.DELIVERED)
 //                .subTotal(BigDecimal.valueOf(450000))
 //                .totalAmount(BigDecimal.valueOf(450000))
@@ -451,9 +348,9 @@
 //                .build();
 //
 //        Order order4 = Order.builder()
-//                .appUser(user3)
-//                .shop(shop3)
-//                .shippingAddress(addr3)
+//                .appUser(appUser5)
+//                .shop(shop1)
+//                .shippingAddress(appUser5.getAddresses().get(0))
 //                .status(OrderStatus.DELIVERED)
 //                .subTotal(BigDecimal.valueOf(650000))
 //                .totalAmount(BigDecimal.valueOf(670000))
@@ -463,9 +360,9 @@
 //                .build();
 //
 //        Order order5 = Order.builder()
-//                .appUser(user4)
-//                .shop(shop4)
-//                .shippingAddress(addr4)
+//                .appUser(appUser3)
+//                .shop(shop3)
+//                .shippingAddress(appUser3.getAddresses().get(0))
 //                .status(OrderStatus.CANCELLED)
 //                .subTotal(BigDecimal.valueOf(150000))
 //                .totalAmount(BigDecimal.valueOf(150000))
@@ -475,9 +372,9 @@
 //                .build();
 //
 //        Order order6 = Order.builder()
-//                .appUser(user2)
-//                .shop(shop2)
-//                .shippingAddress(addr2)
+//                .appUser(appUser4)
+//                .shop(shop1)
+//                .shippingAddress(appUser4.getAddresses().get(0))
 //                .status(OrderStatus.PENDING)
 //                .subTotal(BigDecimal.valueOf(950000))
 //                .totalAmount(BigDecimal.valueOf(970000))
@@ -496,6 +393,7 @@
 //
 //        OrderItem orderItem1_1 = OrderItem.builder()
 //                .orderItemId(orderItemId1_1)
+//                .commissionFeePercent(BigDecimal.TEN)
 //                .order(order1)
 //                .productVariant(variant1)
 //                .quantity(1)
@@ -509,6 +407,8 @@
 //
 //        OrderItem orderItem2_1 = OrderItem.builder()
 //                .orderItemId(orderItemId2_1)
+//                .commissionFeePercent(BigDecimal.TEN)
+//
 //                .order(order2)
 //                .productVariant(variant2)
 //                .quantity(1)
@@ -521,6 +421,8 @@
 //
 //        OrderItem orderItem2_2 = OrderItem.builder()
 //                .orderItemId(orderItemId2_2)
+//                .commissionFeePercent(BigDecimal.TEN)
+//
 //                .order(order2)
 //                .productVariant(variant4)
 //                .quantity(1)
@@ -534,6 +436,8 @@
 //
 //        OrderItem orderItem3_1 = OrderItem.builder()
 //                .orderItemId(orderItemId3_1)
+//                .commissionFeePercent(BigDecimal.TEN)
+//
 //                .order(order3)
 //                .productVariant(variant3)
 //                .quantity(2)  // Quantity >1 for testing
@@ -547,6 +451,8 @@
 //
 //        OrderItem orderItem4_1 = OrderItem.builder()
 //                .orderItemId(orderItemId4_1)
+//                .commissionFeePercent(BigDecimal.TEN)
+//
 //                .order(order4)
 //                .productVariant(variant5)
 //                .quantity(1)
@@ -560,6 +466,8 @@
 //        OrderItem orderItem4_2 = OrderItem.builder()
 //                .orderItemId(orderItemId4_2)
 //                .order(order4)
+//                .commissionFeePercent(BigDecimal.TEN)
+//
 //                .productVariant(variant7)
 //                .quantity(1)
 //                .price(variant7.getPrice())
@@ -572,6 +480,8 @@
 //        OrderItem orderItem4_3 = OrderItem.builder()
 //                .orderItemId(orderItemId4_3)
 //                .order(order4)
+//                .commissionFeePercent(BigDecimal.TEN)
+//
 //                .productVariant(variant1_extra)
 //                .quantity(1)
 //                .price(variant1_extra.getPrice())
@@ -585,6 +495,8 @@
 //        OrderItem orderItem6_1 = OrderItem.builder()
 //                .orderItemId(orderItemId6_1)
 //                .order(order6)
+//                .commissionFeePercent(BigDecimal.TEN)
+//
 //                .productVariant(variant2_extra)
 //                .quantity(2)
 //                .price(variant2_extra.getPrice())
@@ -596,6 +508,8 @@
 //
 //        OrderItem orderItem6_2 = OrderItem.builder()
 //                .orderItemId(orderItemId6_2)
+//                .commissionFeePercent(BigDecimal.TEN)
+//
 //                .order(order6)
 //                .productVariant(variant6)
 //                .quantity(1)
@@ -616,5 +530,108 @@
 //        orderRepository.saveAll(Arrays.asList(order1, order2, order3, order4, order6));
 //
 //        System.out.println("✅ Seeder data created successfully with expanded data for algorithms!");
+//    }
+//
+//
+//    private AppUser createUserIfNotExists(String username, String name, String email, String rawPassword,
+//                                       List<String> roleNames) {
+//        if (appUserRepository.findByUsername(username).isEmpty()) {
+//            AppUser appUser = AppUser.builder()
+//                    .username(username)
+//                    .name(name)
+//                    .email(email)
+//                    .password(passwordEncoder.encode(rawPassword))
+//                    .status(UserStatus.ACTIVE)
+//                    .build();
+//
+//            // Thêm các vai trò
+//            roleNames.forEach(roleStr -> {
+//                RoleName roleName = RoleName.valueOf(roleStr.toUpperCase());
+//                Role role = roleRepository.findByRoleName(roleName)
+//                        .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò: " + roleName));
+//
+//                UserRole userRole = UserRole.builder()
+//                        .user(appUser)
+//                        .role(role)
+//                        .grantedBy("SYSTEM")
+//                        .build();
+//
+//                appUser.getUserRoles().add(userRole);
+//            });
+//
+//
+//            Address addr = Address.builder()
+//                    .appUser(appUser)
+//                    .recipientName(name)
+//                    .phoneNumber("0123456789")
+//                    .street("123 Đường A")
+//                    .ward("Phường 1")
+//                    .district("Quận 1")
+//                    .city("Hồ Chí Minh")
+//                    .country("Vietnam")
+//                    .isDefault(true)
+//                    .build();
+//
+//            appUser.getAddresses().add(addr);
+//
+//            AppUser newAppUser = appUserRepository.save(appUser);
+//            addr.setAppUser(appUser);
+//            addressRepository.save(addr);
+//
+//            return newAppUser;
+//        }
+//        return appUserRepository.findByUsername(username).get();
+//    }
+//
+//    private void createRoleIfNotExists(String roleNameStr) {
+//        RoleName roleName = RoleName.valueOf(roleNameStr.toUpperCase());
+//        if (roleRepository.findByRoleName(roleName).isEmpty()) {
+//            Role role = new Role(roleName);
+//            roleRepository.save(role);
+//            System.out.println("✅ Seeded role: " + roleName);
+//        }
+//    }
+//
+//    private Shop createShopIfNotExists(String username, String name, String phone, String email, String taxCode,
+//                                       String address, String description, String logoUrl, boolean isMall) {
+//        Optional<AppUser> userOpt = appUserRepository.findByUsername(username);
+//        if (userOpt.isEmpty()) {
+//            throw new RuntimeException("Không tìm thấy người dùng với username: " + username);
+//        }
+//
+//        AppUser user = userOpt.get();
+//
+//        if (shopRepository.findByAppUser_Id(user.getId()).isEmpty()) {
+//            Shop shop = new Shop();
+//            shop.setTaxCode(taxCode);
+//            shop.setAppUser(user);
+//            shop.setName(name);
+//            shop.setPhone(phone);
+//            shop.setEmail(email);
+//            shop.setDescription(description);
+//            shop.setLogoUrl(logoUrl);
+//            shop.setMall(isMall);
+//            shop.setStatus(Shop.Status.ACTIVE);
+//            shop.setCreatedAt(LocalDateTime.now());
+//            shop.setUpdatedAt(LocalDateTime.now());
+//
+//            ShopAddress shopAddress = ShopAddress.builder()
+//                    .shop(shop)
+//                    .street(address)
+//                    .ward("Phường 1")
+//                    .district("Quận 1")
+//                    .city("Hồ Chí Minh")
+//                    .country("Việt Nam")
+//                    .senderName(name)
+//                    .senderPhone(phone)
+//                    .build();
+//
+//            shop.setAddress(shopAddress);
+//
+//            System.out.println("✅ Đã tạo cửa hàng: " + name + " cho username: " + username + " với user_id: " + user.getId());
+//             shopRepository.save(shop);
+//        }
+//
+//        return shopRepository.findByAppUser_Id(user.getId()).get();
 //    }
 //}
