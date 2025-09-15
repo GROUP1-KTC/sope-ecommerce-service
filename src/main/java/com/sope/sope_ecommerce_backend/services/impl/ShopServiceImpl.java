@@ -11,12 +11,14 @@ import com.sope.sope_ecommerce_backend.entities.Shop;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
 import com.sope.sope_ecommerce_backend.entities.ShopAddress;
 import com.sope.sope_ecommerce_backend.entities.ShopIdentification;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.mapper.ShopMapper;
 import com.sope.sope_ecommerce_backend.repositories.ShopIdentificationRepository;
 import com.sope.sope_ecommerce_backend.repositories.ShopRepository;
 import com.sope.sope_ecommerce_backend.repositories.UserRepository;
 import com.sope.sope_ecommerce_backend.services.FileUploadService;
 import com.sope.sope_ecommerce_backend.services.ShopService;
+import com.sope.sope_ecommerce_backend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +28,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.sope.sope_ecommerce_backend.security.user.SecurityUtil.getCurrentUserId;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +46,8 @@ public class ShopServiceImpl implements ShopService {
     private final ObjectMapper objectMapper;
 
     private final ShopIdentificationRepository shopIdentificationRepository;
+
+    private final UserService userService;
 
     @Override
     public ShopResponse createShop(ShopCreateRequest request, UUID userId) {
@@ -124,6 +130,9 @@ public class ShopServiceImpl implements ShopService {
                 .build();
 
         shop.setIdentification(identification);
+
+        userService.addRoleToUser(userId, RoleName.SELLER, "SYSTEM");
+
 
         Shop savedShop = shopRepository.save(shop);
 
@@ -242,6 +251,16 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public List<ShopSearchResult> searchShopsByName(String name) {
         return shopRepository.searchShopsByName(name);
+    }
+
+    @Override
+    public UUID getShopId() {
+        UUID userId = getCurrentUserId();
+
+        Shop shop = shopRepository.findByAppUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Shop not found for user: " + userId));
+
+        return shop.getId();
     }
 
 

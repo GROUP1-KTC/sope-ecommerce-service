@@ -172,4 +172,31 @@ public class UserServiceImpl implements UserService {
         return userMapper.toInfoResponse(appUser);
     }
 
+    @Override
+    public void addRoleToUser(UUID userId, RoleName roleName, String grantedBy) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+
+        boolean hasRole = user.getUserRoles().stream()
+                .anyMatch(ur -> ur.getRole().getRoleName() == roleName);
+        if (hasRole) {
+            return;
+        }
+
+        Role role = roleRepository.findByRoleName(roleName)
+                .orElseThrow(() -> new RuntimeException("Role not found: " + roleName));
+
+        UserRole userRole = UserRole.builder()
+                .user(user)
+                .role(role)
+                .grantedBy(grantedBy)
+                .build();
+
+        user.getUserRoles().add(userRole);
+
+        userRepository.save(user);
+    }
+
+
+
 }

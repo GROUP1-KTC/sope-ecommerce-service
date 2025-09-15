@@ -31,4 +31,6 @@ public interface ShopService {
 
     public List<ShopSearchResult> searchShopsByName(String name);
 
+    UUID getShopId();
+
 }
