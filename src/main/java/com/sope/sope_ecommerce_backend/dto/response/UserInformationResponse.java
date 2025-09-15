@@ -12,5 +12,6 @@ public record UserInformationResponse(
         String name,
         String email,
         String gender,
-        AddressResponse address
+        String address,
+        String avatarUrl
 ) {}

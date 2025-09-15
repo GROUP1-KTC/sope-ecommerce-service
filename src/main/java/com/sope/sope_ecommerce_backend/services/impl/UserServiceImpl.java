@@ -167,4 +167,17 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(appUser);
     }
+
+    @Override
+    public UserInformationResponse updateUserAvatar(String avatarUrl) {
+        UUID id = getCurrentUserId();
+        AppUser appUser = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        appUser.setAvatarUrl(avatarUrl);
+        appUser = userRepository.save(appUser);
+
+        return userMapper.toInfoResponse(appUser);
+    }
+
 }
