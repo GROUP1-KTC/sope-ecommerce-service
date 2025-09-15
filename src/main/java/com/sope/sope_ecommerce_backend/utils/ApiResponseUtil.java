@@ -27,6 +27,10 @@ public class ApiResponseUtil {
         return build(false, message, null, errors, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    public static <T> ResponseEntity<ApiResponse<T>> forbidden(String message) {
+        return build(false, message, null, Collections.singletonList(message), HttpStatus.FORBIDDEN);
+    }
+
     public static <T> ResponseEntity<ApiResponse<T>> unauthorized(String message) {
         return build(false, message, null, Collections.singletonList(message), HttpStatus.UNAUTHORIZED);
     }

@@ -1,11 +1,15 @@
 package com.sope.sope_ecommerce_backend.security.user;
 
+import com.sope.sope_ecommerce_backend.entities.UserRole;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class CustomUserDetails implements UserDetails {
 
@@ -26,6 +30,13 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
+    }
+
+    public Set<RoleName> getRoles() {
+        return authorities.stream()
+                .map(GrantedAuthority::getAuthority)
+                .map(RoleName::valueOf)
+                .collect(Collectors.toSet());
     }
 
     @Override

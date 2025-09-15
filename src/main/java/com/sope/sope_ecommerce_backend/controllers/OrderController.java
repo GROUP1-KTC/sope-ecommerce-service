@@ -6,6 +6,7 @@ import com.sope.sope_ecommerce_backend.dto.request.OrderCreateRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.OrderService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
@@ -77,6 +78,29 @@ public class OrderController {
             @RequestParam(defaultValue = "20") int size) {
         try {
             Page<? extends OrderResponse> orders = orderService.getPendingOrdersByShop(shopId, page, size);
+            return ApiResponseUtil.success(orders, "Pending orders for shop fetched successfully.");
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to fetch pending orders", List.of(e.getMessage()));
+        }
+    }
+
+
+    @GetMapping("/shipper")
+    public ResponseEntity<ApiResponse<Page<OrderResponse>>> getOrdersForShipper(
+            @AuthenticationPrincipal CustomUserDetails currentUser,
+            @RequestParam OrderStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        try {
+            if(currentUser == null) {
+                return ApiResponseUtil.unauthorized("User is not logged in");
+            }
+
+            if(!currentUser.getRoles().contains(RoleName.USER)){
+                return ApiResponseUtil.forbidden("Access denied: User is not a shipper");
+            }
+
+            Page<OrderResponse> orders = orderService.getOrdersForShipper(status, page, size);
             return ApiResponseUtil.success(orders, "Pending orders for shop fetched successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to fetch pending orders", List.of(e.getMessage()));
