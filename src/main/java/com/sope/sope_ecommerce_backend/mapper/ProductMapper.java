@@ -1,7 +1,10 @@
 package com.sope.sope_ecommerce_backend.mapper;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import com.sope.sope_ecommerce_backend.dto.response.ProductSummaryResponse;
+import com.sope.sope_ecommerce_backend.entities.ReviewEntity;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -53,5 +56,40 @@ public interface ProductMapper {
       @Mapping(target = "variants", ignore = true)
       @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
       void updateEntityFromDto(ProductUpdateDTO productUpdateDTO, @MappingTarget Product entity);
+
+      default ProductSummaryResponse toProductSummaryResponse(Product product) {
+            BigDecimal minPrice = product.getVariants().stream()
+                    .map(v -> v.getPrice())
+                    .min(BigDecimal::compareTo)
+                    .orElse(BigDecimal.ZERO);
+
+            int totalStock = product.getVariants().stream()
+                    .mapToInt(v -> v.getStock())
+                    .sum();
+
+            int totalSold = product.getVariants().stream()
+                    .mapToInt(v -> v.getSold())
+                    .sum();
+
+            List<ReviewEntity> allReviews = product.getVariants().stream()
+                    .flatMap(variant -> variant.getReviews().stream())
+                    .toList();
+
+            Double averageRating = allReviews.isEmpty() ? null
+                    : allReviews.stream()
+                    .mapToInt(ReviewEntity::getRating)
+                    .average()
+                    .orElse(0.0);
+
+            return new ProductSummaryResponse(
+                    product.getProductId(),
+                    product.getName(),
+                    product.getSlug(),
+                    minPrice,
+                    product.getDefaultImage(),
+                    totalStock,
+                    totalSold,
+                    averageRating);
+      }
 
 }

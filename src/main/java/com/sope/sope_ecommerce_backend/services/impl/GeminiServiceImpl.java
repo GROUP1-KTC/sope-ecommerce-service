@@ -30,11 +30,10 @@ public class GeminiServiceImpl implements GeminiService {
         Map<String, Object> keywordMsg = new HashMap<>();
         keywordMsg.put("role", "user");
         keywordMsg.put("content",
-                "Extract the important keywords from the following question. " +
-                        "Return **only** a JSON array of strings, without any extra explanation, text, or formatting:\n" +
+                "Extract important keywords AND related terms or synonyms from the following question. " +
+                        "Return **only** a JSON array of strings. Do NOT add extra explanation.\n" +
                         userQuestion
         );
-
 
         Map<String, Object> keywordBody = new HashMap<>();
         keywordBody.put("model", "gemini-2.0-flash");
@@ -59,13 +58,15 @@ public class GeminiServiceImpl implements GeminiService {
                         .filter(s -> !s.isEmpty())
                         .collect(Collectors.toList());
 
+                System.out.println(keywords);
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         if (keywords.isEmpty()) {
-            return new ChatAIResponse("Xin lỗi, mình không tìm thấy từ khóa phù hợp.");
+            return new ChatAIResponse("Xin lỗi, mình không tìm thấy từ khóa phù hợp.", null);
         }
 
         // ==============================
@@ -78,24 +79,28 @@ public class GeminiServiceImpl implements GeminiService {
         List<Product> candidates = productRepository.searchByKeywords(patterns, 50);
 
         if (candidates.isEmpty()) {
-            return new ChatAIResponse("Không tìm thấy sản phẩm nào phù hợp với yêu cầu của bạn");
+            return new ChatAIResponse("Không tìm thấy sản phẩm nào phù hợp với yêu cầu của bạn", null);
         }
 
         // ==============================
         // 3. Build context cho Gemini
         // ==============================
+        // ==============================
         StringBuilder context = new StringBuilder();
         context.append("You are Chatbot AI for an e-commerce store.\n");
         context.append("Your role is to answer customer questions directly, clearly, and politely. ")
-                .append("Do NOT include explanations, reasoning, or extra commentary.\n\n");
+                .append("Do NOT ask questions back, do NOT include explanations, reasoning, or extra commentary.\n\n");
         context.append("Customer asks: ").append(userQuestion).append("\n\n");
-        context.append("Relevant products in inventory:\n");
+        context.append("Relevant products in inventory (include link in format <product name>: <link>):\n");
         for (Product p : candidates) {
-            context.append("- ").append(p.getName())
-                    .append(": ").append(p.getDescription() != null ? p.getDescription() : "")
+            context.append("- ")
+                    .append(p.getName())
+                    .append(": http://localhost:3000/product-by-slug/")
+                    .append(p.getSlug())
                     .append("\n");
         }
-        context.append("\nPlease respond to the customer directly based on the products above.");
+        context.append("\nPlease respond to the customer **directly using the product names and links above**.");
+
 
 
         // ==============================
@@ -123,7 +128,12 @@ public class GeminiServiceImpl implements GeminiService {
             e.printStackTrace();
         }
 
-        return new ChatAIResponse(reply);
+// Lấy link sản phẩm đầu tiên nếu có
+        String link = candidates.isEmpty() ? null :
+                "http://localhost:3000/product-by-slug/" + candidates.get(0).getSlug();
+
+        return new ChatAIResponse(reply, link);
+
     }
 
     @Override

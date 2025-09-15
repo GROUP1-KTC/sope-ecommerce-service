@@ -75,4 +75,34 @@ public class Product {
     @JdbcTypeCode(SqlTypes.ARRAY)
     private float[] embedding;
 
+    // ===== Many-to-Many relationship for users who suggest this product =====
+    @ManyToMany
+    @JoinTable(
+            name = "product_suggested_for_user",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @Builder.Default
+    private List<AppUser> suggestedByUsers = new ArrayList<>();
+
+    // ===== Many-to-Many relationship for similar products =====
+    @ManyToMany
+    @JoinTable(
+            name = "product_similarities",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "similar_product_id")
+    )
+    @Builder.Default
+    private List<Product> similarProducts = new ArrayList<>();
+
+    // ===== Many-to-Many relationship for suggested products =====
+    @ManyToMany
+    @JoinTable(
+            name = "product_suggestions",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "suggested_product_id")
+    )
+    @Builder.Default
+    private List<Product> suggestedProducts = new ArrayList<>();
+
 }

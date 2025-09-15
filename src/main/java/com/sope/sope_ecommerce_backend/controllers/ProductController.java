@@ -3,15 +3,12 @@ package com.sope.sope_ecommerce_backend.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import com.sope.sope_ecommerce_backend.dto.response.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.sope.sope_ecommerce_backend.dto.request.ProductCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductUpdateDTO;
-import com.sope.sope_ecommerce_backend.dto.response.ProductBasicWithVariantsDTO;
-import com.sope.sope_ecommerce_backend.dto.response.ProductByCategory;
-import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
-import com.sope.sope_ecommerce_backend.dto.response.ProductVariantDetailDTO;
 import com.sope.sope_ecommerce_backend.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -29,6 +26,34 @@ public class ProductController {
             ProductDTO products = productService.getProductBySlug(slug);
             return ResponseEntity.ok(products);
       }
+
+      @GetMapping("/init")
+      public List<ProductSummaryResponse> getInitProducts() {
+            return productService.getInitProducts();
+      }
+
+      @GetMapping("/initforguest")
+      public List<ProductSummaryResponse> getInitProductsForGuest() {
+            return productService.getInitProductsForGuest();
+      }
+
+      @GetMapping("/suggested/{productId}")
+      public ResponseEntity<List<ProductSummaryResponse>> getSuggestedProducts(
+              @PathVariable UUID productId,
+              @RequestParam(defaultValue = "10") int limit) {
+            List<ProductSummaryResponse> suggested = productService.getSuggestedProducts(productId, limit);
+            return ResponseEntity.ok(suggested);
+      }
+
+      @GetMapping("/similar/{productId}")
+      public ResponseEntity<List<ProductSummaryResponse>> getSimilarProducts(
+              @PathVariable UUID productId,
+              @RequestParam(defaultValue = "10") int limit) {
+
+            List<ProductSummaryResponse> similar = productService.getSimilarProducts(productId, limit);
+            return ResponseEntity.ok(similar);
+      }
+
 
       @GetMapping("/shop/{shopId}")
       public ResponseEntity<Page<ProductDTO>> getProductsByShop(
@@ -103,5 +128,7 @@ public class ProductController {
                         productImages,
                         variantFiles);
       }
+
+
 
 }

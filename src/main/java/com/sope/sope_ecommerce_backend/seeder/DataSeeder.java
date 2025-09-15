@@ -5,6 +5,7 @@ import com.sope.sope_ecommerce_backend.entities.OrderItem;
 import com.sope.sope_ecommerce_backend.entities.OrderItemId;
 import com.sope.sope_ecommerce_backend.enums.*;
 import com.sope.sope_ecommerce_backend.repositories.*;
+import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductVariantRepository productVariantRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final PhobertEmbeddedService phobertEmbeddedService;
 
     @Override
     public void run(String... args) throws Exception {
@@ -248,7 +250,29 @@ public class DataSeeder implements CommandLineRunner {
                 .commissionFeePercent(BigDecimal.valueOf(4))
                 .build();
 
-        categoryRepository.saveAll(Arrays.asList(cat1, cat2, cat3, cat4, cat5));
+        Category cat6 = Category.builder()
+                .name("Điện Thoại & Máy Tính Bảng")
+                .slug("dien-thoai-may-tinh-bang")
+                .level(1)
+                .commissionFeePercent(BigDecimal.valueOf(6))
+                .build();
+
+        Category cat7 = Category.builder()
+                .name("Laptop")
+                .slug("laptop")
+                .level(1)
+                .commissionFeePercent(BigDecimal.valueOf(6))
+                .build();
+
+        Category cat8 = Category.builder()
+                .name("Phụ Kiện Điện Tử")
+                .slug("phu-kien-dien-tu")
+                .level(1)
+                .commissionFeePercent(BigDecimal.valueOf(8))
+                .build();
+
+
+        categoryRepository.saveAll(Arrays.asList(cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8));
 
         // 5. Products - Thêm 6 products nữa (tổng 8)
         Product prod1 = Product.builder()
@@ -258,6 +282,7 @@ public class DataSeeder implements CommandLineRunner {
                 .defaultImage("default1.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat1)
+                .embedding(phobertEmbeddedService.getEmbedding("Áo sơ mi nam chất liệu cotton mềm mại, kiểu dáng trẻ trung"))
                 .shop(shop1)
                 .build();
 
@@ -265,6 +290,7 @@ public class DataSeeder implements CommandLineRunner {
                 .name("Váy Nữ")
                 .brand("ABC Style")
                 .description("Váy nữ dịu dàng, phù hợp mọi dịp")
+                .embedding(phobertEmbeddedService.getEmbedding("Váy nữ dịu dàng, phù hợp mọi dịp"))
                 .defaultImage("default2.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat2)
@@ -274,7 +300,8 @@ public class DataSeeder implements CommandLineRunner {
         Product prod3 = Product.builder()
                 .name("Quần Jeans Nam")
                 .brand("Denim Pro")
-                .description("Quần jeans nam bền bỉ, form slim fit")
+                .description("")
+                .embedding(phobertEmbeddedService.getEmbedding("Quần jeans nam bền bỉ, form slim fit"))
                 .defaultImage("default3.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat3)  // Sub-category
@@ -285,6 +312,7 @@ public class DataSeeder implements CommandLineRunner {
                 .name("Áo Khoác Nữ")
                 .brand("Winter Wear")
                 .description("Áo khoác nữ ấm áp cho mùa đông")
+                .embedding(phobertEmbeddedService.getEmbedding("Áo khoác nữ ấm áp cho mùa đông"))
                 .defaultImage("default4.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat2)
@@ -296,6 +324,8 @@ public class DataSeeder implements CommandLineRunner {
                 .brand("Bag Lux")
                 .description("Túi xách thời trang cao cấp")
                 .defaultImage("default5.jpg")
+                .embedding(phobertEmbeddedService.getEmbedding("Túi xách thời trang cao cấp"))
+
                 .status(StatusProduct.APPROVED)
                 .category(cat4)
                 .shop(shop3)
@@ -305,6 +335,7 @@ public class DataSeeder implements CommandLineRunner {
                 .name("Giày Thể Thao")
                 .brand("Sport Shoe")
                 .description("Giày thể thao nam thoải mái cho chạy bộ")
+                .embedding(phobertEmbeddedService.getEmbedding("Giày thể thao nam thoải mái cho chạy bộ"))
                 .defaultImage("default6.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat5)
@@ -316,6 +347,7 @@ public class DataSeeder implements CommandLineRunner {
                 .brand("Watch Elite")
                 .description("Đồng hồ nam cổ điển")
                 .defaultImage("default7.jpg")
+                .embedding(phobertEmbeddedService.getEmbedding("Đồng hồ nam cổ điển"))
                 .status(StatusProduct.APPROVED)
                 .category(cat4)
                 .shop(shop3)
@@ -325,13 +357,59 @@ public class DataSeeder implements CommandLineRunner {
                 .name("Sandal Nữ")
                 .brand("Summer Foot")
                 .description("Sandal nữ nhẹ nhàng cho hè")
+                .embedding(phobertEmbeddedService.getEmbedding("Sandal nữ nhẹ nhàng cho hè"))
                 .defaultImage("default8.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat5)
                 .shop(shop4)
                 .build();
 
-        productRepository.saveAll(Arrays.asList(prod1, prod2, prod3, prod4, prod5, prod6, prod7, prod8));
+        Product prod9 = Product.builder()
+                .name("iPhone 14 Pro")
+                .brand("Apple")
+                .description("Điện thoại iPhone 14 Pro mới nhất, hiệu năng mạnh mẽ")
+                .embedding(phobertEmbeddedService.getEmbedding("Điện thoại iPhone 14 Pro mới nhất, hiệu năng mạnh mẽ"))
+                .defaultImage("iphone14pro.jpg")
+                .status(StatusProduct.APPROVED)
+                .category(cat6)
+                .shop(shop1)  // ví dụ shop1 bán
+                .build();
+
+        Product prod10 = Product.builder()
+                .name("Samsung Galaxy S23")
+                .brand("Samsung")
+                .description("Điện thoại Galaxy S23 với camera đỉnh cao")
+                .embedding(phobertEmbeddedService.getEmbedding("Điện thoại Galaxy S23 với camera đỉnh cao"))
+                .defaultImage("galaxy-s23.jpg")
+                .status(StatusProduct.APPROVED)
+                .category(cat6)
+                .shop(shop2)
+                .build();
+
+        Product prod11 = Product.builder()
+                .name("MacBook Pro 14 inch")
+                .brand("Apple")
+                .description("Laptop MacBook Pro M2 Pro 14 inch hiệu năng cao")
+                .embedding(phobertEmbeddedService.getEmbedding("Laptop MacBook Pro M2 Pro 14 inch hiệu năng cao"))
+
+                .defaultImage("macbookpro14.jpg")
+                .status(StatusProduct.APPROVED)
+                .category(cat7)
+                .shop(shop3)
+                .build();
+
+        Product prod12 = Product.builder()
+                .name("Chuột Logitech G102")
+                .brand("Logitech")
+                .description("Chuột gaming Logitech G102 RGB")
+                .embedding(phobertEmbeddedService.getEmbedding("Chuột gaming Logitech G102 RGB"))
+                .defaultImage("logitech-g102.jpg")
+                .status(StatusProduct.APPROVED)
+                .category(cat8)
+                .shop(shop4)
+                .build();
+
+        productRepository.saveAll(Arrays.asList(prod1, prod2, prod3, prod4, prod5, prod6, prod7, prod8,prod9, prod10, prod11, prod12));
 
         // 6. ProductVariants - Thêm 12 variants nữa (tổng 14, với stock/sold đa dạng cho analytics)
         ProductVariant variant1 = ProductVariant.builder()
@@ -389,6 +467,33 @@ public class DataSeeder implements CommandLineRunner {
                 .stock(25)
                 .sold(10)  // High sold for testing hot items
                 .build();
+        ProductVariant v9 = ProductVariant.builder()
+                .product(prod9)
+                .price(BigDecimal.valueOf(25000000))
+                .stock(10)
+                .sold(3)
+                .build();
+
+        ProductVariant v10 = ProductVariant.builder()
+                .product(prod10)
+                .price(BigDecimal.valueOf(21000000))
+                .stock(15)
+                .sold(5)
+                .build();
+
+        ProductVariant v11 = ProductVariant.builder()
+                .product(prod11)
+                .price(BigDecimal.valueOf(45000000))
+                .stock(5)
+                .sold(1)
+                .build();
+
+        ProductVariant v12 = ProductVariant.builder()
+                .product(prod12)
+                .price(BigDecimal.valueOf(500000))
+                .stock(30)
+                .sold(12)
+                .build();
 
         // Additional variants for existing products (e.g., different sizes/colors)
         ProductVariant variant1_extra = ProductVariant.builder()
@@ -435,7 +540,7 @@ public class DataSeeder implements CommandLineRunner {
 
         productVariantRepository.saveAll(Arrays.asList(
                 variant1, variant2, variant3, variant4, variant5, variant6, variant7, variant8,
-                variant1_extra, variant2_extra, variant3_extra, variant4_extra, variant5_extra, variant6_extra
+                variant1_extra, variant2_extra, variant3_extra, variant4_extra, variant5_extra, variant6_extra, v9, v10, v11, v12
         ));
 
         // 7. Orders - Thêm 5 orders nữa (tổng 6, với status đa dạng cho analytics)
@@ -510,8 +615,33 @@ public class DataSeeder implements CommandLineRunner {
                 .idempotencyKey(UUID.randomUUID().toString())
                 .orderNumber("ORDER006")
                 .build();
+        // Giả sử dùng user3, user4, user5 mua hàng
+        Order order7 = Order.builder()
+                .appUser(user3)
+                .shop(shop1)
+                .shippingAddress(addr3)
+                .status(OrderStatus.CONFIRMED)
+                .subTotal(BigDecimal.valueOf(1200000))
+                .totalAmount(BigDecimal.valueOf(1230000))  // + shipping
+                .shippingRateId("SHIP141")
+                .idempotencyKey(UUID.randomUUID().toString())
+                .orderNumber("ORDER007")
+                .build();
 
-        orderRepository.saveAll(Arrays.asList(order1, order2, order3, order4, order5, order6));
+        Order order8 = Order.builder()
+                .appUser(user4)
+                .shop(shop2)
+                .shippingAddress(addr4)
+                .status(OrderStatus.DELIVERED)
+                .subTotal(BigDecimal.valueOf(850000))
+                .totalAmount(BigDecimal.valueOf(870000))
+                .shippingRateId("SHIP151")
+                .idempotencyKey(UUID.randomUUID().toString())
+                .orderNumber("ORDER008")
+                .build();
+
+
+        orderRepository.saveAll(Arrays.asList(order1, order2, order3, order4, order5, order6, order7, order8));
 
         // 8. OrderItems - Thêm nhiều items (tổng 10, mỗi order có 1-3 items)
         // Order1: 1 item
@@ -627,6 +757,18 @@ public class DataSeeder implements CommandLineRunner {
                 .price(variant6.getPrice())
                 .build();
 
+        // Order7: 4 items
+        OrderItem oi7_1 = createOrderItem(order7, variant1, 1);
+        OrderItem oi7_2 = createOrderItem(order7, variant3, 1);
+        OrderItem oi7_3 = createOrderItem(order7, variant5, 1);
+        OrderItem oi7_4 = createOrderItem(order7, variant7, 2); // quantity 2
+
+// Order8: 3 items
+        OrderItem oi8_1 = createOrderItem(order8, variant2, 1);
+        OrderItem oi8_2 = createOrderItem(order8, variant4, 2);
+        OrderItem oi8_3 = createOrderItem(order8, variant6, 1);
+
+
         orderItemRepository.saveAll(Arrays.asList(
                 orderItem1_1, orderItem2_1, orderItem2_2, orderItem3_1,
                 orderItem4_1, orderItem4_2, orderItem4_3, orderItem6_1, orderItem6_2
@@ -642,4 +784,20 @@ public class DataSeeder implements CommandLineRunner {
 
         System.out.println("✅ Seeder data created successfully with expanded data for algorithms!");
     }
+
+    private OrderItem createOrderItem(Order order, ProductVariant variant, int quantity) {
+        OrderItemId id = new OrderItemId();
+        id.setOrderId(order.getOrderId());
+        id.setProductVariantId(variant.getProductVariantId());
+
+        OrderItem oi = OrderItem.builder()
+                .orderItemId(id)
+                .order(order)
+                .productVariant(variant)
+                .quantity(quantity)
+                .price(variant.getPrice())
+                .build();
+        return oi;
+    }
+
 }
