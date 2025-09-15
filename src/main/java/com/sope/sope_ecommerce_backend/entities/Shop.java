@@ -23,7 +23,7 @@ public class Shop {
     private UUID id;
 
     @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private AppUser appUser;
 
     @OneToMany(mappedBy = "shop", cascade = CascadeType.ALL)
