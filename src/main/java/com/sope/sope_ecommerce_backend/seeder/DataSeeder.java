@@ -13,9 +13,11 @@
 //
 //
 //import java.math.BigDecimal;
+//import java.text.Normalizer;
 //import java.time.LocalDate;
 //import java.time.LocalDateTime;
 //import java.util.*;
+//import java.util.regex.Pattern;
 //
 //@Component
 //@RequiredArgsConstructor
@@ -120,71 +122,85 @@
 //        // 5. Products - Thêm 6 products nữa (tổng 8)
 //        Product prod1 = Product.builder()
 //                .name("Áo Sơ Mi Nam")
+//                .slug(generateSlug("Áo Sơ Mi Nam")) // ao-so-mi-nam
 //                .brand("XYZ Fashion")
 //                .description("Áo sơ mi nam chất liệu cotton mềm mại, kiểu dáng trẻ trung")
 //                .defaultImage("default1.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat1)
+//                .defaultImage("https://product.hstatic.net/200000588671/product/ao-so-mi-nam-bycotton-trang-art-nhan_8ec622a241ea4deb93a02bdbdcb87954.jpg")
 //                .embedding(phobertEmbeddedService.getEmbedding("Áo Sơ Mi Nam - Áo sơ mi nam chất liệu cotton mềm mại, kiểu dáng trẻ trung"))
 //                .shop(shop1)
 //                .build();
 //
 //        Product prod2 = Product.builder()
 //                .name("Váy Nữ")
+//                .slug(generateSlug("Váy Nữ")) // vay-nu
 //                .brand("ABC Style")
 //                .description("Váy nữ dịu dàng, phù hợp mọi dịp")
 //                .embedding(phobertEmbeddedService.getEmbedding("Váy Nữ - Váy nữ dịu dàng, phù hợp mọi dịp"))
 //                .defaultImage("default2.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat2)
+//                .defaultImage("https://media-cdn-v2.laodong.vn/storage/newsportal/2024/4/22/1330533/Kim-Ji-Won-8.jpeg")
 //                .shop(shop3)
 //                .build();
 //
 //        Product prod3 = Product.builder()
 //                .name("Quần Jeans Nam")
+//                .slug(generateSlug("Quần Jeans Nam")) // quan-jeans-nam
 //                .brand("Denim Pro")
 //                .description("")
 //                .embedding(phobertEmbeddedService.getEmbedding("Quần Jeans Nam - Quần jeans nam bền bỉ, form slim fit"))
 //                .defaultImage("default3.jpg")
 //                .status(StatusProduct.APPROVED)
-//                .category(cat3)  // Sub-category
+//                .category(cat3) // Sub-category
 //                .shop(shop1)
+//                .defaultImage("https://cdn.boo.vn/media/catalog/product/1/_/1.2.21.2.23.001.124.01.60600034_1__4.jpg")
 //                .build();
 //
 //        Product prod4 = Product.builder()
 //                .name("Áo Khoác Nữ")
+//                .slug(generateSlug("Áo Khoác Nữ")) // ao-khoac-nu
 //                .brand("Winter Wear")
 //                .description("Áo khoác nữ ấm áp cho mùa đông")
 //                .embedding(phobertEmbeddedService.getEmbedding("Áo Khoác Nữ - Áo khoác nữ ấm áp cho mùa đông"))
 //                .defaultImage("default4.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat2)
+//                .defaultImage("https://product.hstatic.net/1000402464/product/fwjk22ss02h_grey__1__copy_6d06e958776b4de590abf0eb940cda51_master.jpg")
 //                .shop(shop3)
 //                .build();
 //
 //        Product prod5 = Product.builder()
 //                .name("Túi Xách")
+//                .slug(generateSlug("Túi Xách")) // tui-xach
 //                .brand("Bag Lux")
 //                .description("Túi xách thời trang cao cấp")
 //                .defaultImage("default5.jpg")
 //                .embedding(phobertEmbeddedService.getEmbedding("Túi Xách - Túi xách thời trang cao cấp"))
 //                .status(StatusProduct.APPROVED)
 //                .category(cat4)
+//                .defaultImage("https://www.gento.vn/wp-content/uploads/2023/05/tui-xach-nu-6-600x600.jpg")
 //                .shop(shop3)
 //                .build();
 //
 //        Product prod6 = Product.builder()
 //                .name("Giày Thể Thao")
+//                .slug(generateSlug("Giày Thể Thao")) // giay-the-thao
 //                .brand("Sport Shoe")
 //                .description("Giày thể thao nam thoải mái cho chạy bộ")
 //                .embedding(phobertEmbeddedService.getEmbedding("Giày Thể Thao - Giày thể thao nam thoải mái cho chạy bộ"))
 //                .defaultImage("default6.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat5)
+//                .defaultImage("https://product.hstatic.net/200000365171/product/tun_3773_855693213f7141a392a0a6e0a5ffcb2b_master.jpg")
 //                .shop(shop1)
 //                .build();
+//
 //        Product prod7 = Product.builder()
 //                .name("Đồng Hồ")
+//                .slug(generateSlug("Đồng Hồ")) // dong-ho
 //                .brand("Watch Elite")
 //                .description("Đồng hồ nam cổ điển")
 //                .defaultImage("default7.jpg")
@@ -192,21 +208,25 @@
 //                .status(StatusProduct.APPROVED)
 //                .category(cat4)
 //                .shop(shop3)
+//                .defaultImage("https://antien.vn/uploads/product/dong-ho-thong-minh-fitbit-versa-2-chinh-hang_1604387316.jpg")
 //                .build();
 //
 //        Product prod8 = Product.builder()
 //                .name("Sandal Nữ")
+//                .slug(generateSlug("Sandal Nữ")) // sandal-nu
 //                .brand("Summer Foot")
 //                .description("Sandal nữ nhẹ nhàng cho hè")
 //                .embedding(phobertEmbeddedService.getEmbedding("Sandal Nữ - Sandal nữ nhẹ nhàng cho hè"))
 //                .defaultImage("default8.jpg")
 //                .status(StatusProduct.APPROVED)
 //                .category(cat5)
+//                .defaultImage("https://img.mwc.com.vn/giay-thoi-trang?w=480&h=510&FileInput=/Resources/Product/2024/07/22/z5657421577987_9a0ce55fc8fb9f44faf88aa40d94736c.jpg")
 //                .shop(shop1)
 //                .build();
 //
 //        Product prod9 = Product.builder()
 //                .name("iPhone 14 Pro")
+//                .slug(generateSlug("iPhone 14 Pro")) // iphone-14-pro
 //                .brand("Apple")
 //                .description("Điện thoại iPhone 14 Pro mới nhất, hiệu năng mạnh mẽ")
 //                .embedding(phobertEmbeddedService.getEmbedding("iPhone 14 Pro - Điện thoại iPhone 14 Pro mới nhất, hiệu năng mạnh mẽ"))
@@ -214,10 +234,12 @@
 //                .status(StatusProduct.APPROVED)
 //                .category(cat4)
 //                .shop(shop1)
+//                .defaultImage("https://cdn.tgdd.vn/Products/Images/42/251192/iphone-14-pro-max-tim-thumb-600x600.jpg")
 //                .build();
 //
 //        Product prod10 = Product.builder()
 //                .name("Samsung Galaxy S23")
+//                .slug(generateSlug("Samsung Galaxy S23")) // samsung-galaxy-s23
 //                .brand("Samsung")
 //                .description("Điện thoại Galaxy S23 với camera đỉnh cao")
 //                .embedding(phobertEmbeddedService.getEmbedding("Samsung Galaxy S23 - Điện thoại Galaxy S23 với camera đỉnh cao"))
@@ -225,10 +247,12 @@
 //                .status(StatusProduct.APPROVED)
 //                .category(cat5)
 //                .shop(shop1)
+//                .defaultImage("https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/d/i/dien-thoai-samsung-galaxy-s25_13_.png")
 //                .build();
 //
 //        Product prod11 = Product.builder()
 //                .name("MacBook Pro 14 inch")
+//                .slug(generateSlug("MacBook Pro 14 inch")) // macbook-pro-14-inch
 //                .brand("Apple")
 //                .description("Laptop MacBook Pro M2 Pro 14 inch hiệu năng cao")
 //                .embedding(phobertEmbeddedService.getEmbedding("MacBook Pro 14 inch - Laptop MacBook Pro M2 Pro 14 inch hiệu năng cao"))
@@ -236,10 +260,12 @@
 //                .status(StatusProduct.APPROVED)
 //                .category(cat5)
 //                .shop(shop3)
+//                .defaultImage("https://maconline.vn/uploads/macbook/macbook-pro/0-2023-macbook-pro-14inch/macbook-pro-14-inch-m2-pro.jpg")
 //                .build();
 //
 //        Product prod12 = Product.builder()
 //                .name("Chuột Logitech G102")
+//                .slug(generateSlug("Chuột Logitech G102")) // chuot-logitech-g102
 //                .brand("Logitech")
 //                .description("Chuột gaming Logitech G102 RGB")
 //                .embedding(phobertEmbeddedService.getEmbedding("Chuột Logitech G102 - Chuột gaming Logitech G102 RGB"))
@@ -247,6 +273,7 @@
 //                .status(StatusProduct.APPROVED)
 //                .category(cat2)
 //                .shop(shop3)
+//                .defaultImage("https://product.hstatic.net/200000722513/product/logitech-g102-lightsync-rgb-black-1_bf4f5774229c4a0f81b8e8a2feebe4d8_aeb4ae49ee844c3e9d315883d4e482d4.jpg")
 //                .build();
 //
 //        productRepository.saveAll(Arrays.asList(prod1, prod2, prod3, prod4, prod5, prod6, prod7, prod8, prod9, prod10, prod11, prod12));
@@ -760,5 +787,15 @@
 //
 //                .build();
 //        return oi;
+//    }
+//
+//    private static String generateSlug(String name) {
+//        // Normalize Vietnamese diacritics
+//        String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
+//        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+//        String slug = pattern.matcher(normalized).replaceAll("");
+//        // Replace spaces and special characters with hyphens, convert to lowercase
+//        slug = slug.replaceAll("[^a-zA-Z0-9\\s-]", "").replaceAll("\\s+", "-").toLowerCase();
+//        return slug;
 //    }
 //}
