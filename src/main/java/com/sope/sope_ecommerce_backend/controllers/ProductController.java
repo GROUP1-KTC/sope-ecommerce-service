@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import com.sope.sope_ecommerce_backend.dto.response.*;
+import com.sope.sope_ecommerce_backend.enums.StatusProduct;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -39,48 +41,63 @@ public class ProductController {
 
       @GetMapping("/suggested/{productId}")
       public ResponseEntity<List<ProductSummaryResponse>> getSuggestedProducts(
-              @PathVariable UUID productId,
-              @RequestParam(defaultValue = "10") int limit) {
+                  @PathVariable UUID productId,
+                  @RequestParam(defaultValue = "10") int limit) {
             List<ProductSummaryResponse> suggested = productService.getSuggestedProducts(productId, limit);
             return ResponseEntity.ok(suggested);
       }
 
       @GetMapping("/similar/{productId}")
       public ResponseEntity<List<ProductSummaryResponse>> getSimilarProducts(
-              @PathVariable UUID productId,
-              @RequestParam(defaultValue = "10") int limit) {
+                  @PathVariable UUID productId,
+                  @RequestParam(defaultValue = "10") int limit) {
 
             List<ProductSummaryResponse> similar = productService.getSimilarProducts(productId, limit);
             return ResponseEntity.ok(similar);
       }
 
+      @GetMapping("/approved")
+      public ResponseEntity<Page<ProductDTO>> getApprovedProducts(
+                  @RequestParam(defaultValue = "0") int page,
+                  @RequestParam(defaultValue = "12") int size) {
+            return ResponseEntity.ok(productService.getApprovedProducts(page, size));
+      }
 
-      @GetMapping("/shop/{shopId}")
+      @PatchMapping("/{productId}/status")
+      public ResponseEntity<ProductDTO> updateProductStatus(
+                  @PathVariable UUID productId,
+                  @RequestParam StatusProduct status) {
+            ProductDTO updated = productService.updateProductStatus(productId, status);
+            return ResponseEntity.ok(updated);
+      }
+
+      @GetMapping
+      public ResponseEntity<List<ProductDTO>> getAllProducts() {
+            return ResponseEntity.ok(productService.getAllProducts());
+      }
+
+      @GetMapping("/shop")
       public ResponseEntity<Page<ProductDTO>> getProductsByShop(
+                  @RequestParam(defaultValue = "0") int page,
+                  @RequestParam(defaultValue = "12") int size) {
+            return ResponseEntity.ok(productService.getProductsByShop(page, size));
+      }
+
+      @GetMapping("/shop/{shopId}/approved")
+      public ResponseEntity<Page<ProductSummaryResponse>> getApprovedProductsByShop(
                   @PathVariable UUID shopId,
                   @RequestParam(defaultValue = "0") int page,
                   @RequestParam(defaultValue = "12") int size) {
-            return ResponseEntity.ok(productService.getProductsByShop(shopId, page, size));
+            return ResponseEntity.ok(productService.getApprovedProductsByShop(shopId, page, size));
       }
-
-      // @GetMapping("/by-category/{categoryId}")
-      // public ResponseEntity<List<ProductByCategory>>
-      // getProductsByCategory(@PathVariable UUID categoryId) {
-      // List<ProductByCategory> products =
-      // productService.getProductsByCategoryIncludingChildren(categoryId);
-      // return ResponseEntity.ok(products);
-      // }
 
       @GetMapping("/by-category/slug/{slug}")
-      public ResponseEntity<List<ProductByCategory>> getProductsByCategorySlug(@PathVariable String slug) {
-            return ResponseEntity.ok(productService.getProductsByCategoryIncludingChildren(slug));
+      public ResponseEntity<Page<ProductSummaryResponse>> getProductsByCategorySlug(
+                  @PathVariable String slug,
+                  @RequestParam(defaultValue = "0") int page,
+                  @RequestParam(defaultValue = "12") int size) {
+            return ResponseEntity.ok(productService.getProductsByCategoryIncludingChildren(slug, page, size));
       }
-
-      // @GetMapping("/search-product/{value}")
-      // public ResponseEntity<List<ProductByCategory>>
-      // searchProductByValue(@PathVariable String name) {
-      // return ResponseEntity.ok(productService.searchProductByValue(name));
-      // }
 
       @GetMapping("/{productId}/with-variants")
       public ResponseEntity<ProductBasicWithVariantsDTO> getProductWithVariants(@PathVariable UUID productId) {
@@ -128,7 +145,5 @@ public class ProductController {
                         productImages,
                         variantFiles);
       }
-
-
 
 }
