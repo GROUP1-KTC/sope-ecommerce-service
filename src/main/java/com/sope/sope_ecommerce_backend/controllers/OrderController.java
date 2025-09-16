@@ -7,6 +7,7 @@ import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.response.OrderResponse;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.enums.RoleName;
+import com.sope.sope_ecommerce_backend.exception.CustomException;
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.OrderService;
 import com.sope.sope_ecommerce_backend.utils.ApiResponseUtil;
@@ -47,6 +48,18 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/public")
+    public ResponseEntity<ApiResponse<List<? extends OrderResponse>>> getAllOrdersPublic() {
+        try {
+            List<? extends OrderResponse> orders = orderService.getAllOrders();
+            return ApiResponseUtil.success(orders, "Order fetched successfully (public).");
+        } catch (CustomException e) {
+            return ApiResponseUtil.notFound(e.getMessage());
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Failed to fetch orders", List.of(e.getMessage()));
+        }
+    }
+
     @GetMapping("/{orderNumber}")
     public ResponseEntity<ApiResponse<OrderResponse>> getOrderByOrderNumber(
             @PathVariable String orderNumber) {
@@ -84,7 +97,6 @@ public class OrderController {
         }
     }
 
-
     @GetMapping("/shipper")
     public ResponseEntity<ApiResponse<Page<OrderResponse>>> getOrdersForShipper(
             @AuthenticationPrincipal CustomUserDetails currentUser,
@@ -92,11 +104,11 @@ public class OrderController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         try {
-            if(currentUser == null) {
+            if (currentUser == null) {
                 return ApiResponseUtil.unauthorized("User is not logged in");
             }
 
-            if(!currentUser.getRoles().contains(RoleName.SHIPPER)){
+            if (!currentUser.getRoles().contains(RoleName.SHIPPER)) {
                 return ApiResponseUtil.forbidden("Access denied: User is not a shipper");
             }
 
@@ -106,7 +118,6 @@ public class OrderController {
             return ApiResponseUtil.internalError("Failed to fetch pending orders", List.of(e.getMessage()));
         }
     }
-
 
     @GetMapping("/revenue/{shopId}")
     public ResponseEntity<ApiResponse<List<? extends OrderResponse>>> getRevenueByShop(@PathVariable UUID shopId) {

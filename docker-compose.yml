@@ -104,7 +104,8 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./lib/postgresql-42.6.0.jar:/usr/share/java/postgresql-42.6.0.jar
+      - /Users/mac/Works/sope-main/sope-ecommerce-service/lib/postgresql-42.6.0.jar:/usr/share/java/postgresql-42.6.0.jar
+      - /Users/mac/Works/sope-main/sope-ecommerce-service/logstash_pipeline:/usr/share/logstash/pipeline
       - type: bind
         source: ./logstash_pipeline/
         target: /usr/share/logstash/pipeline
