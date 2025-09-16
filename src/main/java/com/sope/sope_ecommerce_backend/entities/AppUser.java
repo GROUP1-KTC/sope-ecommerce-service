@@ -46,4 +46,15 @@
         @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
         private UserSetting setting;
 
+        // ===== Many-to-Many relationship for products suggested by this user =====
+        @ManyToMany
+        @JoinTable(
+                name = "product_suggested_for_user",
+                joinColumns = @JoinColumn(name = "user_id"),
+                inverseJoinColumns = @JoinColumn(name = "product_id")
+        )
+        @Builder.Default
+        private List<Product> suggestedProducts = new ArrayList<>();
+
+
     }
