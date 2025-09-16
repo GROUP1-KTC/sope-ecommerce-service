@@ -2,6 +2,7 @@ package com.sope.sope_ecommerce_backend.mapper;
 
 import com.sope.sope_ecommerce_backend.dto.response.CartGroupResponse;
 import com.sope.sope_ecommerce_backend.dto.response.CartItemResponse;
+import com.sope.sope_ecommerce_backend.dto.response.ShopAddressResponse;
 import com.sope.sope_ecommerce_backend.dto.response.ShopInfo;
 import com.sope.sope_ecommerce_backend.entities.CartItem;
 import com.sope.sope_ecommerce_backend.entities.Shop;
@@ -28,6 +29,16 @@ public interface CartMapper {
                         .id(shop.getId())
                         .name(shop.getName())
                         .avatarUrl(shop.getLogoUrl())
+                        .address(
+                                ShopAddressResponse.builder(
+                                        ).id(shop.getAddress().getId()
+                                        ).street(shop.getAddress().getStreet()
+                                        ).ward(shop.getAddress().getWard()
+                                        ).district(shop.getAddress().getDistrict()
+                                        ).city(shop.getAddress().getCity()
+                                        ).country(shop.getAddress().getCountry(
+                                )).build()
+                        )
                         .build(),
                 toCartItemResponseDTOs(items)
         );

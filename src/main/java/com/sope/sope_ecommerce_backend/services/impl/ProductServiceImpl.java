@@ -13,6 +13,7 @@ import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.GeminiService;
 import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import com.sope.sope_ecommerce_backend.services.ProductService;
+import com.sope.sope_ecommerce_backend.services.ShopService;
 import com.sope.sope_ecommerce_backend.services.UserService;
 import org.springframework.cglib.core.internal.Function;
 import org.springframework.data.domain.Page;
@@ -60,6 +61,7 @@ public class ProductServiceImpl implements ProductService {
       private final ShopRepository shopRepository;
       private final Cloudinary cloudinary;
       private final AttributeRepository attributeRepository;
+      private final ShopService shopService;
 
       private final UserService userService;
 
@@ -76,6 +78,38 @@ public class ProductServiceImpl implements ProductService {
       }
 
       @Override
+      @Transactional
+      public ProductDTO updateProductStatus(UUID productId, StatusProduct status) {
+            Product product = productRepository.findById(productId)
+                        .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+
+            product.setStatus(status);
+            productRepository.save(product);
+
+            return productMapper.toDto(product);
+      }
+
+      @Override
+      @Transactional(readOnly = true)
+      public Page<ProductDTO> getApprovedProducts(int page, int size) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<Product> products = productRepository.findByStatusAndHidden(StatusProduct.APPROVED, false, pageable);
+            return products.map(productMapper::toDto);
+      }
+
+      @Override
+      @Transactional(readOnly = true)
+      public Page<ProductSummaryResponse> getApprovedProductsByShop(UUID shopId, int page, int size) {
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+            Page<Product> products = productRepository.findByShopIdAndStatusAndHidden(
+                        shopId,
+                        StatusProduct.APPROVED,
+                        false,
+                        pageable);
+            return products.map(productMapper::toProductSummaryResponse);
+      }
+
+      @Override
       public List<ProductSummaryResponse> getInitProducts() {
 
             UUID userId = userService.getCurrentUserId();
@@ -83,8 +117,8 @@ public class ProductServiceImpl implements ProductService {
             List<Product> suggestedProducts = productRepository.findSuggestedProductsByUserId(userId);
 
             List<UUID> excludeIds = suggestedProducts.stream()
-                    .map(Product::getProductId)
-                    .toList();
+                        .map(Product::getProductId)
+                        .toList();
 
             List<Product> randomProducts = productRepository.findRandomProductsExcluding(excludeIds, 10);
 
@@ -93,42 +127,35 @@ public class ProductServiceImpl implements ProductService {
             combined.addAll(randomProducts);
 
             return combined.stream()
-                    .map(productMapper::toProductSummaryResponse)
-                    .collect(Collectors.toList());
+                        .map(productMapper::toProductSummaryResponse)
+                        .collect(Collectors.toList());
       }
-
 
       @Override
       @Transactional(readOnly = true)
-      public Page<ProductDTO> getProductsByShop(UUID shopId, int page, int size) {
+      public Page<ProductDTO> getProductsByShop(int page, int size) {
             Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+            UUID shopId = shopService.getShopId();
+
             Page<Product> products = productRepository.findByShopId(shopId, pageable);
             return products.map(productMapper::toDto);
       }
 
       @Override
       @Transactional(readOnly = true)
-      public List<ProductByCategory> getProductsByCategoryIncludingChildren(String slug) {
+      public Page<ProductSummaryResponse> getProductsByCategoryIncludingChildren(String slug, int page, int size) {
             Category category = categoryRepository.findBySlug(slug)
                         .orElseThrow(() -> new EntityNotFoundException("Category not found with slug: " + slug));
 
             Set<UUID> categoryIds = getAllChildCategoryIds(category.getId());
-
             categoryIds.add(category.getId());
 
-            List<Product> products = productRepository.findByCategoryIdIn(new ArrayList<>(categoryIds));
+            Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-            return products.stream()
-                        .map(product -> new ProductByCategory(
-                                    product.getProductId(),
-                                    product.getName(),
-                                    product.getSlug(),
-                                    product.getBrand(),
-                                    product.getDefaultImage(),
-                                    product.getVariants().stream()
-                                                .map(v -> new ProductVariantByCategory(v.getPrice(), v.getSold()))
-                                                .toList()))
-                        .toList();
+            Page<Product> products = productRepository.findByCategoryIdIn(new ArrayList<>(categoryIds), pageable);
+
+            return products.map(productMapper::toProductSummaryResponse);
       }
 
       private Set<UUID> getAllChildCategoryIds(UUID parentId) {
@@ -196,8 +223,11 @@ public class ProductServiceImpl implements ProductService {
             // category and shop
             Category category = categoryRepository.findById(dto.categoryId())
                         .orElseThrow(() -> new EntityNotFoundException("Category not found"));
-            Shop shop = shopRepository.findById(dto.shopId())
+            // Shop shop = shopRepository.findById(dto.shopId())
+            // .orElseThrow(() -> new EntityNotFoundException("Shop not found"));
+            Shop shop = shopRepository.findById(shopService.getShopId())
                         .orElseThrow(() -> new EntityNotFoundException("Shop not found"));
+
             entity.setCategory(category);
             entity.setShop(shop);
 
@@ -299,8 +329,7 @@ public class ProductServiceImpl implements ProductService {
             entity.setSlug(slugify.slugify(dto.name()) + "-" + first8ProductId + "-" + first8ShopId);
 
             float[] embeddingVector = phobertEmbeddedService.getEmbedding(
-                    "Name:" + entity.getName() + ", Description:" + entity.getDescription()
-            );
+                        "Name:" + entity.getName() + ", Description:" + entity.getDescription());
 
             Product savedEntity = productRepository.save(entity);
 
@@ -555,35 +584,35 @@ public class ProductServiceImpl implements ProductService {
 
       @Override
       @Transactional(readOnly = true)
-      public List<ProductSummaryResponse> getProducts(UUID productId, int limit, Function<Product, List<Product>> relatedFunc) {
+      public List<ProductSummaryResponse> getProducts(UUID productId, int limit,
+                  Function<Product, List<Product>> relatedFunc) {
             System.out.println("===== getProducts START =====");
             System.out.println("ProductId: " + productId + ", Limit: " + limit);
 
             Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> {
-                          System.err.println("Product not found with id: " + productId);
-                          return new EntityNotFoundException("Product not found with id: " + productId);
-                    });
+                        .orElseThrow(() -> {
+                              System.err.println("Product not found with id: " + productId);
+                              return new EntityNotFoundException("Product not found with id: " + productId);
+                        });
 
             System.out.println("Product found: " + product.getName() + " (" + product.getProductId() + ")");
 
             // Safe fetch
             List<Product> relatedProducts = Optional.ofNullable(relatedFunc.apply(product))
-                    .orElse(Collections.emptyList());
+                        .orElse(Collections.emptyList());
 
             System.out.println("Related products count: " + relatedProducts.size());
             relatedProducts.forEach(p -> System.out.println("  - " + p.getName() + " (" + p.getProductId() + ")"));
 
             List<UUID> excludeIds = relatedProducts.stream()
-                    .map(Product::getProductId)
-                    .collect(Collectors.toCollection(ArrayList::new));
+                        .map(Product::getProductId)
+                        .collect(Collectors.toCollection(ArrayList::new));
             excludeIds.add(productId);
-
 
             int remaining = limit - relatedProducts.size();
             List<Product> randomProducts = remaining > 0
-                    ? productRepository.findRandomProductsExcluding(excludeIds, remaining)
-                    : Collections.emptyList();
+                        ? productRepository.findRandomProductsExcluding(excludeIds, remaining)
+                        : Collections.emptyList();
 
             System.out.println("Random products count: " + randomProducts.size());
             randomProducts.forEach(p -> System.out.println("  - " + p.getName() + " (" + p.getProductId() + ")"));
@@ -593,9 +622,9 @@ public class ProductServiceImpl implements ProductService {
             combined.addAll(randomProducts);
 
             List<ProductSummaryResponse> result = combined.stream()
-                    .limit(limit)
-                    .map(productMapper::toProductSummaryResponse)
-                    .collect(Collectors.toList());
+                        .limit(limit)
+                        .map(productMapper::toProductSummaryResponse)
+                        .collect(Collectors.toList());
 
             System.out.println("Total returned products: " + result.size());
             System.out.println("===== getProducts END =====");
@@ -621,9 +650,8 @@ public class ProductServiceImpl implements ProductService {
             List<Product> randomProducts = productRepository.findRandomProducts(20);
 
             return randomProducts.stream()
-                    .map(productMapper::toProductSummaryResponse)
-                    .collect(Collectors.toList());
+                        .map(productMapper::toProductSummaryResponse)
+                        .collect(Collectors.toList());
       }
-
 
 }

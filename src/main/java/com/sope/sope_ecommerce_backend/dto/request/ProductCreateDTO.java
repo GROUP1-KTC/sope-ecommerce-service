@@ -18,7 +18,7 @@ public record ProductCreateDTO(
 
 		@NotNull(message = "Category ID cannot be null") UUID categoryId,
 
-		@NotNull(message = "Shop ID cannot be null") UUID shopId,
+		// @NotNull(message = "Shop ID cannot be null") UUID shopId,
 
 		List<ProductVariantRequestDTO> variants,
 

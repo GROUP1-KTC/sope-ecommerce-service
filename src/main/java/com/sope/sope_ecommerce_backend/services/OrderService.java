@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import org.springframework.data.domain.Page;
 
 public interface OrderService {
@@ -19,6 +20,8 @@ public interface OrderService {
     public Page<? extends OrderResponse> getAllOrdersByShop(UUID shopId, int page, int size);
 
     public Page<? extends OrderResponse> getPendingOrdersByShop(UUID shopId, int page, int size);
+
+    public Page<OrderResponse>getOrdersForShipper(OrderStatus status, int page, int size);
 
     public List<? extends OrderResponse> getRevenueByShop(UUID shopId);
 

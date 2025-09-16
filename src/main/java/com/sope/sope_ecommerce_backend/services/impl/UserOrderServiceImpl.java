@@ -207,6 +207,8 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
                 .idempotencyKey(request.idempotencyKey() + "-" + shop.getId())
                 .build();
 
+        addStatusHistory(order, OrderStatus.PENDING);
+
         // === Payment ===
         if (request.paymentMethod() == PaymentMethod.COD) {
             Payment codPayment = Payment.builder()
@@ -240,7 +242,6 @@ public class UserOrderServiceImpl implements OrderCreationStrategy<UserOrderCrea
             cartService.removeItemsFromCart(userId, productVariantIds);
         }
 
-        addStatusHistory(order, OrderStatus.PENDING);
         return order;
     }
 
