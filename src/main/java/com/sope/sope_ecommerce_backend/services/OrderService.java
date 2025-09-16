@@ -17,11 +17,11 @@ public interface OrderService {
 
     public List<? extends OrderResponse> getAllOrders();
 
-    public Page<? extends OrderResponse> getAllOrdersByShop(UUID shopId, int page, int size);
+    public Page<? extends OrderResponse> getAllOrdersByShop(int page, int size);
 
-    public Page<? extends OrderResponse> getPendingOrdersByShop(UUID shopId, int page, int size);
+    public Page<? extends OrderResponse> getPendingOrdersByShop(int page, int size);
 
-    public Page<OrderResponse>getOrdersForShipper(OrderStatus status, int page, int size);
+    public Page<OrderResponse> getOrdersForShipper(OrderStatus status, int page, int size);
 
     public List<? extends OrderResponse> getRevenueByShop(UUID shopId);
 

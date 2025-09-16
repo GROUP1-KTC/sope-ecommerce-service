@@ -37,7 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final ProductVariantService productVariantService;
     private final TempOrderRepository tempOrderRepository;
-
+    private final ShopService shopService;
     private final List<OrderCreationStrategy<?>> strategies;
 
     /**
@@ -106,8 +106,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<? extends OrderResponse> getAllOrdersByShop(UUID shopId, int page, int size) {
+    public Page<? extends OrderResponse> getAllOrdersByShop(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
+        UUID shopId = shopService.getShopId();
         Page<Order> orders = orderRepository.findByShop_Id(shopId, pageable);
 
         if (orders.isEmpty()) {
@@ -121,8 +122,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<? extends OrderResponse> getPendingOrdersByShop(UUID shopId, int page, int size) {
+    public Page<? extends OrderResponse> getPendingOrdersByShop(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
+        UUID shopId = shopService.getShopId();
         Page<Order> orders = orderRepository.findByShop_IdAndStatus(shopId, OrderStatus.PENDING, pageable);
 
         if (orders.isEmpty()) {
@@ -136,7 +138,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<OrderResponse>getOrdersForShipper(OrderStatus status, int page, int size){
+    public Page<OrderResponse> getOrdersForShipper(OrderStatus status, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Order> orders = orderRepository.findByStatus(status, pageable);
 
@@ -149,7 +151,6 @@ public class OrderServiceImpl implements OrderService {
                 pageable,
                 orders.getTotalElements());
     }
-
 
     @Override
     public List<? extends OrderResponse> getAllOrders() {
