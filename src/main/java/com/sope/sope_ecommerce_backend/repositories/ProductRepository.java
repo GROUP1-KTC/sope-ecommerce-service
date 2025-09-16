@@ -36,5 +36,23 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     """, nativeQuery = true)
       List<Product> searchByKeywords(@Param("patterns") String[] patterns, @Param("limit") int limit);
 
+      @Query(value = """
+        SELECT p.* FROM products p
+        JOIN product_suggested_for_user psu ON p.product_id = psu.product_id
+        WHERE psu.user_id = :userId
+    """, nativeQuery = true)
+      List<Product> findSuggestedProductsByUserId(@Param("userId") UUID userId);
+
+      // ===== Lấy 10 sản phẩm ngẫu nhiên (bỏ qua danh sách đã có) =====
+      @Query(value = """
+        SELECT * FROM products
+        WHERE product_id NOT IN :excludeIds
+        ORDER BY RANDOM()
+        LIMIT :limit
+    """, nativeQuery = true)
+      List<Product> findRandomProductsExcluding(@Param("excludeIds") List<UUID> excludeIds, @Param("limit") int limit);
+
+      @Query(value = "SELECT * FROM products ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+      List<Product> findRandomProducts(@Param("limit") int limit);
 
 }

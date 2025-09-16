@@ -1,3 +1,4 @@
+
 //package com.sope.sope_ecommerce_backend.seeder;
 //
 //import com.sope.sope_ecommerce_backend.entities.*;

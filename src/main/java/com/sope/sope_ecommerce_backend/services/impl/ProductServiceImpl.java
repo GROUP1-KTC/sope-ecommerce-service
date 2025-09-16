@@ -3,20 +3,18 @@ package com.sope.sope_ecommerce_backend.services.impl;
 import com.sope.sope_ecommerce_backend.dto.request.ProductCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductUpdateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductVariantRequestDTO;
-import com.sope.sope_ecommerce_backend.dto.response.ProductBasicWithVariantsDTO;
-import com.sope.sope_ecommerce_backend.dto.response.ProductByCategory;
-import com.sope.sope_ecommerce_backend.dto.response.ProductDTO;
-import com.sope.sope_ecommerce_backend.dto.response.ProductDetailDTO;
-import com.sope.sope_ecommerce_backend.dto.response.ProductVariantByCategory;
-import com.sope.sope_ecommerce_backend.dto.response.ProductVariantDetailDTO;
+import com.sope.sope_ecommerce_backend.dto.response.*;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
 import com.sope.sope_ecommerce_backend.mapper.ProductVariantMapper;
 import com.sope.sope_ecommerce_backend.repositories.*;
+import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.GeminiService;
 import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import com.sope.sope_ecommerce_backend.services.ProductService;
+import com.sope.sope_ecommerce_backend.services.UserService;
+import org.springframework.cglib.core.internal.Function;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import jakarta.persistence.EntityNotFoundException;
@@ -63,6 +61,8 @@ public class ProductServiceImpl implements ProductService {
       private final Cloudinary cloudinary;
       private final AttributeRepository attributeRepository;
 
+      private final UserService userService;
+
       private final PhobertEmbeddedService phobertEmbeddedService;
 
       private final GeminiService geminiService;
@@ -74,6 +74,29 @@ public class ProductServiceImpl implements ProductService {
                         .map(productMapper::toDto)
                         .orElseThrow(() -> new EntityNotFoundException("Product not found with slug: " + slug));
       }
+
+      @Override
+      public List<ProductSummaryResponse> getInitProducts() {
+
+            UUID userId = userService.getCurrentUserId();
+
+            List<Product> suggestedProducts = productRepository.findSuggestedProductsByUserId(userId);
+
+            List<UUID> excludeIds = suggestedProducts.stream()
+                    .map(Product::getProductId)
+                    .toList();
+
+            List<Product> randomProducts = productRepository.findRandomProductsExcluding(excludeIds, 10);
+
+            List<Product> combined = new ArrayList<>();
+            combined.addAll(suggestedProducts);
+            combined.addAll(randomProducts);
+
+            return combined.stream()
+                    .map(productMapper::toProductSummaryResponse)
+                    .collect(Collectors.toList());
+      }
+
 
       @Override
       @Transactional(readOnly = true)
@@ -113,7 +136,7 @@ public class ProductServiceImpl implements ProductService {
             List<Category> children = categoryRepository.findByParentId(parentId);
             for (Category child : children) {
                   ids.add(child.getId());
-                  ids.addAll(getAllChildCategoryIds(child.getId())); // đệ quy
+                  ids.addAll(getAllChildCategoryIds(child.getId()));
             }
             return ids;
       }
@@ -529,5 +552,78 @@ public class ProductServiceImpl implements ProductService {
       private String normalizeFileName(String name) {
             return name == null ? null : name.trim().toLowerCase();
       }
+
+      @Override
+      @Transactional(readOnly = true)
+      public List<ProductSummaryResponse> getProducts(UUID productId, int limit, Function<Product, List<Product>> relatedFunc) {
+            System.out.println("===== getProducts START =====");
+            System.out.println("ProductId: " + productId + ", Limit: " + limit);
+
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> {
+                          System.err.println("Product not found with id: " + productId);
+                          return new EntityNotFoundException("Product not found with id: " + productId);
+                    });
+
+            System.out.println("Product found: " + product.getName() + " (" + product.getProductId() + ")");
+
+            // Safe fetch
+            List<Product> relatedProducts = Optional.ofNullable(relatedFunc.apply(product))
+                    .orElse(Collections.emptyList());
+
+            System.out.println("Related products count: " + relatedProducts.size());
+            relatedProducts.forEach(p -> System.out.println("  - " + p.getName() + " (" + p.getProductId() + ")"));
+
+            List<UUID> excludeIds = relatedProducts.stream()
+                    .map(Product::getProductId)
+                    .collect(Collectors.toCollection(ArrayList::new));
+            excludeIds.add(productId);
+
+
+            int remaining = limit - relatedProducts.size();
+            List<Product> randomProducts = remaining > 0
+                    ? productRepository.findRandomProductsExcluding(excludeIds, remaining)
+                    : Collections.emptyList();
+
+            System.out.println("Random products count: " + randomProducts.size());
+            randomProducts.forEach(p -> System.out.println("  - " + p.getName() + " (" + p.getProductId() + ")"));
+
+            List<Product> combined = new ArrayList<>();
+            combined.addAll(relatedProducts);
+            combined.addAll(randomProducts);
+
+            List<ProductSummaryResponse> result = combined.stream()
+                    .limit(limit)
+                    .map(productMapper::toProductSummaryResponse)
+                    .collect(Collectors.toList());
+
+            System.out.println("Total returned products: " + result.size());
+            System.out.println("===== getProducts END =====");
+
+            return result;
+      }
+
+      @Override
+      @Transactional(readOnly = true)
+      public List<ProductSummaryResponse> getSuggestedProducts(UUID productId, int limit) {
+            return getProducts(productId, limit, Product::getSuggestedProducts);
+      }
+
+      @Override
+      @Transactional(readOnly = true)
+      public List<ProductSummaryResponse> getSimilarProducts(UUID productId, int limit) {
+            return getProducts(productId, limit, Product::getSimilarProducts);
+      }
+
+      @Override
+      @Transactional(readOnly = true)
+      public List<ProductSummaryResponse> getInitProductsForGuest() {
+            List<Product> randomProducts = productRepository.findRandomProducts(20);
+
+            return randomProducts.stream()
+                    .map(productMapper::toProductSummaryResponse)
+                    .collect(Collectors.toList());
+      }
+
 
 }

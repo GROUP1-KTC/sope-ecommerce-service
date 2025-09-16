@@ -5,6 +5,7 @@ import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
 import com.sope.sope_ecommerce_backend.dto.response.UserResponse;
 import com.sope.sope_ecommerce_backend.entities.AppUser;
+import com.sope.sope_ecommerce_backend.enums.RoleName;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,4 +23,5 @@ public interface UserService {
     AppUser getOrCreateGuestUser(String email, String fullName, String phone);
     UserInformationResponse updateUserAvatar(String avatarUrl);
 
+    void addRoleToUser(UUID userId, RoleName roleName, String grantedBy);
 }
