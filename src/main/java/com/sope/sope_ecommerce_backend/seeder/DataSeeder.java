@@ -8,19 +8,21 @@ import com.sope.sope_ecommerce_backend.repositories.*;
 import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
+
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
-    private final RoleRepository roleRepository;
     private final UserRepository appUserRepository;
     private final AddressRepository addressRepository;
     private final ShopRepository shopRepository;
@@ -29,190 +31,55 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductVariantRepository productVariantRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final RoleRepository roleRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+
     private final PhobertEmbeddedService phobertEmbeddedService;
+
 
     @Override
     public void run(String... args) throws Exception {
+        // 1. Roles
 
-        seedRoles();
-        seedData();
+        createRoleIfNotExists("ADMIN");
+        createRoleIfNotExists("USER");
+        createRoleIfNotExists("SELLER");
+        createRoleIfNotExists("SHIPPER");
 
-    }
+// 2. Users
 
-    private void seedRoles() {
-        if (roleRepository.count() == 0) {
-            Role admin = new Role(RoleName.ADMIN);
-            Role customer = new Role(RoleName.USER);
-            Role seller = new Role(RoleName.SELLER);
+        AppUser appUser1 = createUserIfNotExists("admin", "admin", "admin@example.com", "123456", List.of("ADMIN")
+        );
 
-            roleRepository.saveAll(Arrays.asList(admin, customer, seller));
-            System.out.println("✅ Roles seeded");
-        } else {
-            System.out.println("ℹ️ Roles already exist, skipping...");
-        }
-    }
+        AppUser appUser2 = createUserIfNotExists("shop", "shop", "shop@example.com", "123456", List.of("SELLER", "USER")
+        );
+
+        AppUser appUser3 = createUserIfNotExists("lan", "Nguyễn Thị Lan", "lan@example.com", "123456", List.of("USER")
+        );
+
+        AppUser appUser4 = createUserIfNotExists("minh", "Trần Văn Minh", "minh@example.com", "123456", List.of("USER")
+        );
 
 
-    private void seedData() {
-        if (appUserRepository.count() > 0) {
-            System.out.println("ℹ️ Data already exists, skipping seeder...");
-            return;
-        }
-        // 1. Users - Thêm 3 users nữa (tổng 5: 2 shop owners + 3 customers)
-        AppUser user1 = AppUser.builder()
-                .username("phuc")
-                .password("123456")
-                .name("Phạm Văn Phúc")
-                .phone("0123456789")
-                .email("phuc@example.com")
-                .birthday(LocalDate.of(2000, 1, 1))
-                .gender(Gender.MALE)
-                .status(UserStatus.ACTIVE)
-                .build();
+        AppUser appUser5 = createUserIfNotExists("shop3", "Lê Thị Hoa", "hoa@example.com", "123456", List.of("SELLER", "USER")
+        );
 
-        AppUser user2 = AppUser.builder()
-                .username("hao")
-                .password("123456")
-                .name("Võ Nhật Hào")
-                .phone("0987654321")
-                .email("hao@example.com")
-                .birthday(LocalDate.of(2000, 5, 5))
-                .gender(Gender.MALE)
-                .status(UserStatus.ACTIVE)
-                .build();
+        AppUser appUser6 = createUserIfNotExists("shipper", "shipper", "shipper@example.com", "123456", List.of("SHIPPER")
+        );
 
-        AppUser user3 = AppUser.builder()  // Customer 1
-                .username("lan")
-                .password("123456")
-                .name("Nguyễn Thị Lan")
-                .phone("0111222333")
-                .email("lan@example.com")
-                .birthday(LocalDate.of(1995, 3, 15))
-                .gender(Gender.FEMALE)
-                .status(UserStatus.ACTIVE)
-                .build();
-
-        AppUser user4 = AppUser.builder()  // Customer 2
-                .username("minh")
-                .password("123456")
-                .name("Trần Văn Minh")
-                .phone("0444555666")
-                .email("minh@example.com")
-                .birthday(LocalDate.of(1985, 7, 20))
-                .gender(Gender.MALE)
-                .status(UserStatus.ACTIVE)
-                .build();
-
-        AppUser user5 = AppUser.builder()  // Shop owner 3
-                .username("shop3")
-                .password("123456")
-                .name("Lê Thị Hoa")
-                .phone("0777888999")
-                .email("hoa@example.com")
-                .birthday(LocalDate.of(1990, 11, 10))
-                .gender(Gender.FEMALE)
-                .status(UserStatus.ACTIVE)
-                .build();
-
-        appUserRepository.saveAll(Arrays.asList(user1, user2, user3, user4, user5));
-
-        // 2. Addresses - Thêm 3 addresses nữa (tổng 5)
-        Address addr1 = Address.builder()
-                .appUser(user1)
-                .recipientName("Phuc")
-                .phoneNumber("0123456789")
-                .street("123 Đường A")
-                .ward("Phường 1")
-                .district("Quận 1")
-                .city("Hồ Chí Minh")
-                .country("Vietnam")
-                .isDefault(true)
-                .build();
-
-        Address addr2 = Address.builder()
-                .appUser(user2)
-                .recipientName("Hao")
-                .phoneNumber("0987654321")
-                .street("456 Đường B")
-                .ward("Phường 2")
-                .district("Quận 3")
-                .city("Hồ Chí Minh")
-                .country("Vietnam")
-                .isDefault(true)
-                .build();
-
-        Address addr3 = Address.builder()  // For user3
-                .appUser(user3)
-                .recipientName("Lan")
-                .phoneNumber("0111222333")
-                .street("789 Đường C")
-                .ward("Phường 4")
-                .district("Quận 7")
-                .city("Hồ Chí Minh")
-                .country("Vietnam")
-                .isDefault(true)
-                .build();
-
-        Address addr4 = Address.builder()  // For user4
-                .appUser(user4)
-                .recipientName("Minh")
-                .phoneNumber("0444555666")
-                .street("101 Đường D")
-                .ward("Phường 5")
-                .district("Quận Bình Thạnh")
-                .city("Hồ Chí Minh")
-                .country("Vietnam")
-                .isDefault(true)
-                .build();
-
-        Address addr5 = Address.builder()  // For user5
-                .appUser(user5)
-                .recipientName("Hoa")
-                .phoneNumber("0777888999")
-                .street("112 Đường E")
-                .ward("Phường 6")
-                .district("Quận 10")
-                .city("Hồ Chí Minh")
-                .country("Vietnam")
-                .isDefault(true)
-                .build();
-
-        addressRepository.saveAll(Arrays.asList(addr1, addr2, addr3, addr4, addr5));
 
         // 3. Shops - Thêm 2 shops nữa (tổng 4)
-        Shop shop1 = Shop.builder()
-                .appUser(user1)
-                .name("Shop Thời Trang Phúc")
-                .email("shopphuc@example.com")
-                .phone("0123456789")
-                .status(Shop.Status.ACTIVE)
-                .build();
 
-        Shop shop2 = Shop.builder()
-                .appUser(user2)
-                .name("Shop Thời Trang Hào")
-                .email("shophao@example.com")
-                .phone("0987654321")
-                .status(Shop.Status.ACTIVE)
-                .build();
+        Shop shop1 = createShopIfNotExists(
+                "shop",  "Shop bán đồ điện tử", "035782233", "shop@example.com", "987654321",
+                "456 Another St, City", "Shop chuyên bán đồ điện tử", "http://example.com/logo2.png", false
+        );
 
-        Shop shop3 = Shop.builder()
-                .appUser(user5)
-                .name("Shop Phụ Kiện Hoa")
-                .email("shophua@example.com")
-                .phone("0777888999")
-                .status(Shop.Status.ACTIVE)
-                .build();
+        Shop shop3 = createShopIfNotExists(
+                "shop3",  "Shop bán quần áo", "055782233", "shop3@example.com", "980654321",
+                 "456 ", "Shop chuyên bán đồ điện tử", "http://example.com/logo2.png", false
+        );
 
-        Shop shop4 = Shop.builder()
-                .appUser(user3)
-                .name("Shop Giày Phúc")
-                .email("shopgiayphuc@example.com")
-                .phone("0123456789")
-                .status(Shop.Status.ACTIVE)
-                .build();
-
-        shopRepository.saveAll(Arrays.asList(shop1, shop2, shop3, shop4));
 
         // 4. Categories - Thêm 3 categories nữa (tổng 5, với level và commission khác)
         Category cat1 = Category.builder()
@@ -250,166 +117,166 @@ public class DataSeeder implements CommandLineRunner {
                 .commissionFeePercent(BigDecimal.valueOf(4))
                 .build();
 
-        Category cat6 = Category.builder()
-                .name("Điện Thoại & Máy Tính Bảng")
-                .slug("dien-thoai-may-tinh-bang")
-                .level(1)
-                .commissionFeePercent(BigDecimal.valueOf(6))
-                .build();
-
-        Category cat7 = Category.builder()
-                .name("Laptop")
-                .slug("laptop")
-                .level(1)
-                .commissionFeePercent(BigDecimal.valueOf(6))
-                .build();
-
-        Category cat8 = Category.builder()
-                .name("Phụ Kiện Điện Tử")
-                .slug("phu-kien-dien-tu")
-                .level(1)
-                .commissionFeePercent(BigDecimal.valueOf(8))
-                .build();
-
-
-        categoryRepository.saveAll(Arrays.asList(cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8));
+        categoryRepository.saveAll(Arrays.asList(cat1, cat2, cat3, cat4, cat5));
 
         // 5. Products - Thêm 6 products nữa (tổng 8)
         Product prod1 = Product.builder()
                 .name("Áo Sơ Mi Nam")
+                .slug(generateSlug("Áo Sơ Mi Nam")) // ao-so-mi-nam
                 .brand("XYZ Fashion")
                 .description("Áo sơ mi nam chất liệu cotton mềm mại, kiểu dáng trẻ trung")
                 .defaultImage("default1.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat1)
-                .embedding(phobertEmbeddedService.getEmbedding("Áo sơ mi nam chất liệu cotton mềm mại, kiểu dáng trẻ trung"))
+                .defaultImage("https://product.hstatic.net/200000588671/product/ao-so-mi-nam-bycotton-trang-art-nhan_8ec622a241ea4deb93a02bdbdcb87954.jpg")
+                .embedding(phobertEmbeddedService.getEmbedding("Áo Sơ Mi Nam - Áo sơ mi nam chất liệu cotton mềm mại, kiểu dáng trẻ trung"))
                 .shop(shop1)
                 .build();
 
         Product prod2 = Product.builder()
                 .name("Váy Nữ")
+                .slug(generateSlug("Váy Nữ")) // vay-nu
                 .brand("ABC Style")
                 .description("Váy nữ dịu dàng, phù hợp mọi dịp")
-                .embedding(phobertEmbeddedService.getEmbedding("Váy nữ dịu dàng, phù hợp mọi dịp"))
+                .embedding(phobertEmbeddedService.getEmbedding("Váy Nữ - Váy nữ dịu dàng, phù hợp mọi dịp"))
                 .defaultImage("default2.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat2)
-                .shop(shop2)
+                .defaultImage("https://media-cdn-v2.laodong.vn/storage/newsportal/2024/4/22/1330533/Kim-Ji-Won-8.jpeg")
+                .shop(shop3)
                 .build();
 
         Product prod3 = Product.builder()
                 .name("Quần Jeans Nam")
+                .slug(generateSlug("Quần Jeans Nam")) // quan-jeans-nam
                 .brand("Denim Pro")
                 .description("")
-                .embedding(phobertEmbeddedService.getEmbedding("Quần jeans nam bền bỉ, form slim fit"))
+                .embedding(phobertEmbeddedService.getEmbedding("Quần Jeans Nam - Quần jeans nam bền bỉ, form slim fit"))
                 .defaultImage("default3.jpg")
                 .status(StatusProduct.APPROVED)
-                .category(cat3)  // Sub-category
+                .category(cat3) // Sub-category
                 .shop(shop1)
+                .defaultImage("https://cdn.boo.vn/media/catalog/product/1/_/1.2.21.2.23.001.124.01.60600034_1__4.jpg")
                 .build();
 
         Product prod4 = Product.builder()
                 .name("Áo Khoác Nữ")
+                .slug(generateSlug("Áo Khoác Nữ")) // ao-khoac-nu
                 .brand("Winter Wear")
                 .description("Áo khoác nữ ấm áp cho mùa đông")
-                .embedding(phobertEmbeddedService.getEmbedding("Áo khoác nữ ấm áp cho mùa đông"))
+                .embedding(phobertEmbeddedService.getEmbedding("Áo Khoác Nữ - Áo khoác nữ ấm áp cho mùa đông"))
                 .defaultImage("default4.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat2)
-                .shop(shop2)
+                .defaultImage("https://product.hstatic.net/1000402464/product/fwjk22ss02h_grey__1__copy_6d06e958776b4de590abf0eb940cda51_master.jpg")
+                .shop(shop3)
                 .build();
 
         Product prod5 = Product.builder()
                 .name("Túi Xách")
+                .slug(generateSlug("Túi Xách")) // tui-xach
                 .brand("Bag Lux")
                 .description("Túi xách thời trang cao cấp")
                 .defaultImage("default5.jpg")
-                .embedding(phobertEmbeddedService.getEmbedding("Túi xách thời trang cao cấp"))
-
+                .embedding(phobertEmbeddedService.getEmbedding("Túi Xách - Túi xách thời trang cao cấp"))
                 .status(StatusProduct.APPROVED)
                 .category(cat4)
+                .defaultImage("https://www.gento.vn/wp-content/uploads/2023/05/tui-xach-nu-6-600x600.jpg")
                 .shop(shop3)
                 .build();
 
         Product prod6 = Product.builder()
                 .name("Giày Thể Thao")
+                .slug(generateSlug("Giày Thể Thao")) // giay-the-thao
                 .brand("Sport Shoe")
                 .description("Giày thể thao nam thoải mái cho chạy bộ")
-                .embedding(phobertEmbeddedService.getEmbedding("Giày thể thao nam thoải mái cho chạy bộ"))
+                .embedding(phobertEmbeddedService.getEmbedding("Giày Thể Thao - Giày thể thao nam thoải mái cho chạy bộ"))
                 .defaultImage("default6.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat5)
-                .shop(shop4)
+                .defaultImage("https://product.hstatic.net/200000365171/product/tun_3773_855693213f7141a392a0a6e0a5ffcb2b_master.jpg")
+                .shop(shop1)
                 .build();
 
         Product prod7 = Product.builder()
                 .name("Đồng Hồ")
+                .slug(generateSlug("Đồng Hồ")) // dong-ho
                 .brand("Watch Elite")
                 .description("Đồng hồ nam cổ điển")
                 .defaultImage("default7.jpg")
-                .embedding(phobertEmbeddedService.getEmbedding("Đồng hồ nam cổ điển"))
+                .embedding(phobertEmbeddedService.getEmbedding("Đồng Hồ - Đồng hồ nam cổ điển"))
                 .status(StatusProduct.APPROVED)
                 .category(cat4)
                 .shop(shop3)
+                .defaultImage("https://antien.vn/uploads/product/dong-ho-thong-minh-fitbit-versa-2-chinh-hang_1604387316.jpg")
                 .build();
 
         Product prod8 = Product.builder()
                 .name("Sandal Nữ")
+                .slug(generateSlug("Sandal Nữ")) // sandal-nu
                 .brand("Summer Foot")
                 .description("Sandal nữ nhẹ nhàng cho hè")
-                .embedding(phobertEmbeddedService.getEmbedding("Sandal nữ nhẹ nhàng cho hè"))
+                .embedding(phobertEmbeddedService.getEmbedding("Sandal Nữ - Sandal nữ nhẹ nhàng cho hè"))
                 .defaultImage("default8.jpg")
                 .status(StatusProduct.APPROVED)
                 .category(cat5)
-                .shop(shop4)
+                .defaultImage("https://img.mwc.com.vn/giay-thoi-trang?w=480&h=510&FileInput=/Resources/Product/2024/07/22/z5657421577987_9a0ce55fc8fb9f44faf88aa40d94736c.jpg")
+                .shop(shop1)
                 .build();
 
         Product prod9 = Product.builder()
                 .name("iPhone 14 Pro")
+                .slug(generateSlug("iPhone 14 Pro")) // iphone-14-pro
                 .brand("Apple")
                 .description("Điện thoại iPhone 14 Pro mới nhất, hiệu năng mạnh mẽ")
-                .embedding(phobertEmbeddedService.getEmbedding("Điện thoại iPhone 14 Pro mới nhất, hiệu năng mạnh mẽ"))
+                .embedding(phobertEmbeddedService.getEmbedding("iPhone 14 Pro - Điện thoại iPhone 14 Pro mới nhất, hiệu năng mạnh mẽ"))
                 .defaultImage("iphone14pro.jpg")
                 .status(StatusProduct.APPROVED)
-                .category(cat6)
-                .shop(shop1)  // ví dụ shop1 bán
+                .category(cat4)
+                .shop(shop1)
+                .defaultImage("https://cdn.tgdd.vn/Products/Images/42/251192/iphone-14-pro-max-tim-thumb-600x600.jpg")
                 .build();
 
         Product prod10 = Product.builder()
                 .name("Samsung Galaxy S23")
+                .slug(generateSlug("Samsung Galaxy S23")) // samsung-galaxy-s23
                 .brand("Samsung")
                 .description("Điện thoại Galaxy S23 với camera đỉnh cao")
-                .embedding(phobertEmbeddedService.getEmbedding("Điện thoại Galaxy S23 với camera đỉnh cao"))
+                .embedding(phobertEmbeddedService.getEmbedding("Samsung Galaxy S23 - Điện thoại Galaxy S23 với camera đỉnh cao"))
                 .defaultImage("galaxy-s23.jpg")
                 .status(StatusProduct.APPROVED)
-                .category(cat6)
-                .shop(shop2)
+                .category(cat5)
+                .shop(shop1)
+                .defaultImage("https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/d/i/dien-thoai-samsung-galaxy-s25_13_.png")
                 .build();
 
         Product prod11 = Product.builder()
                 .name("MacBook Pro 14 inch")
+                .slug(generateSlug("MacBook Pro 14 inch")) // macbook-pro-14-inch
                 .brand("Apple")
                 .description("Laptop MacBook Pro M2 Pro 14 inch hiệu năng cao")
-                .embedding(phobertEmbeddedService.getEmbedding("Laptop MacBook Pro M2 Pro 14 inch hiệu năng cao"))
-
+                .embedding(phobertEmbeddedService.getEmbedding("MacBook Pro 14 inch - Laptop MacBook Pro M2 Pro 14 inch hiệu năng cao"))
                 .defaultImage("macbookpro14.jpg")
                 .status(StatusProduct.APPROVED)
-                .category(cat7)
+                .category(cat5)
                 .shop(shop3)
+                .defaultImage("https://maconline.vn/uploads/macbook/macbook-pro/0-2023-macbook-pro-14inch/macbook-pro-14-inch-m2-pro.jpg")
                 .build();
 
         Product prod12 = Product.builder()
                 .name("Chuột Logitech G102")
+                .slug(generateSlug("Chuột Logitech G102")) // chuot-logitech-g102
                 .brand("Logitech")
                 .description("Chuột gaming Logitech G102 RGB")
-                .embedding(phobertEmbeddedService.getEmbedding("Chuột gaming Logitech G102 RGB"))
+                .embedding(phobertEmbeddedService.getEmbedding("Chuột Logitech G102 - Chuột gaming Logitech G102 RGB"))
                 .defaultImage("logitech-g102.jpg")
                 .status(StatusProduct.APPROVED)
-                .category(cat8)
-                .shop(shop4)
+                .category(cat2)
+                .shop(shop3)
+                .defaultImage("https://product.hstatic.net/200000722513/product/logitech-g102-lightsync-rgb-black-1_bf4f5774229c4a0f81b8e8a2feebe4d8_aeb4ae49ee844c3e9d315883d4e482d4.jpg")
                 .build();
 
-        productRepository.saveAll(Arrays.asList(prod1, prod2, prod3, prod4, prod5, prod6, prod7, prod8,prod9, prod10, prod11, prod12));
+        productRepository.saveAll(Arrays.asList(prod1, prod2, prod3, prod4, prod5, prod6, prod7, prod8, prod9, prod10, prod11, prod12));
 
         // 6. ProductVariants - Thêm 12 variants nữa (tổng 14, với stock/sold đa dạng cho analytics)
         ProductVariant variant1 = ProductVariant.builder()
@@ -502,7 +369,6 @@ public class DataSeeder implements CommandLineRunner {
                 .stock(5)
                 .sold(1)
                 .build();
-
         ProductVariant variant2_extra = ProductVariant.builder()
                 .product(prod2)
                 .price(BigDecimal.valueOf(320000))
@@ -545,9 +411,9 @@ public class DataSeeder implements CommandLineRunner {
 
         // 7. Orders - Thêm 5 orders nữa (tổng 6, với status đa dạng cho analytics)
         Order order1 = Order.builder()
-                .appUser(user2)
+                .appUser(appUser3)
                 .shop(shop1)
-                .shippingAddress(addr2)
+                .shippingAddress(appUser3.getAddresses().get(0))
                 .status(OrderStatus.PENDING)
                 .subTotal(BigDecimal.valueOf(200000))
                 .totalAmount(BigDecimal.valueOf(200000))
@@ -557,9 +423,9 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
 
         Order order2 = Order.builder()
-                .appUser(user3)
-                .shop(shop2)
-                .shippingAddress(addr3)
+                .appUser(appUser4)
+                .shop(shop3)
+                .shippingAddress(appUser4.getAddresses().get(0))
                 .status(OrderStatus.CONFIRMED)
                 .subTotal(BigDecimal.valueOf(700000))
                 .totalAmount(BigDecimal.valueOf(720000))  // + shipping
@@ -569,9 +435,9 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
 
         Order order3 = Order.builder()
-                .appUser(user4)
-                .shop(shop1)
-                .shippingAddress(addr4)
+                .appUser(appUser2)
+                .shop(shop3)
+                .shippingAddress(appUser2.getAddresses().get(0))
                 .status(OrderStatus.DELIVERED)
                 .subTotal(BigDecimal.valueOf(450000))
                 .totalAmount(BigDecimal.valueOf(450000))
@@ -581,9 +447,9 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
 
         Order order4 = Order.builder()
-                .appUser(user3)
+                .appUser(appUser4)
                 .shop(shop3)
-                .shippingAddress(addr3)
+                .shippingAddress(appUser4.getAddresses().get(0))
                 .status(OrderStatus.DELIVERED)
                 .subTotal(BigDecimal.valueOf(650000))
                 .totalAmount(BigDecimal.valueOf(670000))
@@ -593,9 +459,9 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
 
         Order order5 = Order.builder()
-                .appUser(user4)
-                .shop(shop4)
-                .shippingAddress(addr4)
+                .appUser(appUser2)
+                .shop(shop3)
+                .shippingAddress(appUser2.getAddresses().get(0))
                 .status(OrderStatus.CANCELLED)
                 .subTotal(BigDecimal.valueOf(150000))
                 .totalAmount(BigDecimal.valueOf(150000))
@@ -605,9 +471,9 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
 
         Order order6 = Order.builder()
-                .appUser(user2)
-                .shop(shop2)
-                .shippingAddress(addr2)
+                .appUser(appUser4)
+                .shop(shop1)
+                .shippingAddress(appUser4.getAddresses().get(0))
                 .status(OrderStatus.PENDING)
                 .subTotal(BigDecimal.valueOf(950000))
                 .totalAmount(BigDecimal.valueOf(970000))
@@ -617,9 +483,9 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
         // Giả sử dùng user3, user4, user5 mua hàng
         Order order7 = Order.builder()
-                .appUser(user3)
+                .appUser(appUser3)
                 .shop(shop1)
-                .shippingAddress(addr3)
+                .shippingAddress(appUser3.getAddresses().get(0))
                 .status(OrderStatus.CONFIRMED)
                 .subTotal(BigDecimal.valueOf(1200000))
                 .totalAmount(BigDecimal.valueOf(1230000))  // + shipping
@@ -629,9 +495,9 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
 
         Order order8 = Order.builder()
-                .appUser(user4)
-                .shop(shop2)
-                .shippingAddress(addr4)
+                .appUser(appUser3)
+                .shop(shop3)
+                .shippingAddress(appUser3.getAddresses().get(0))
                 .status(OrderStatus.DELIVERED)
                 .subTotal(BigDecimal.valueOf(850000))
                 .totalAmount(BigDecimal.valueOf(870000))
@@ -655,6 +521,7 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant1)
                 .quantity(1)
                 .price(variant1.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
                 .build();
 
         // Order2: 2 items
@@ -668,6 +535,8 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant2)
                 .quantity(1)
                 .price(variant2.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
 
         OrderItemId orderItemId2_2 = new OrderItemId();
@@ -680,6 +549,8 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant4)
                 .quantity(1)
                 .price(variant4.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
 
         // Order3: 1 item
@@ -693,6 +564,8 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant3)
                 .quantity(2)  // Quantity >1 for testing
                 .price(variant3.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
 
         // Order4: 3 items
@@ -706,6 +579,8 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant5)
                 .quantity(1)
                 .price(variant5.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
 
         OrderItemId orderItemId4_2 = new OrderItemId();
@@ -718,6 +593,8 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant7)
                 .quantity(1)
                 .price(variant7.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
 
         OrderItemId orderItemId4_3 = new OrderItemId();
@@ -730,6 +607,8 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant1_extra)
                 .quantity(1)
                 .price(variant1_extra.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
 
         // Order6: 2 items (skip order5 as CANCELLED for testing)
@@ -743,6 +622,8 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant2_extra)
                 .quantity(2)
                 .price(variant2_extra.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
 
         OrderItemId orderItemId6_2 = new OrderItemId();
@@ -755,6 +636,8 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant6)
                 .quantity(1)
                 .price(variant6.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
 
         // Order7: 4 items
@@ -785,6 +668,110 @@ public class DataSeeder implements CommandLineRunner {
         System.out.println("✅ Seeder data created successfully with expanded data for algorithms!");
     }
 
+
+    private AppUser createUserIfNotExists(String username, String name, String email, String rawPassword,
+                                       List<String> roleNames) {
+        if (appUserRepository.findByUsername(username).isEmpty()) {
+            AppUser appUser = AppUser.builder()
+                    .username(username)
+                    .name(name)
+                    .email(email)
+                    .password(passwordEncoder.encode(rawPassword))
+                    .status(UserStatus.ACTIVE)
+                    .build();
+
+            // Thêm các vai trò
+            roleNames.forEach(roleStr -> {
+                RoleName roleName = RoleName.valueOf(roleStr.toUpperCase());
+                Role role = roleRepository.findByRoleName(roleName)
+                        .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò: " + roleName));
+
+                UserRole userRole = UserRole.builder()
+                        .user(appUser)
+                        .role(role)
+                        .grantedBy("SYSTEM")
+                        .build();
+
+                appUser.getUserRoles().add(userRole);
+            });
+
+
+            Address addr = Address.builder()
+                    .appUser(appUser)
+                    .recipientName(name)
+                    .phoneNumber("0123456789")
+                    .street("123 Đường A")
+                    .ward("Phường Tân Quy")
+                    .district("Quận 7")
+                    .city("Hồ Chí Minh")
+                    .country("Vietnam")
+                    .isDefault(true)
+                    .build();
+
+            appUser.getAddresses().add(addr);
+
+            AppUser newAppUser = appUserRepository.save(appUser);
+            addr.setAppUser(appUser);
+            addressRepository.save(addr);
+
+            return newAppUser;
+        }
+        return appUserRepository.findByUsername(username).get();
+    }
+
+    private void createRoleIfNotExists(String roleNameStr) {
+        RoleName roleName = RoleName.valueOf(roleNameStr.toUpperCase());
+        if (roleRepository.findByRoleName(roleName).isEmpty()) {
+            Role role = new Role(roleName);
+            roleRepository.save(role);
+            System.out.println("✅ Seeded role: " + roleName);
+        }
+    }
+
+    private Shop createShopIfNotExists(String username, String name, String phone, String email, String taxCode,
+                                       String address, String description, String logoUrl, boolean isMall) {
+        Optional<AppUser> userOpt = appUserRepository.findByUsername(username);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy người dùng với username: " + username);
+        }
+
+        AppUser user = userOpt.get();
+
+        if (shopRepository.findByAppUser_Id(user.getId()).isEmpty()) {
+            Shop shop = new Shop();
+            shop.setTaxCode(taxCode);
+            shop.setAppUser(user);
+            shop.setName(name);
+            shop.setPhone(phone);
+            shop.setEmail(email);
+            shop.setDescription(description);
+            shop.setLogoUrl(logoUrl);
+            shop.setMall(isMall);
+            shop.setStatus(Shop.Status.ACTIVE);
+            shop.setCreatedAt(LocalDateTime.now());
+            shop.setUpdatedAt(LocalDateTime.now());
+
+            ShopAddress shopAddress = ShopAddress.builder()
+                    .shop(shop)
+                    .street(address)
+                    .ward("xã Yên Khang")
+                    .district("huyện Ý Yên")
+                    .city("Nam Định")
+                    .country("Việt Nam")
+                    .senderName(name)
+                    .senderPhone(phone)
+                    .build();
+
+            shop.setAddress(shopAddress);
+
+            System.out.println("✅ Đã tạo cửa hàng: " + name + " cho username: " + username + " với user_id: " + user.getId());
+             shopRepository.save(shop);
+        }
+
+        return shopRepository.findByAppUser_Id(user.getId()).get();
+    }
+
+
     private OrderItem createOrderItem(Order order, ProductVariant variant, int quantity) {
         OrderItemId id = new OrderItemId();
         id.setOrderId(order.getOrderId());
@@ -796,8 +783,19 @@ public class DataSeeder implements CommandLineRunner {
                 .productVariant(variant)
                 .quantity(quantity)
                 .price(variant.getPrice())
+                .commissionFeePercent(BigDecimal.ZERO)
+
                 .build();
         return oi;
     }
 
+    private static String generateSlug(String name) {
+        // Normalize Vietnamese diacritics
+        String normalized = Normalizer.normalize(name, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String slug = pattern.matcher(normalized).replaceAll("");
+        // Replace spaces and special characters with hyphens, convert to lowercase
+        slug = slug.replaceAll("[^a-zA-Z0-9\\s-]", "").replaceAll("\\s+", "-").toLowerCase();
+        return slug;
+    }
 }

@@ -99,6 +99,8 @@ public class AuthController {
     public ResponseEntity<TokenRefreshResponse> refreshAccessToken(
             @CookieValue(name = "refreshToken", required = false) String refreshToken) {
 
+        System.out.println("Refresh Token");
+
         if (refreshToken == null) {
             throw new RuntimeException("Refresh token not found in cookies");
         }
