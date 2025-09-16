@@ -76,6 +76,10 @@ public class ShopController {
         return ResponseEntity.ok(shopService.searchShopsByName(name));
     }
 
+    @GetMapping("/get-shop-id")
+    public ResponseEntity<UUID> getShopId() {
+        return ResponseEntity.ok(shopService.getShopId());
+    }
 
 
 }
