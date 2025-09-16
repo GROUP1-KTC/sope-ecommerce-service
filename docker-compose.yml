@@ -1,77 +1,4 @@
 services:
-  postgres:
-    image: postgres:latest
-    container_name: sope-postgres
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
-      POSTGRES_DB: sope
-      TZ: Asia/Ho_Chi_Minh
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - sope-network
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: my-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: postgres123
-    ports:
-      - "8081:80"
-    depends_on:
-      - postgres
-
-  redis:
-    image: redis:latest
-    container_name: sope-redis
-    ports:
-      - "6379:6379"
-    restart: always
-    networks:
-      - sope-network
-    volumes:
-      - redis_data:/data
-
-
-  livekit:
-    image: livekit/livekit-server:latest
-    container_name: livekit
-    ports:
-      - "7880:7880" # REST API
-      - "7881:7881" # gRPC / Admin
-      - "5349:5349/udp" # TURN (UDP)
-      - "7882:7882" # WebRTC
-    environment:
-      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-devsecret}"
-      LIVEKIT_REGION: local
-      LIVEKIT_LOG_LEVEL: info
-
-    volumes:
-      - ./livekit-data:/data
-    command:
-      - --dev
-      - --bind
-      - 0.0.0.0
-      - --udp-port
-      - "5349"
-      - --node-ip
-      - ${NODE_IP:-10.19.82.225}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7880/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - sope-network
-
-
   elasticsearch:
     image: elasticsearch:7.9.2
     container_name: sope-elasticsearch
@@ -143,6 +70,4 @@ volumes:
   postgres_data:
     driver: local
   es_data:
-    driver: local
-  redis_data:
     driver: local
