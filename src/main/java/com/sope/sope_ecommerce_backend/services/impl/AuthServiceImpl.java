@@ -26,6 +26,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -107,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
     public UserLoginResponse login(UserLoginRequest request) {
         try {
             AppUser appUser = userRepository.findByEmail(request.email())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User does not exist."));
 
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -141,22 +142,20 @@ public class AuthServiceImpl implements AuthService {
         }
         String userId = (String) userIdObj;
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(
-                jwtProvider.extractUsername(oldRefreshToken)
-        );
+        AppUser appUser = userRepository.findById(UUID.fromString(userId))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(appUser.getUsername());
 
         String newAccessToken = jwtProvider.generateToken(userDetails, UUID.fromString(userId));
         String newRefreshToken = jwtProvider.generateRefreshToken(userDetails, UUID.fromString(userId));
 
         redisService.set("refresh:" + newRefreshToken, userId, 7, TimeUnit.DAYS);
-
-        // xoá refresh token cũ
         redisService.delete(redisKey);
 
-        TokenRefreshResponse tokenRefreshResponse = new TokenRefreshResponse(newAccessToken, newRefreshToken);
-        return tokenRefreshResponse;
-
+        return new TokenRefreshResponse(newAccessToken, newRefreshToken);
     }
+
 
 
     public List<ResponseCookie> logout(String refreshToken) {

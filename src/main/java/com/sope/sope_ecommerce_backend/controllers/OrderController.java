@@ -71,7 +71,7 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/shop/{shopId}")
+    @GetMapping("/shop")
     public ResponseEntity<ApiResponse<Page<? extends OrderResponse>>> getAllOrdersByShop(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
