@@ -1,0 +1,28 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "folding_analyzer": {
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "productId": { "type": "keyword" },
+      "slug": {
+        "type": "text",
+        "analyzer": "folding_analyzer",
+        "search_analyzer": "folding_analyzer"
+      },
+      "name": {
+        "type": "text",
+        "analyzer": "folding_analyzer",
+        "search_analyzer": "folding_analyzer"
+      },
+      "default_image": { "type": "keyword" }
+    }
+  }
+}

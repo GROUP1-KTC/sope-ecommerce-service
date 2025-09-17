@@ -36,6 +36,9 @@ public class Category {
     private List<Product> products;
 
     @Column(name = "commission_fee_percent", precision = 5, scale = 2)
-    private BigDecimal commissionFeePercent; // % hoa hồng
+    private BigDecimal commissionFeePercent;
+
+    @Column(name = "image_for_parent")
+    private String imageForParent;
 
 }

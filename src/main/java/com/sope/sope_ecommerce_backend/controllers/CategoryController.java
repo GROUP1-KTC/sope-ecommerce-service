@@ -8,6 +8,8 @@ import com.sope.sope_ecommerce_backend.services.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,9 +20,11 @@ import java.util.UUID;
 public class CategoryController {
       private final CategoryService categoryService;
 
-      @PostMapping
-      public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryCreateDTO request) {
-            CategoryDTO createCategory = categoryService.createCategory(request);
+      @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+      public ResponseEntity<CategoryDTO> createCategory(
+                  @RequestPart("category") CategoryCreateDTO request,
+                  @RequestPart(value = "imageForParent", required = false) MultipartFile imageForParent) {
+            CategoryDTO createCategory = categoryService.createCategory(request, imageForParent);
             return ResponseEntity.ok(createCategory);
       }
 
