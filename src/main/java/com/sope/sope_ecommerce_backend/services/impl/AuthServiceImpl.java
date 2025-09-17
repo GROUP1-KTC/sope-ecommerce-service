@@ -108,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
     public UserLoginResponse login(UserLoginRequest request) {
         try {
             AppUser appUser = userRepository.findByEmail(request.email())
-                    .orElseThrow(() -> new RuntimeException("User not found"));
+                    .orElseThrow(() -> new RuntimeException("User does not exist."));
 
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
