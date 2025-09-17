@@ -107,8 +107,9 @@ public class AuthController {
 
         TokenRefreshResponse response = authService.refreshAccessToken(refreshToken);
 
-        // update cookie với refresh token mới
         ResponseCookie refreshCookie = cookieService.createRefreshCookie(response.refreshToken());
+
+        System.out.println("Đã refresh");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
