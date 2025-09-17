@@ -168,7 +168,8 @@ public class ProductServiceImpl implements ProductService {
             return ids;
       }
 
-      @Cacheable(value = "products", key = "'allProducts'", unless = "#result == null || #result.isEmpty()")
+      @Override
+      @Transactional(readOnly = true)
       public List<ProductDTO> getAllProducts() {
             List<Product> products = productRepository.findAll();
             return productMapper.toDtoList(products);
