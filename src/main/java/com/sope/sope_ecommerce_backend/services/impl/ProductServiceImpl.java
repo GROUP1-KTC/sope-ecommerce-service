@@ -137,8 +137,7 @@ public class ProductServiceImpl implements ProductService {
             Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
             UUID shopId = shopService.getShopId();
-
-            Page<Product> products = productRepository.findByShopId(shopId, pageable);
+            Page<Product> products = productRepository.findByShop_Id(shopId, pageable);
             return products.map(productMapper::toDto);
       }
 
