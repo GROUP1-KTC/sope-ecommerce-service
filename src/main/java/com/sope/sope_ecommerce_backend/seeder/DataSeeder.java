@@ -4,6 +4,7 @@ package com.sope.sope_ecommerce_backend.seeder;
 import com.sope.sope_ecommerce_backend.entities.*;
 import com.sope.sope_ecommerce_backend.enums.*;
 import com.sope.sope_ecommerce_backend.repositories.*;
+import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -27,6 +28,9 @@ public class DataSeeder implements CommandLineRunner {
   private final OrderItemRepository orderItemRepository;
   private final RoleRepository roleRepository;
   private final BCryptPasswordEncoder passwordEncoder;
+
+  private final PhobertEmbeddedService phobertEmbeddedService;
+
 
   @Override
   public void run(String... args) throws Exception {
@@ -119,6 +123,7 @@ public class DataSeeder implements CommandLineRunner {
         .defaultImage("https://res.cloudinary.com/dybo8zd4y123/image/upload/v1757906811/ezkafi83wakk1cxwc3fi.webp")
         .status(StatusProduct.APPROVED)
         .category(cat1)
+            .embedding(phobertEmbeddedService.getEmbedding("Áo Sơ Mi Nam - Áo sơ mi nam chất liệu cotton mềm mại, kiểu dáng trẻ trung"))
         .shop(shop1)
         .build();
 
@@ -127,6 +132,7 @@ public class DataSeeder implements CommandLineRunner {
         .slug("vay-nu")
         .brand("ABC Style")
         .description("Váy nữ dịu dàng, phù hợp mọi dịp")
+            .embedding(phobertEmbeddedService.getEmbedding("Váy Nữ - Váy nữ dịu dàng, phù hợp mọi dịp"))
         .defaultImage("https://res.cloudinary.com/dybo8zd4y123/image/upload/v1757898729/x4o516yrk7uqvbnickty.jpg")
         .status(StatusProduct.APPROVED)
         .category(cat2)
@@ -142,6 +148,7 @@ public class DataSeeder implements CommandLineRunner {
         .status(StatusProduct.APPROVED)
         .category(cat3) // Sub-category
         .shop(shop1)
+            .embedding(phobertEmbeddedService.getEmbedding("Quần Jeans Nam - Quần jeans nam bền bỉ, form slim fit"))
         .build();
 
     Product prod4 = Product.builder()
@@ -152,6 +159,7 @@ public class DataSeeder implements CommandLineRunner {
         .defaultImage("https://res.cloudinary.com/dybo8zd4y123/image/upload/v1757832931/kpfs0raizp2wtawb6xwn.jpg")
         .status(StatusProduct.APPROVED)
         .category(cat2)
+            .embedding(phobertEmbeddedService.getEmbedding("Áo Khoác Nữ - Áo khoác nữ ấm áp cho mùa đông"))
         .shop(shop3)
         .build();
 
@@ -164,6 +172,7 @@ public class DataSeeder implements CommandLineRunner {
         .status(StatusProduct.APPROVED)
         .category(cat4)
         .shop(shop3)
+            .embedding(phobertEmbeddedService.getEmbedding("Túi Xách - Túi xách thời trang cao cấp"))
         .build();
 
     Product prod6 = Product.builder()
@@ -174,6 +183,7 @@ public class DataSeeder implements CommandLineRunner {
         .defaultImage("https://res.cloudinary.com/dybo8zd4y123/image/upload/v1757788925/ipdgm8pjy0zlxgsg4i6z.jpg")
         .status(StatusProduct.APPROVED)
         .category(cat5)
+            .embedding(phobertEmbeddedService.getEmbedding("Giày Thể Thao - Giày thể thao nam thoải mái cho chạy bộ"))
         .shop(shop3)
         .build();
 
@@ -185,6 +195,7 @@ public class DataSeeder implements CommandLineRunner {
         .defaultImage("https://res.cloudinary.com/dybo8zd4y123/image/upload/v1757576070/e7jswpuu8qqhelgesvoc.png")
         .status(StatusProduct.APPROVED)
         .category(cat4)
+            .embedding(phobertEmbeddedService.getEmbedding("Đồng Hồ - Đồng hồ nam cổ điển"))
         .shop(shop3)
         .build();
 
@@ -196,6 +207,7 @@ public class DataSeeder implements CommandLineRunner {
         .defaultImage("https://res.cloudinary.com/dybo8zd4y123/image/upload/v1757526063/v1gepqksfjyfstf2svql.webp")
         .status(StatusProduct.APPROVED)
         .category(cat5)
+            .embedding(phobertEmbeddedService.getEmbedding("Sandal Nữ - Sandal nữ nhẹ nhàng cho hè"))
         .shop(shop1)
         .build();
 
