@@ -2,6 +2,7 @@ package com.sope.sope_ecommerce_backend.security.jwt;
 
 import com.sope.sope_ecommerce_backend.security.user.CustomUserDetailsService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,18 +34,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
-    // Các route không cần filter
-    private static final List<String> EXCLUDED_PATHS = List.of(
-            "/api/auth/login",
-            "/api/auth/register",
-            "/swagger-ui/",
-            "/v3/api-docs"
-    );
+    private static final List<String> PROTECTED_PATHS = List.of(
+            "/api/users/me",
+            "/api/orders",
+            "/api/products",
+            "/api/cart");
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
@@ -53,43 +52,57 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String path = request.getServletPath();
-        if (isExcludedPath(path)) {
+        if (!isProtectedPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        try {
-            Optional.ofNullable(jwtProvider.getTokenFromHeader(request))
-                    .filter(StringUtils::hasText)
-                    .filter(jwtProvider::validateToken)
-                    .map(token -> {
-                        String username = jwtProvider.extractUsername(token);
-                        String userId = jwtProvider.extractUserId(token);
-                        return new String[]{token, username, userId};
-                    })
-                    .filter(data -> SecurityContextHolder.getContext().getAuthentication() == null)
-                    .ifPresent(data -> setAuthentication(data[0], data[1], data[2], request));
-        } catch (AuthenticationException ex) { // 401 Unauthorized
-        SecurityContextHolder.clearContext();
-        log.error("Unauthorized error: {}", ex.getMessage());
+        String token = jwtProvider.getTokenFromHeader(request);
 
-    } catch (Exception ex) {
+        try {
+            if (StringUtils.hasText(token)) {
+                jwtProvider.validateTokenOrThrow(token);
+
+                String username = jwtProvider.extractUsername(token);
+                String userId = jwtProvider.extractUserId(token);
+
+                if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                    setAuthentication(token, username, userId, request);
+                }
+            }
+        } catch (ExpiredJwtException ex) {
             SecurityContextHolder.clearContext();
-            log.error("Internal error: {}", ex.getMessage());
-            handlerExceptionResolver.resolveException(request, response, null, ex);
+            log.warn("JWT token expired: {}", ex.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"JWT token expired\"}");
+            return;
+        } catch (AuthenticationException ex) {
+            SecurityContextHolder.clearContext();
+            log.error("Unauthorized error: {}", ex.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Unauthorized\"}");
+            return;
+        } catch (Exception ex) {
+            SecurityContextHolder.clearContext();
+            log.error("Invalid token or internal error in JwtAuthFilter: {}", ex.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Invalid token\"}");
             return;
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private boolean isExcludedPath(String path) {
-        return EXCLUDED_PATHS.stream().anyMatch(path::startsWith);
+    private boolean isProtectedPath(String path) {
+        return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
     }
 
     private void setAuthentication(String token, String username, String userId, HttpServletRequest request) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        if (jwtProvider.validateTokenWithUser(token, userDetails, userId)) {
+        if (userDetails != null && jwtProvider.validateTokenWithUser(token, userDetails, userId)) {
             Claims claims = jwtProvider.getClaims(token);
             List<String> roles = Optional.ofNullable(claims.get("roles", List.class))
                     .orElse(List.of());
@@ -98,8 +111,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                     .toList();
 
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+            // principal MUST be userDetails (not String)
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null,
+                    authorities);
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -107,7 +121,4 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             log.info("Authentication set for user {} with roles {}", username, roles);
         }
     }
-
-
 }
-

@@ -99,9 +99,12 @@ public class ShopServiceImpl implements ShopService {
             throw new IllegalArgumentException("Thông tin định danh không đầy đủ");
         }
 
-        String logoUrl = form.getLogoFile() != null ? fileUploadService.uploadImage(form.getLogoFile()) : request.logoUrl();
-        String taxUrl = form.getTaxFile() != null ? fileUploadService.uploadImage(form.getTaxFile()) : request.taxDocumentUrl();
-        String idFrontUrl = form.getIdFront() != null ? fileUploadService.uploadImage(form.getIdFront()) : idReq.idFront();
+        String logoUrl = form.getLogoFile() != null ? fileUploadService.uploadImage(form.getLogoFile())
+                : request.logoUrl();
+        String taxUrl = form.getTaxFile() != null ? fileUploadService.uploadImage(form.getTaxFile())
+                : request.taxDocumentUrl();
+        String idFrontUrl = form.getIdFront() != null ? fileUploadService.uploadImage(form.getIdFront())
+                : idReq.idFront();
         String idBackUrl = form.getIdBack() != null ? fileUploadService.uploadImage(form.getIdBack()) : idReq.idBack();
         String selfieUrl = form.getSelfie() != null ? fileUploadService.uploadImage(form.getSelfie()) : idReq.selfie();
 
@@ -138,7 +141,6 @@ public class ShopServiceImpl implements ShopService {
 
         userService.addRoleToUser(userId, RoleName.SELLER, "SYSTEM");
 
-
         Shop savedShop = shopRepository.save(shop);
 
         return shopMapper.toResponse(savedShop);
@@ -153,7 +155,7 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public  List<ShopResponse> getAllShops() {
+    public List<ShopResponse> getAllShops() {
         List<Shop> shops = shopRepository.findAll();
         return shops.stream().map(shopMapper::toResponse).collect(Collectors.toList());
     }
@@ -164,7 +166,6 @@ public class ShopServiceImpl implements ShopService {
                 .orElseThrow(() -> new RuntimeException("Shop not found with id: " + shopId));
         return shopMapper.toResponse(shop);
     }
-
 
     @Override
     public Shop getShopEntityById(UUID shopId) {
@@ -205,7 +206,7 @@ public class ShopServiceImpl implements ShopService {
             shop.setMall(request.isMall());
         }
 
-        if(request.address() != null){
+        if (request.address() != null) {
             ShopAddress address = getShopAddress(request, shop);
             shop.setAddress(address);
         }
@@ -273,6 +274,5 @@ public class ShopServiceImpl implements ShopService {
 
         return shop.getId();
     }
-
 
 }

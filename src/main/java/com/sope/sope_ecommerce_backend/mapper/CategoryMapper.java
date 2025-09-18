@@ -16,6 +16,6 @@ public interface CategoryMapper {
 
       List<CategoryDTO> toDtoList(List<Category> categories);
 
+      @Mapping(target = "imageForParent", ignore = true)
       Category toEntity(CategoryCreateDTO dto);
-
 }

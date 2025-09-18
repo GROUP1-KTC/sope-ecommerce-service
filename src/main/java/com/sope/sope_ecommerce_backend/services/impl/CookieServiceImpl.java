@@ -9,17 +9,16 @@ import java.util.List;
 @Service
 public class CookieServiceImpl implements CookieService {
 
-    private static final int ACCESS_TOKEN_MAX_AGE = 60 * 60;
     private static final int REFRESH_TOKEN_MAX_AGE = 7 * 24 * 60 * 60;
 
     @Override
     public ResponseCookie createRefreshCookie(String refreshToken) {
         return ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(true) // production
+                .secure(false) // production
                 .path("/")
                 .maxAge(REFRESH_TOKEN_MAX_AGE)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
     }
 
@@ -28,18 +27,18 @@ public class CookieServiceImpl implements CookieService {
     public List<ResponseCookie> clearAuthCookies() {
         ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(false)
                 .path("/")
                 .maxAge(0)
-                .sameSite("Strict")
+                .sameSite("Lax")
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);

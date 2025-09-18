@@ -49,7 +49,7 @@ public class JwtProvider {
         return Jwts.parser()
                 .setSigningKey(rsaKeyUtil.getPublicKey())
                 .build()
-                .parseSignedClaims(token)
+                .parseClaimsJws(token)
                 .getBody();
     }
 
@@ -87,17 +87,35 @@ public class JwtProvider {
 
     public boolean validateToken(String token) {
         try {
-            getClaims(token);
+            getClaims(token); // parseClaimsJws
             return !isTokenExpired(token);
+        } catch (io.jsonwebtoken.ExpiredJwtException ex) {
+            throw ex; // cho JwtAuthFilter bắt riêng
         } catch (Exception e) {
             log.error("Invalid JWT token: {}", e.getMessage());
             return false;
         }
     }
 
+
     public boolean validateTokenWithUser(String token, UserDetails userDetails, String userId) {
         return extractUsername(token).equals(userDetails.getUsername()) &&
                 extractUserId(token).equals(userId) &&
                 !isTokenExpired(token);
     }
+
+    public void validateTokenOrThrow(String token) {
+        try {
+            if (isTokenExpired(token)) {
+                throw new io.jsonwebtoken.ExpiredJwtException(null, getClaims(token), "JWT expired");
+            }
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Invalid JWT token: {}", e.getMessage());
+            throw new org.springframework.security.core.AuthenticationException("Invalid JWT token") {
+            };
+        }
+    }
+
 }

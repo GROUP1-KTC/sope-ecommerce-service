@@ -8,6 +8,8 @@ import com.sope.sope_ecommerce_backend.entities.Category;
 import com.sope.sope_ecommerce_backend.mapper.CategoryMapper;
 import com.sope.sope_ecommerce_backend.repositories.CategoryRepository;
 import com.sope.sope_ecommerce_backend.services.CategoryService;
+import com.sope.sope_ecommerce_backend.services.FileUploadService;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,10 +26,11 @@ import java.util.UUID;
 public class CategoryServiceImpl implements CategoryService {
       private final CategoryRepository categoryRepository;
       private final CategoryMapper categoryMapper;
+      private final FileUploadService fileUploadService;
 
       @Override
       @Transactional
-      public CategoryDTO createCategory(CategoryCreateDTO request) {
+      public CategoryDTO createCategory(CategoryCreateDTO request, MultipartFile imageForParent) {
             Category category = new Category();
             category.setName(request.name());
             category.setCommissionFeePercent(request.commissionFeePercent());
@@ -42,6 +45,11 @@ public class CategoryServiceImpl implements CategoryService {
                               .orElseThrow(() -> new RuntimeException("Parent not found"));
                   category.setParent(parent);
                   category.setLevel(parent.getLevel() + 1);
+            }
+
+            if (imageForParent != null && !imageForParent.isEmpty()) {
+                  String imageUrl = fileUploadService.uploadImage(imageForParent);
+                  category.setImageForParent(imageUrl);
             }
 
             category = categoryRepository.save(category);

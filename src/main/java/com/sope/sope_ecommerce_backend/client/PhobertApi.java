@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.Map;
 
-@FeignClient(name = "phobertApi", url = "http://localhost:8000/api/v1")
+@FeignClient(name = "phobertApi", url = "${ai-service.url:http://localhost:8000/api/v1/}")
 public interface PhobertApi {
 
     @PostMapping("/embedding/embed")

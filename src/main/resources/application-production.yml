@@ -2,16 +2,35 @@ spring:
   application:
     name: sope ecommerce backend
 
-  devtools:
-    restart:
-      enabled: true
-      additional-paths: src/main/java
+  mail:
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    username: ${EMAIL}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    cache: false
 
+  ai:
+    openai:
+      api-key: ${GEMINI_KEY}
+      chat:
+        base-url: ${GEMINI_BASED_URL}
+        completions-path: /v1beta/openai/chat/completions
+        options:
+          model: ${GEMINI_MODEL}
 
   datasource:
-    url: jdbc:postgresql://postgres:5432/sope
-    username: postgres
-    password: postgres123
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?TimeZone=Asia/Ho_Chi_Minh
+    username: ${DB_USER}
+    password: ${DB_PASS}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -25,27 +44,34 @@ spring:
         jdbc:
           time_zone: Asia/Ho_Chi_Minh
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASS}
+      database: 0
+      timeout: 2s
+      lettuce:
+        pool:
+          max-total: 100
+          max-idle: 50
+          min-idle: 10
+          max-wait: 1s
+      cluster:
+        nodes:
+
   cache:
     type: redis
     redis:
-      default-ttl: 600 # 10 minutes
+      default-ttl: 10m
       cache-ttls:
-        users: 300 # 5 minutes
-        products: 1800 # 30 minutes
+        users: 5m
+        products: 30m
+        GOSHIP_ADDRESSES: 30d
 
-  redis:
-    host: redis
-    port: 6379
-    database: 0
-    timeout: 10s
-    lettuce:
-      shutdown-timeout: 100ms
-      pool:
-        max-total: 100
-        max-idle: 50
-        min-idle: 10
-        max-wait: 1s
-        test-on-borrow: true
+  jackson:
+    polymorphic:
+      package: com.sope.sope_ecommerce_backend.model.
 
   flyway:
     enabled: false
@@ -62,37 +88,6 @@ spring:
       max-file-size: 10MB
       max-request-size: 20MB
 
-app:
-  jwt:
-    secret: '284dd6c8bceeacfa2559a1ca7ef3e4c25099bea3d6a7f3e9cb2470e39a46106f1379b3b61aedbaf5299126211f663aef6c79aac2fc3913752b5ae63e06c7a592='
-    header: Authorization
-    prefix: Bearer
-    expires-in-minutes: 60
-    refresh-expires-in-days: 14
-    clock-skew-second: 60
-    rotate-on-refresh: true
-    reuse-detection: true
-    expiration: 900000
-    refresh-expiration: 604800000
-  refresh-token:
-    enabled: true
-    header: X-Refresh-Token
-    prefix: Refresh
-    expires-in-minutes: 60
-    clock-skew-second: 60
-
-  security:
-    user:
-    name: user
-    password: password
-    oauth2:
-    client:
-      registration:
-      google:
-        client-id: your-google-client-id
-        client-secret: your-google-client-secret
-        scope: profile, email
-
 cors:
   allowed-origins: "*"
   allowed-methods: GET, POST, PUT, DELETE, OPTIONS
@@ -101,16 +96,6 @@ cors:
   allow-credentials: true
   max-age: 3600
 
-logging:
-  level:
-    org:
-      springframework:
-        web: DEBUG
-        security: DEBUG
-    org.springframework.data.redis: DEBUG
-    io:
-      lettuce:
-        core=DEBUG:
 
 server:
   port: 8080
@@ -118,45 +103,46 @@ server:
     max-part-count: 50
     max-part-header-size: 2048
 
+jwt:
+  private-key: ${JWT_PRIVATE_KEY}
+  public-key: ${JWT_PUBLIC_KEY}
+  expiration: ${JWT_EXPIRATION}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION}
 
 
 payment-gateway:
   vnpay:
     pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-    secret-key: 4F3B2D1C6A7E8B9A0D1C2E3F4A5B6C7D
+    secret-key: ${VNPAY_SECRET_KEY}
     api-url:
-    return-url: http://localhost:8082/api/v1/payment/webhook/vnpay
+    return-url: ${VNPAY_RETURN_URL}
     vnp-version: 2.1.0
     vnp-command: pay
     vnp_tmn-code: 2QXUI4J4
 
 
   momo:
-    partner-code: MOMO
+    partner-code: ${MOMO_PARTNER_CODE}
     endpoint: https://test-payment.momo.vn/v2/gateway/api
-    return-url: http://localhost:3000
-    ipn-url: http://localhost:8082/api/v1/payment/webhook/momo
-    access-key: F8BBA842ECF85
-    secret-key: K951B6PE1waDMi640xX08PD3vg6EkVlz
+    return-url: ${MOMO_RETURN_URL}
+    ipn-url: ${MOMO_IPN_URL}
+    access-key: ${MOMO_ACCESS_KEY}
+    secret-key: ${MOMO_SECRET_KEY}
     request-type: captureWallet
 
 
-
-api:
-
 cloudinary:
-  cloud-name: dybo8zd4y123
-  api-key: 111854312673546
-  api-secret: FpFQgyAH3YYHd9tvMtoaTVZcdIM
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
 
 web:
   cors:
-    allowed-origins:
-      - "http://localhost:5173"
-      - "https://everspark.vn"
+    allowed-origins: ${ALLOWED_ORIGINS}
     allowed-methods:
       - GET
       - POST
+      - PATCH
       - PUT
       - DELETE
       - OPTIONS
@@ -165,3 +151,14 @@ web:
       - "Authorization"
     allow-credentials: true
     max-age: 3600
+
+
+ai-service:
+    url:${AI_SERVICE_URL}
+
+
+livekit:
+  url: ${LIVEKIT_URL}
+  api:
+    key: ${LIVEKIT_API_KEY}
+    secret: ${LIVEKIT_API_SECRET}
