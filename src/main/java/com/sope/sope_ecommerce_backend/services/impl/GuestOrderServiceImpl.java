@@ -34,7 +34,6 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
     private final ShopService shopService;
     private final PaymentRepository paymentRepository;
 
-
     @Override
     public boolean supports(OrderCreateRequest request) {
         return request instanceof GuestOrderCreateRequest;
@@ -60,7 +59,6 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
 
         List<TempOrderItem> allOrderItems = new ArrayList<>();
 
-
         List<TempOrder> tempOrdersToSave = request.shopOrders().stream()
                 .map(shopOrder -> buildOrder(shopOrder, request, allOrderItems))
                 .toList();
@@ -70,7 +68,6 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
         BigDecimal grandTotal = tempOrdersToSave.stream()
                 .map(TempOrder::getTotalAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-
 
         Payment sharedPayment = Payment.builder()
                 .amount(grandTotal)
@@ -82,21 +79,18 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
         sharedPayment.setTempOrders(tempOrdersToSave);
 
         List<TempOrder> savedTempOrders = IdempotencyUtils.saveWithIdempotency(
-                        () -> paymentRepository.save(sharedPayment).getTempOrders(),
-                        () -> Optional.of(tempOrderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
-                        new RuntimeException("TempOrder not found after duplicate key")
-                );
+                () -> paymentRepository.save(sharedPayment).getTempOrders(),
+                () -> Optional.of(tempOrderRepository.findAllByIdempotencyKeyContaining(request.idempotencyKey())),
+                new RuntimeException("TempOrder not found after duplicate key"));
 
         return orderMapper.toGuestOrderResponseDTOs(savedTempOrders);
     }
 
-
     private TempOrder buildOrder(ShopOrderRequest shopOrder,
-                             GuestOrderCreateRequest request,
-                             List<TempOrderItem> allOrderItems) {
+            GuestOrderCreateRequest request,
+            List<TempOrderItem> allOrderItems) {
 
         Shop shop = shopService.getShopEntityById(shopOrder.shopId());
-
 
         List<TempOrderItem> orderItems = new ArrayList<>();
         BigDecimal subTotal = BigDecimal.ZERO;
@@ -108,7 +102,8 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
             } else if (itemReq.quantity() <= 0) {
                 throw new CustomException("Quantity must be greater than zero for " + variant.getProduct().getName());
             } else if (!variant.getProduct().getShop().getId().equals(shop.getId())) {
-                throw new CustomException("Product " + variant.getProduct().getName() + " does not belong to shop " + shop.getName());
+                throw new CustomException(
+                        "Product " + variant.getProduct().getName() + " does not belong to shop " + shop.getName());
 
             }
 
@@ -116,20 +111,21 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
                     .productVariant(variant)
                     .quantity(itemReq.quantity())
                     .price(variant.getPrice())
+                    .commissionFeePercent(variant.getProduct().getCategory().getCommissionFeePercent())
                     .build();
 
             orderItems.add(orderItem);
             allOrderItems.add(orderItem);
 
-            BigDecimal itemPrice =  orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
+            BigDecimal itemPrice = orderItem.getPrice().multiply(BigDecimal.valueOf(orderItem.getQuantity()));
             subTotal = subTotal.add(itemPrice);
         }
 
         BigDecimal shippingCharges = shopOrder.shippingCharge() != null ? shopOrder.shippingCharge() : BigDecimal.ZERO;
 
-
         BigDecimal totalAmount = subTotal.add(shippingCharges);
-        if (totalAmount.compareTo(BigDecimal.ZERO) < 0) totalAmount = BigDecimal.ZERO;
+        if (totalAmount.compareTo(BigDecimal.ZERO) < 0)
+            totalAmount = BigDecimal.ZERO;
 
         // === Build Order ===
         TempOrder tempOrder = TempOrder.builder()
@@ -151,8 +147,7 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
                 .orderNumber(generateKey(
                         "ORDER",
                         UUID.randomUUID().toString(),
-                        true
-                ))
+                        true))
                 .shippingRateId(shopOrder.shippingRateId())
                 .orderItems(orderItems)
                 .build();
@@ -160,19 +155,16 @@ public class GuestOrderServiceImpl implements OrderCreationStrategy<GuestOrderCr
         return tempOrder;
     }
 
-
     private void batchUpdateStock(List<TempOrderItem> allOrderItems) {
         Map<UUID, Integer> stockUpdates = new HashMap<>();
         for (TempOrderItem item : allOrderItems) {
             stockUpdates.merge(
                     item.getProductVariant().getProductVariantId(),
                     item.getQuantity(),
-                    Integer::sum
-            );
+                    Integer::sum);
         }
         productVariantService.updateStockBatch(stockUpdates);
     }
-
 
     private void addStatusHistory(Order order, OrderStatus status) {
         OrderStatusHistory history = OrderStatusHistory.builder()
