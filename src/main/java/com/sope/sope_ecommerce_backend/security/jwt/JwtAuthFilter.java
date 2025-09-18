@@ -35,10 +35,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     private static final List<String> PROTECTED_PATHS = List.of(
-            "/api/users/me",
-            "/api/orders",
-            "/api/products",
-            "/api/cart");
+            "/api");
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
