@@ -37,14 +37,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private static final List<String> PROTECTED_PATHS = List.of(
             "/api/users/me",
             "/api/orders",
-            "/api/cart"
-    );
-
+            "/api/products",
+            "/api/cart");
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
@@ -101,7 +100,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
     }
 
-
     private void setAuthentication(String token, String username, String userId, HttpServletRequest request) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         if (userDetails != null && jwtProvider.validateTokenWithUser(token, userDetails, userId)) {
@@ -114,8 +112,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     .toList();
 
             // principal MUST be userDetails (not String)
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null,
+                    authorities);
             authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             SecurityContextHolder.getContext().setAuthentication(authToken);

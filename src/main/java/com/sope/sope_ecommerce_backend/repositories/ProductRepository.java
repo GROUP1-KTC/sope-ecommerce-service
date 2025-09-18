@@ -19,7 +19,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
 	Page<Product> findByCategoryIdIn(Collection<UUID> categoryIds, Pageable pageable);
 
-	Page<Product> findByShopId(UUID shopId, Pageable pageable);
+	Page<Product> findByShop_Id(UUID shopId, Pageable pageable);
 
 	Page<Product> findByStatusAndHidden(StatusProduct status, boolean hidden, Pageable pageable);
 
