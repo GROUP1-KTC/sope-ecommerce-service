@@ -1,6 +1,6 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
-import com.sope.sope_ecommerce_backend.client.PhobertApi;
+import com.sope.sope_ecommerce_backend.client.AiService;
 import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,12 +12,12 @@ import java.util.Map;
 @Service
 public class PhobertEmbeddedServiceImpl implements PhobertEmbeddedService {
 
-    private final PhobertApi phobertApi;
+    private final AiService aiService;
 
     @Override
     public float[] getEmbedding(String text) {
         Map<String, String> body = Map.of("text", text);
-        Map<String, Object> response = phobertApi.getEmbedding(body);
+        Map<String, Object> response = aiService.getEmbedding(body);
 
         @SuppressWarnings("unchecked")
         List<Double> vecDouble = (List<Double>) response.get("embedding");
