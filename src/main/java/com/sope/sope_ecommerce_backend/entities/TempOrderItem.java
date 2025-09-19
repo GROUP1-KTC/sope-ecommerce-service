@@ -1,13 +1,7 @@
 package com.sope.sope_ecommerce_backend.entities;
 
-import jakarta.persistence.Embeddable;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -24,4 +18,7 @@ public class TempOrderItem {
 
     private int quantity;
     private BigDecimal price;
+
+    @Column(name = "commission_fee_percent", precision = 5, scale = 2)
+    private BigDecimal commissionFeePercent;
 }
