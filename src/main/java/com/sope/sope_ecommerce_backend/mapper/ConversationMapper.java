@@ -20,7 +20,7 @@ public interface ConversationMapper {
         // Nếu currentUser là chatUser, hiển thị tên shopOwner
         if (conversation.getChatUser() != null && conversation.getShopOwnerUser() != null) {
             if (conversation.getChatUser().getId().equals(currentUserId)) {
-                return conversation.getShopOwnerUser().getUsername();
+                return conversation.getShopOwnerUser().getShop().getName();
             } else {
                 return conversation.getChatUser().getUsername();
             }

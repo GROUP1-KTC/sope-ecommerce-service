@@ -56,5 +56,7 @@
         @Builder.Default
         private List<Product> suggestedProducts = new ArrayList<>();
 
+        @OneToOne(mappedBy = "appUser", cascade = CascadeType.ALL)
+        private Shop shop;
 
     }
