@@ -19,7 +19,7 @@ import java.util.UUID;
 
 
 @RestController
-@RequestMapping("/api/cart")
+@RequestMapping("/cart")
 @AllArgsConstructor
 public class CartController {
 

@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/service-program-config")
+@RequestMapping("/service-program-config")
 public class ServiceProgramConfigController {
 
 	private final ServiceProgramConfigService service;

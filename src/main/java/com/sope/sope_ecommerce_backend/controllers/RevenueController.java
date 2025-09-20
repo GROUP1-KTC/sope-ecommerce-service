@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/revenue")
+@RequestMapping("/revenue")
 public class RevenueController {
 
       private final RevenueService revenueService;

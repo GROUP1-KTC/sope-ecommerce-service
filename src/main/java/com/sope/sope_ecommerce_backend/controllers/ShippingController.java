@@ -19,7 +19,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/shipping")
+@RequestMapping("/shipping")
 public class ShippingController {
 
     private final GoShippingGateway goShippingGateway;

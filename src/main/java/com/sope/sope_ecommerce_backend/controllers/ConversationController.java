@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/conversations")
+@RequestMapping("/conversations")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ConversationController {
     private final ConversationService conversationService;

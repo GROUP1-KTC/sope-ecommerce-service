@@ -1,0 +1,112 @@
+#!/bin/bash
+set -e
+
+DEPLOY_DIR=$1
+DOCKER_NETWORK=$2
+SERVICE_NAME=$3
+DOCKER_IMAGE=$4
+DOCKER_TAG=$5
+DOMAIN=$6
+
+echo "start deploy $SERVICE_NAME"
+
+# Create deploy dir if not exists
+mkdir -p "$DEPLOY_DIR"
+
+# get node ip address(ec2 metadata service)
+NODE_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || curl -s ifconfig.me)
+echo "NODE_IP=$NODE_IP"
+
+# Ghi file .env
+cat > "$DEPLOY_DIR/.env" <<EOF
+DOCKER_IMAGE=$DOCKER_IMAGE
+DOCKER_TAG=$DOCKER_TAG
+
+NODE_IP=$NODE_IP
+
+SPRING_PROFILES_ACTIVE=production
+
+DOMAIN=$DOMAIN
+
+DB_HOST=${DB_HOST}
+DB_PORT=${DB_PORT}
+DB_NAME=${DB_NAME}
+DB_USER=${DB_USER}
+DB_PASS=${DB_PASS}
+POSTGRES_JDBC_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=require&user=${DB_USER}&password=${DB_PASS}
+
+
+REDIS_HOST=${REDIS_HOST}
+REDIS_PORT=${REDIS_PORT}
+REDIS_PASS=${REDIS_PASS}
+REDIS_USER=${REDIS_USER}
+
+ALLOWED_ORIGINS=${DOMAIN}
+
+
+JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
+JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+JWT_EXPIRATION=${JWT_EXPIRATION}
+JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
+
+
+GOSHIP_AUTH_TOKEN=${GOSHIP_AUTH_TOKEN}
+GOSHIP_CLIENT_SECRET=${GOSHIP_CLIENT_SECRET}
+
+
+VNPAY_SECRET_KEY=4F3B2D1C6A7E8B9A0D1C2E3F4A5B6C7D
+VNPAY_RETURN_URL=${DOMAIN}/api/v1/payment/webhook/vnpay
+MOMO_PARTNER_CODE=MOMO
+MOMO_ACCESS_KEY=F8BBA842ECF85
+MOMO_SECRET_KEY=K951B6PE1waDMi640xX08PD3vg6EkVlz
+MOMO_RETURN_URL=${DOMAIN}/payment-status
+MOMO_IPN_URL=${DOMAIN}/api/v1/payment/webhook/momo
+
+
+EMAIL=${EMAIL}
+EMAIL_HOST=${EMAIL_HOST}
+EMAIL_PORT=${EMAIL_PORT}
+
+CLIENT_ID=${CLIENT_ID}
+CLIENT_SECRET=${CLIENT_SECRET}
+REFRESH_TOKEN=${REFRESH_TOKEN}
+
+
+CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
+
+
+GEMINI_KEY=${GEMINI_KEY}
+GEMINI_BASED_URL=${GEMINI_BASED_URL}
+GEMINI_MODEL=${GEMINI_MODEL}
+
+
+AI_SERVICE_URL=${AI_SERVICE_URL}
+
+
+LIVEKIT_URL=http://livekit:7880
+LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
+LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
+
+
+
+EOF
+
+chmod 600 "$DEPLOY_DIR/.env"
+echo "Created $DEPLOY_DIR/.env"
+
+# create Docker network if not exists
+docker network create "$DOCKER_NETWORK" || true
+
+# stop and remove old container if exists
+docker compose -f "$DEPLOY_DIR/docker-compose.yaml" stop "$SERVICE_NAME" || true
+docker compose -f "$DEPLOY_DIR/docker-compose.yaml" rm --force "$SERVICE_NAME" || true
+
+# Pull image latest
+docker compose -f "$DEPLOY_DIR/docker-compose.yaml" pull "$SERVICE_NAME"
+
+# Restart container
+docker compose -f "$DEPLOY_DIR/docker-compose.yaml" up -d --remove-orphans --build "$SERVICE_NAME"
+
+echo "✅ Deploy $SERVICE_NAME success"
