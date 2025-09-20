@@ -74,8 +74,8 @@ jobs:
           source: |
             docker-compose.yml
             deploy.sh
-            lib/postgresql-42.6.0.jar
-            logstash_pipeline/postgres_to_es.conf
+            lib
+            logstash_pipeline
             init-es.sh
             products_index_template.json
             product_click_logs.json
