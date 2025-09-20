@@ -36,6 +36,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final List<String> PROTECTED_PATHS = List.of(
             "/api");
+    private static final List<String> WHITELISTED_PATHS = List.of(
+            "/auth",
+            "/public",
+            "/swagger-ui",
+            "/v3/api-docs"
+    );
+
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -93,9 +100,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+//    private boolean isProtectedPath(String path) {
+//        return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
+//    }
     private boolean isProtectedPath(String path) {
-        return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
+        boolean isWhitelisted = WHITELISTED_PATHS.stream()
+                .anyMatch(path::startsWith);
+
+        return !isWhitelisted;
     }
+
 
     private void setAuthentication(String token, String username, String userId, HttpServletRequest request) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);

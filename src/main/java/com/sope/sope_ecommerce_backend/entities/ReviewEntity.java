@@ -1,6 +1,7 @@
 package com.sope.sope_ecommerce_backend.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.sope.sope_ecommerce_backend.enums.Sentiment;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -39,6 +40,10 @@ public class ReviewEntity {
         private String content;
 
         private String videoReviewUrl;
+
+        @Enumerated(EnumType.STRING)
+        @Column(name = "sentiment", length = 20)
+        private Sentiment sentiment;
 
         @Builder.Default
         @OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -113,6 +113,7 @@ app:
         prefix: Refresh
         expires-in-minutes: 60
         clock-skew-second: 60
+    base-url: https://your-shop-domain.com
 
     security:
         user:

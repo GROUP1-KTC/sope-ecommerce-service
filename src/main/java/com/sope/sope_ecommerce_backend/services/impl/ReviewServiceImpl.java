@@ -6,6 +6,10 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sope.sope_ecommerce_backend.client.AiService;
+import com.sope.sope_ecommerce_backend.enums.Sentiment;
+import com.sope.sope_ecommerce_backend.services.GeminiService;
+import com.sope.sope_ecommerce_backend.services.SentimentService;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -42,6 +46,8 @@ public class ReviewServiceImpl implements ReviewService {
       private final ReviewMapper reviewMapper;
       private final OrderItemRepository orderItemRepository;
       private final Cloudinary cloudinary;
+      private final SentimentService sentimentService;
+      private final GeminiService geminiService;
 
       @Override
       @Transactional(readOnly = true)
@@ -80,6 +86,9 @@ public class ReviewServiceImpl implements ReviewService {
             review.setContent(dto.content());
             review.setUpdatedAt(LocalDateTime.now());
 
+            Sentiment sentiment = sentimentService.getSentiment(dto.content());
+            review.setSentiment(sentiment);
+
             if (videoFile != null && !videoFile.isEmpty()) {
                   String videoUrl = uploadFileToCloudinary(videoFile, "video");
                   review.setVideoReviewUrl(videoUrl);
@@ -103,8 +112,12 @@ public class ReviewServiceImpl implements ReviewService {
             }
 
             ReviewEntity saved = reviewRepository.save(review);
+
+            geminiService.generateAndSaveOverallReview(saved.getProductVariant().getProduct().getProductId());
+
             return reviewMapper.toDto(saved);
       }
+
 
       @Override
       @Transactional
