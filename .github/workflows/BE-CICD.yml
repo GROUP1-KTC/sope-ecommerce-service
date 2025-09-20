@@ -50,21 +50,6 @@ jobs:
             mkdir -p ${{ env.DEPLOY_DIR }}/lib
             mkdir -p ${{ env.DEPLOY_DIR }}/logstash_pipeline
 
-      - name: Debug file paths
-        run: |
-          echo "Current working directory: $(pwd)"
-          echo "List all files:"
-          ls -R
-          echo "Check each file existence:"
-          [ -f docker-compose.yml ] && echo "docker-compose.yml ✅ exists" || echo "docker-compose.yml ❌ missing"
-          [ -f deploy.sh ] && echo "deploy.sh ✅ exists" || echo "deploy.sh ❌ missing"
-          [ -f lib/postgresql-42.6.0.jar ] && echo "lib/postgresql-42.6.0.jar ✅ exists" || echo "lib/postgresql-42.6.0.jar ❌ missing"
-          [ -d logstash_pipeline ] && echo "logstash_pipeline/ ✅ exists" || echo "logstash_pipeline/ ❌ missing"
-          [ -f init-es.sh ] && echo "init-es.sh ✅ exists" || echo "init-es.sh ❌ missing"
-          [ -f products_index_template.json ] && echo "products_index_template.json ✅ exists" || echo "products_index_template.json ❌ missing"
-          [ -f product_click_logs.json ] && echo "product_click_logs.json ✅ exists" || echo "product_click_logs.json ❌ missing"
-
-
       - name: Copy necessary files to server EC2
         uses: appleboy/scp-action@v1
         with:
