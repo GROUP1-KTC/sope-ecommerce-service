@@ -34,8 +34,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
-    private static final List<String> PROTECTED_PATHS = List.of(
-            "/api");
+    private static final List<String> PROTECTED_PATHS = List.of("/api/v1");
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -48,7 +47,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        String path = request.getServletPath();
+        String path = request.getRequestURI();
         if (!isProtectedPath(path)) {
             filterChain.doFilter(request, response);
             return;
