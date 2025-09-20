@@ -71,14 +71,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: |
-            docker-compose.yml
-            deploy.sh
-            lib
-            logstash_pipeline
-            init-es.sh
-            products_index_template.json
-            product_click_logs.json
+          source: "docker-compose.yml, deploy.sh,lib/postgresql-42.6.0.jar, logstash_pipeline/postgres_to_es.conf, init-es.sh, products_index_template.json, product_click_logs.json"
           target: ${{ env.DEPLOY_DIR }}
 
   #  test:
