@@ -100,13 +100,13 @@ echo "Created $DEPLOY_DIR/.env"
 docker network create "$DOCKER_NETWORK" || true
 
 # stop and remove old container if exists
-docker compose -f "$DEPLOY_DIR/docker-compose.yaml" stop "$SERVICE_NAME" || true
-docker compose -f "$DEPLOY_DIR/docker-compose.yaml" rm --force "$SERVICE_NAME" || true
+docker compose -f "$DEPLOY_DIR/docker-compose.yml" stop "$SERVICE_NAME" || true
+docker compose -f "$DEPLOY_DIR/docker-compose.yml" rm --force "$SERVICE_NAME" || true
 
 # Pull image latest
-docker compose -f "$DEPLOY_DIR/docker-compose.yaml" pull "$SERVICE_NAME"
+docker compose -f "$DEPLOY_DIR/docker-compose.yml" pull "$SERVICE_NAME"
 
 # Restart container
-docker compose -f "$DEPLOY_DIR/docker-compose.yaml" up -d --remove-orphans --build "$SERVICE_NAME"
+docker compose -f "$DEPLOY_DIR/docker-compose.yml" up -d --remove-orphans --build "$SERVICE_NAME"
 
 echo "✅ Deploy $SERVICE_NAME success"
