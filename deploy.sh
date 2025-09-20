@@ -14,7 +14,7 @@ echo "start deploy $SERVICE_NAME"
 mkdir -p "$DEPLOY_DIR"
 
 # get node ip address(ec2 metadata service)
-NODE_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || curl -s ifconfig.me)
+NODE_IP=$(curl -s ifconfig.me)
 echo "NODE_IP=$NODE_IP"
 
 # Ghi file .env
