@@ -1,0 +1,9 @@
+{
+  "mappings": {
+    "properties": {
+      "product_id": { "type": "keyword" },
+      "keyword": { "type": "keyword" },
+      "timestamp": { "type": "date" }
+    }
+  }
+}

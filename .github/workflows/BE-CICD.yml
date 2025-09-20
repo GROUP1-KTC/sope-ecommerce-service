@@ -1,0 +1,137 @@
+name: CI/CD pipeline for Backend Service
+
+on:
+  push:
+    branches: [main, feature/build-cicd]
+
+env:
+  DOCKER_IMAGE: ${{ vars.DOCKER_IMAGE }}
+  DOCKER_TAG: ${{ vars.DOCKER_TAG }}
+  DEPLOY_DIR: ${{ vars.DEPLOY_DIR }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  DOCKER_NETWORK: ${{ vars.DOCKER_NETWORK }}
+  DOMAIN: ${{ vars.DOMAIN }}
+jobs:
+  build-and-push:
+    name: Build Backend Service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Set up Docker BuildX
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build --no-cache -t ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }} .
+          docker push ${{ env.DOCKER_IMAGE }}:${{ env.DOCKER_TAG }}
+
+      - name: Ensure remote dir exists
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            mkdir -p ${{ env.DEPLOY_DIR }}/lib
+            mkdir -p ${{ env.DEPLOY_DIR }}/logstash_pipeline
+
+      - name: Copy necessary files to server EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml, deploy.sh,lib/postgresql-42.6.0.jar, logstash_pipeline/postgres_to_es.conf, init-es.sh, products_index_template.json, product_click_logs.json"
+          target: ${{ env.DEPLOY_DIR }}
+
+  #  test:
+  #    name: Run Tests
+  #    runs-on: ubuntu-latest
+  #    needs: build
+  #
+  #    steps:
+  #      - name: Checkout Code
+  #        uses: actions/checkout@v4
+  #
+  #      - name: Run Unit & Integration Tests
+  #        run: |
+  #          ./gradlew clean test
+
+  deploy:
+    name: Deploy Backend Service
+    runs-on: ubuntu-latest
+    needs: ["build-and-push"]
+
+    steps:
+      - name: Run deploy.sh on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "Moving to dir to deployment..."
+            cd ${{ env.DEPLOY_DIR }}
+            chmod +x deploy.sh
+            
+            export DB_HOST="${{ secrets.DB_HOST }}"
+            export DB_PORT="${{ secrets.DB_PORT }}"
+            export DB_NAME="${{ secrets.DB_NAME }}"
+            export DB_USER="${{ secrets.DB_USER }}"
+            export DB_PASS="${{ secrets.DB_PASS }}"
+            
+            export REDIS_HOST="${{ secrets.REDIS_HOST }}"
+            export REDIS_PORT="${{ secrets.REDIS_PORT }}"
+            export REDIS_PASS="${{ secrets.REDIS_PASS }}"
+            export REDIS_USER="${{ secrets.REDIS_USER }}"
+            
+            export JWT_PRIVATE_KEY="${{ secrets.JWT_PRIVATE_KEY }}" 
+            export JWT_PUBLIC_KEY="${{ secrets.JWT_PUBLIC_KEY }}" 
+            export JWT_EXPIRATION="${{ secrets.JWT_EXPIRATION }}" 
+            export JWT_REFRESH_EXPIRATION="${{ secrets.JWT_REFRESH_EXPIRATION }}"
+            
+            export GOSHIP_AUTH_TOKEN="${{ secrets.GOSHIP_AUTH_TOKEN }}"
+            export GOSHIP_CLIENT_SECRET="${{ secrets.GOSHIP_CLIENT_SECRET }}"
+            
+            export EMAIL="${{ secrets.EMAIL }}"
+            export EMAIL_HOST="${{ secrets.EMAIL_HOST }}"
+            export EMAIL_PORT="${{ secrets.EMAIL_PORT }}"
+            export CLIENT_ID="${{ secrets.CLIENT_ID }}"
+            export CLIENT_SECRET="${{ secrets.CLIENT_SECRET }}"
+            export REFRESH_TOKEN="${{ secrets.REFRESH_TOKEN }}"
+            
+            export CLOUDINARY_CLOUD_NAME="${{ secrets.CLOUDINARY_CLOUD_NAME }}"
+            export CLOUDINARY_API_KEY="${{ secrets.CLOUDINARY_API_KEY }}"
+            export CLOUDINARY_API_SECRET="${{ secrets.CLOUDINARY_API_SECRET }}"
+            
+            export GEMINI_KEY="${{ secrets.GEMINI_KEY }}"
+            export GEMINI_BASED_URL="${{ secrets.GEMINI_BASED_URL }}"
+            export GEMINI_MODEL="${{ secrets.GEMINI_MODEL }}"
+            
+            export AI_SERVICE_URL="${{ secrets.AI_SERVICE_URL }}"
+            
+            export LIVEKIT_API_KEY="${{ secrets.LIVEKIT_API_KEY }}" 
+            export LIVEKIT_API_SECRET="${{ secrets.LIVEKIT_API_SECRET }}"
+
+            ./deploy.sh \
+              "${{ env.DEPLOY_DIR }}" \
+              "${{ env.DOCKER_NETWORK }}" \
+              "${{ env.SERVICE_NAME }}" \
+              "${{ env.DOCKER_IMAGE }}" \
+              "${{ env.DOCKER_TAG }}" \
+              "${{ env.DOMAIN }}"

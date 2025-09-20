@@ -19,39 +19,97 @@ configurations {
 	}
 }
 
+extra["springAiVersion"] = "1.0.1"
+
+dependencyManagement {
+	imports {
+		mavenBom("org.springframework.ai:spring-ai-bom:${extra["springAiVersion"]}")
+	}
+}
+
 repositories {
 	mavenCentral()
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-security")
-	implementation("org.springframework.boot:spring-boot-starter-web")
-	compileOnly("org.projectlombok:lombok")
-	developmentOnly("org.springframework.boot:spring-boot-devtools")
-	runtimeOnly("org.postgresql:postgresql")
-	annotationProcessor("org.projectlombok:lombok")
-	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testImplementation("org.springframework.security:spring-security-test")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	// ===== Spring Boot Core =====
+	implementation(libs.spring.boot.starter.data.jpa)
+	implementation(libs.spring.boot.starter.security)
+	implementation(libs.spring.boot.starter.web)
+	developmentOnly(libs.spring.boot.devtools)
+
+	// ===== Spring Modules =====
+	implementation(libs.spring.websocket)
+	implementation(libs.spring.messaging)
+	implementation(libs.springdoc.openapi)
+	implementation(libs.spring.data.redis)
 
 
-	// https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http44
-	implementation("com.cloudinary:cloudinary-http44:1.39.0")
+	// ===== Database & Connection Pool =====
+	runtimeOnly(libs.postgresql)
+	implementation(libs.commons.pool2)
 
-	// https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui
-	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9")
+	// ===== Utilities =====
+	compileOnly(libs.lombok)
+	annotationProcessor(libs.lombok)
+	implementation(libs.cloudinary)
+	implementation(libs.slugify)
+	implementation(libs.spring.dotenv)
 
-	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api
-	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+	// ===== JWT =====
+	implementation(libs.jjwt.api)
+	runtimeOnly(libs.jjwt.impl)
+	runtimeOnly(libs.jjwt.jackson)
+	implementation(libs.jjwt.bom)
 
-	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl
-	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
 
-	// https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson
-	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+	// ===== MapStruct =====
+	implementation(libs.mapstruct)
+	annotationProcessor(libs.mapstruct.processor)
+	annotationProcessor(libs.lombok.mapstruct.binding)
+	testAnnotationProcessor(libs.mapstruct.processor)
+	testAnnotationProcessor(libs.lombok)
+	testCompileOnly(libs.lombok)
+
+
+	// ===== FlyWay =====
+	implementation(libs.flyway.core)
+	runtimeOnly(libs.flyway.database.postgresql)
+
+
+	// ===== FeignClient =====
+	implementation(libs.spring.cloud.starter.openfeign)
+	implementation(platform(libs.spring.cloud.dependencies))
+
+	// ===== OAuth + Mail =====
+	implementation("com.google.auth:google-auth-library-oauth2-http:1.26.0")
+	implementation("org.springframework.boot:spring-boot-starter-mail")
+
+	// ===== Thymelaf ======
+	implementation("org.springframework.boot:spring-boot-starter-thymeleaf:3.5.4")
+
+	// ===== Gemini AI ======
+	implementation("org.springframework.ai:spring-ai-starter-model-openai")
+
+	// ===== Test =====
+	testImplementation(libs.spring.boot.starter.test)
+	testImplementation(libs.spring.security.test)
+//	testRuntimeOnly(libs.junit.platform.launcher)
+	testImplementation(libs.mockito)
+	testImplementation(libs.h2database)
+//  livekit
+	implementation("io.livekit:livekit-server:0.10.0")
+
+	// https://mvnrepository.com/artifact/com.pgvector/pgvector
+	implementation("com.pgvector:pgvector:0.1.6")
 }
 
-tasks.withType<Test> {
-	useJUnitPlatform()
-}
+//tasks.withType<Test> {
+//	useJUnitPlatform()
+//}
+
+
+apply(from = "$rootDir/gradle/jacoco.gradle.kts")
+
+
+
