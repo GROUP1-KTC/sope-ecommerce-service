@@ -79,7 +79,6 @@ public class Shop {
         order.setShop(this);
     }
 
-
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
