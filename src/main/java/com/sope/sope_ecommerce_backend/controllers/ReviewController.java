@@ -23,7 +23,7 @@ import org.springframework.http.MediaType;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/review")
+@RequestMapping("/review")
 public class ReviewController {
 
       private final ReviewService reviewService;

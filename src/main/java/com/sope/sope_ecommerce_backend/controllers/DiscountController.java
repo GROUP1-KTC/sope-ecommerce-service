@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/discounts")
+@RequestMapping("/discounts")
 public class DiscountController {
     public final DiscountService discountService;
 

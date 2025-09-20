@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/api/livekit")
+@RequestMapping("/livekit")
 @CrossOrigin(origins = "${app.frontend.url:http://localhost:3000}", methods = { RequestMethod.GET })
 public class LiveKitController {
 

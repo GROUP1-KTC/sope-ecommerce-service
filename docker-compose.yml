@@ -1,60 +1,53 @@
 services:
-  elasticsearch:
-    image: elasticsearch:7.9.2
-    container_name: sope-elasticsearch
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit
+    ports:
+      - "7880:7880" # REST API
+      - "7881:7881" # gRPC / Admin
+      - "5349:5349/udp" # TURN (UDP)
+      - "7882:7882" # WebRTC
     environment:
-      - discovery.type=single-node
-      - http.cors.enabled=true
-      - http.cors.allow-origin=*
-      - http.cors.allow-headers=Authorization,Content-Type,Origin,Accept
-      - http.cors.allow-credentials=true
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-devsecret}"
+      LIVEKIT_REGION: local
+      LIVEKIT_LOG_LEVEL: info
+
     volumes:
-      - es_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    restart: always
+      - ./livekit-data:/data
+    command:
+      - --dev
+      - --bind
+      - 0.0.0.0
+      - --udp-port
+      - "5349"
+      - --node-ip
+      - ${NODE_IP}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://livekit:7880/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - sope-network
 
-  logstash:
-    image: logstash:7.9.2
-    container_name: sope-logstash
+  server:
+    image: ${DOCKER_IMAGE}:${DOCKER_TAG}
+    container_name: sope-server
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
     depends_on:
       - elasticsearch
-    ports:
-      - "5000:5000"
-    volumes:
-      # - ./lib/postgresql-42.6.0.jar:/usr/share/java/postgresql-42.6.0.jar
-      - /Users/mac/Works/sope-main/sope-ecommerce-service/lib/postgresql-42.6.0.jar:/usr/share/java/postgresql-42.6.0.jar
-      - type: bind
-        source: ./logstash_pipeline/
-        target: /usr/share/logstash/pipeline
-        read_only: true
     restart: always
     networks:
       - sope-network
-
-  es-init:
-    image: curlimages/curl:8.8.0
-    container_name: es-init
-    depends_on:
-      - elasticsearch
-    volumes:
-      - ./init-es.sh:/init-es.sh
-      - ./products_index_template.json:/products_index_template.json
-      - ./product_click_logs.json:/product_click_logs.json
-    entrypoint: ["sh", "/init-es.sh"]
 
 networks:
   sope-network:
     driver: bridge
 
 volumes:
-  postgres_data:
-    driver: local
   es_data:
     driver: local

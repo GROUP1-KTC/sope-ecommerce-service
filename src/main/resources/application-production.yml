@@ -99,6 +99,8 @@ cors:
 
 server:
     port: 8080
+    servlet:
+        context-path: /api/v1
     tomcat:
         max-part-count: 50
         max-part-header-size: 2048
