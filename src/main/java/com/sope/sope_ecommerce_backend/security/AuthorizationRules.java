@@ -13,22 +13,22 @@
             auth.requestMatchers("/", "/login-page", "/user", "/admin").permitAll();
             auth.requestMatchers("/css/**", "/js/**", "/images/**").permitAll();
             auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui/index.html").permitAll();
-            auth.requestMatchers("/api/auth/**").permitAll();
+            auth.requestMatchers("/auth/**").permitAll();
 
-            auth.requestMatchers("/api/**").permitAll();
+            auth.requestMatchers("/**").permitAll();
 
             // Test Socket
-            auth.requestMatchers("/api/messages/**").permitAll();
+            auth.requestMatchers("/messages/**").permitAll();
             auth.requestMatchers("/ws/**").permitAll();
 
 
             // User APIs
-            auth.requestMatchers(HttpMethod.GET, "/api/users").hasRole("ADMIN");
-            auth.requestMatchers(HttpMethod.OPTIONS, "/api/users/me").hasAnyRole("USER", "ADMIN");
-            auth.requestMatchers(HttpMethod.PUT, "/api/users/**").hasAnyRole("USER", "ADMIN");
+            auth.requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN");
+            auth.requestMatchers(HttpMethod.OPTIONS, "/users/me").hasAnyRole("USER", "ADMIN");
+            auth.requestMatchers(HttpMethod.PUT, "/users/**").hasAnyRole("USER", "ADMIN");
 
             // Admin APIs
-            auth.requestMatchers("/api/admin/**").hasRole("ADMIN");
+            auth.requestMatchers("/admin/**").hasRole("ADMIN");
 
             // Default
             auth.anyRequest().authenticated();

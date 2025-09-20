@@ -19,7 +19,7 @@ import org.springframework.data.domain.Page;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/products")
 public class ProductController {
       private final ProductService productService;
 
