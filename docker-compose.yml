@@ -31,55 +31,6 @@ services:
     networks:
       - sope-network
 
-  elasticsearch:
-    image: elasticsearch:8.15.3
-    container_name: sope-elasticsearch
-    environment:
-      - discovery.type=single-node
-      - http.cors.enabled=true
-      - http.cors.allow-origin=*
-      - http.cors.allow-headers=Authorization,Content-Type,Origin,Accept
-      - http.cors.allow-credentials=true
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
-    ports:
-      - "9200:9200"
-    restart: always
-    networks:
-      - sope-network
-
-  logstash:
-    image: logstash:8.15.3
-    container_name: sope-logstash
-    depends_on:
-      - elasticsearch
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./lib/postgresql-42.6.0.jar:/usr/share/java/postgresql-42.6.0.jar
-      - type: bind
-        source: ./logstash_pipeline/
-        target: /usr/share/logstash/pipeline
-        read_only: true
-    restart: always
-    networks:
-      - sope-network
-
-  es-init:
-    image: curlimages/curl:8.8.0
-    container_name: es-init
-    depends_on:
-      - elasticsearch
-    volumes:
-      - ./init-es.sh:/init-es.sh
-      - ./products_index_template.json:/products_index_template.json
-      - ./product_click_logs.json:/product_click_logs.json
-    entrypoint: [ "sh", "/init-es.sh" ]
-
   server:
     image: ${DOCKER_IMAGE}:${DOCKER_TAG}
     container_name: sope-server
