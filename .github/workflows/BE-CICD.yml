@@ -49,7 +49,7 @@ jobs:
           script: |
             mkdir -p ${{ env.DEPLOY_DIR }}/lib
             mkdir -p ${{ env.DEPLOY_DIR }}/logstash_pipeline
-            
+
       - name: Debug file paths
         run: |
           echo "Current working directory: $(pwd)"
@@ -66,7 +66,7 @@ jobs:
 
 
       - name: Copy necessary files to server EC2
-        uses: appleboy/scp-action@v0.1.7
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
@@ -75,7 +75,7 @@ jobs:
             docker-compose.yml
             deploy.sh
             lib/postgresql-42.6.0.jar
-            logstash_pipeline/**
+            logstash_pipeline/postgres_to_es.conf
             init-es.sh
             products_index_template.json
             product_click_logs.json
