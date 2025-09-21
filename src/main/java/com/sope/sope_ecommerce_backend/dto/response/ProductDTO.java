@@ -21,5 +21,6 @@ public record ProductDTO(
     ShopInfo shop,
     List<ProductVariantDTO> variants,
     List<ProductDetailDTO> productDetails,
-    List<ImageDTO> imagesList) {
+    List<ImageDTO> imagesList,
+    String overallReview) {
 }

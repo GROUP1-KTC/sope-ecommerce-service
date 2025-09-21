@@ -26,13 +26,13 @@ public class SentimentServiceImpl implements SentimentService {
 
         try {
             Map<String, String> response = aiService.getSentiment(requestBody);
-            String sentimentStr = response.get("sentiment");
+            String sentimentStr = response.get("prediction");
 
             if (sentimentStr == null) {
                 return Sentiment.NEUTRAL;
             }
 
-            return switch (sentimentStr.toUpperCase()) {
+            return switch (sentimentStr.toLowerCase()) {
                 case "positive" -> Sentiment.POSITIVE;
                 case "negative" -> Sentiment.NEGATIVE;
                 default -> Sentiment.NEUTRAL;

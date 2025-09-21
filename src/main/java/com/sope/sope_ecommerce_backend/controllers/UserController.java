@@ -1,4 +1,4 @@
-package com.sope.sope_ecommerce_backend.controllers;
+    package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.request.UserStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
