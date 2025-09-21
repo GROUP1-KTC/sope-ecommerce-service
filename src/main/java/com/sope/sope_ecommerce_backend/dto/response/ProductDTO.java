@@ -18,7 +18,7 @@ public record ProductDTO(
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     UUID categoryId,
-    ShopInfo shop,
+    ShopResponse shop,
     List<ProductVariantDTO> variants,
     List<ProductDetailDTO> productDetails,
     List<ImageDTO> imagesList,
