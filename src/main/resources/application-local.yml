@@ -113,6 +113,7 @@ app:
         prefix: Refresh
         expires-in-minutes: 60
         clock-skew-second: 60
+    base-url: https://your-shop-domain.com
 
     security:
         user:
@@ -150,6 +151,8 @@ logging:
 server:
     port: 8082
     address: 0.0.0.0
+    servlet:
+        context-path: /api/v1
     tomcat:
         max-part-count: 50
         max-part-header-size: 2048

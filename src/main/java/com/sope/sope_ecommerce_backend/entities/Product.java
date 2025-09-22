@@ -105,4 +105,7 @@ public class Product {
     @Builder.Default
     private List<Product> suggestedProducts = new ArrayList<>();
 
+    @Column(length = 2000)
+    private String overallReview;
+
 }

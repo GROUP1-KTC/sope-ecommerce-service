@@ -65,4 +65,5 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 	@Query(value = "SELECT * FROM products ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
 	List<Product> findRandomProducts(@Param("limit") int limit);
 
+
 }
