@@ -1,53 +1,51 @@
 services:
-  livekit:
-    image: livekit/livekit-server:latest
-    container_name: livekit
-    ports:
-      - "7880:7880" # REST API
-      - "7881:7881" # gRPC / Admin
-      - "5349:5349/udp" # TURN (UDP)
-      - "7882:7882" # WebRTC
-    environment:
-      LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-devsecret}"
-      LIVEKIT_REGION: local
-      LIVEKIT_LOG_LEVEL: info
+    livekit:
+        image: livekit/livekit-server:latest
+        container_name: livekit
+        ports:
+            - "7880:7880" # REST API
+            - "7881:7881" # gRPC / Admin
+            - "5349:5349/udp" # TURN (UDP)
+            - "7882:7882" # WebRTC
+        environment:
+            LIVEKIT_KEYS: "${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-devsecret}"
+            LIVEKIT_REGION: local
+            LIVEKIT_LOG_LEVEL: info
 
-    volumes:
-      - ./livekit-data:/data
-    command:
-      - --dev
-      - --bind
-      - 0.0.0.0
-      - --udp-port
-      - "5349"
-      - --node-ip
-      - ${NODE_IP}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://livekit:7880/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - sope-network
+        volumes:
+            - ./livekit-data:/data
+        command:
+            - --dev
+            - --bind
+            - 0.0.0.0
+            - --udp-port
+            - "5349"
+            - --node-ip
+            - ${NODE_IP}
+        restart: unless-stopped
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://livekit:7880/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+        networks:
+            - sope-network
 
-  server:
-    image: ${DOCKER_IMAGE}:${DOCKER_TAG}
-    container_name: sope-server
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
-    depends_on:
-      - elasticsearch
-    restart: always
-    networks:
-      - sope-network
+    server:
+        image: ${DOCKER_IMAGE}:${DOCKER_TAG}
+        container_name: sope-server
+        ports:
+            - "8080:8080"
+        env_file:
+            - .env
+        restart: always
+        networks:
+            - sope-network
 
 networks:
-  sope-network:
-    driver: bridge
+    sope-network:
+        driver: bridge
 
 volumes:
-  es_data:
-    driver: local
+    es_data:
+        driver: local

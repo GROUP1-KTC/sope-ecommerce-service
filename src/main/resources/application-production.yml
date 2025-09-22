@@ -165,3 +165,6 @@ livekit:
     api:
         key: ${LIVEKIT_API_KEY}
         secret: ${LIVEKIT_API_SECRET}
+
+app:
+    base-url: ${DOMAIN}
