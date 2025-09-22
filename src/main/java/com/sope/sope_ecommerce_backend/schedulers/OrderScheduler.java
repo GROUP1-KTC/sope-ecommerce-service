@@ -1,6 +1,5 @@
 package com.sope.sope_ecommerce_backend.schedulers;
 
-import com.sope.sope_ecommerce_backend.dto.request.UpdateOrderStatusRequest;
 import com.sope.sope_ecommerce_backend.entities.Order;
 import com.sope.sope_ecommerce_backend.enums.OrderStatus;
 import com.sope.sope_ecommerce_backend.repositories.OrderRepository;
@@ -10,7 +9,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,13 +34,8 @@ public class OrderScheduler {
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
     public void updateCompletedOrders() {
-        LocalDateTime todayStart = LocalDate.now().atStartOfDay();
-        LocalDateTime thresholdDate = todayStart.minusDays(14);
-
 
         List<Order> ordersToComplete = orderRepository.findByStatus(OrderStatus.DELIVERED);
-
-
 
         for (Order order : ordersToComplete) {
             order.setStatus(OrderStatus.COMPLETED);
