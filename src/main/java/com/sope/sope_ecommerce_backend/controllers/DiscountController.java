@@ -24,13 +24,12 @@ public class DiscountController {
 
     @PostMapping()
     public ResponseEntity<ApiResponse<DiscountResponse>> createDiscount(
-            @RequestBody DiscountCreateRequest request
-            ) {
+            @RequestBody DiscountCreateRequest request) {
         try {
 
             DiscountResponse discountResponse = discountService.createDiscount(request);
 
-            return  ApiResponseUtil.created(discountResponse, "Create discount successfully.");
+            return ApiResponseUtil.created(discountResponse, "Create discount successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to create discount", List.of(e.getMessage()));
         }
@@ -41,34 +40,31 @@ public class DiscountController {
         try {
             List<? extends DiscountResponse> discounts = discountService.getAllDiscounts();
 
-            return  ApiResponseUtil.success(discounts, "Get all discounts successfully.");
+            return ApiResponseUtil.success(discounts, "Get all discounts successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to get discounts", List.of(e.getMessage()));
         }
     }
 
-    @GetMapping("/shop/{shopId}")
+    @GetMapping("/shop")
     public ResponseEntity<ApiResponse<Page<? extends DiscountResponse>>> getDiscountOfShop(
-            @PathVariable UUID shopId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         try {
-            Page<DiscountResponse> discounts = discountService.getDiscountOfShop(shopId, page, size);
+            Page<DiscountResponse> discounts = discountService.getDiscountOfShop(page, size);
             return ApiResponseUtil.success(discounts, "Pending orders for shop fetched successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to fetch pending orders", List.of(e.getMessage()));
         }
     }
 
-
     @GetMapping("/shops/{shopId}/active")
     public ResponseEntity<ApiResponse<List<? extends DiscountResponse>>> getActiveDiscountsOfShop(
-            @PathVariable UUID shopId
-    ) {
+            @PathVariable UUID shopId) {
         try {
             List<? extends DiscountResponse> discounts = discountService.getActiveDiscountsByShop(shopId);
 
-            return  ApiResponseUtil.success(discounts, "Get all discounts successfully.");
+            return ApiResponseUtil.success(discounts, "Get all discounts successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to get discounts", List.of(e.getMessage()));
         }
@@ -79,19 +75,18 @@ public class DiscountController {
         try {
             List<? extends DiscountResponse> discounts = discountService.getAllDiscountsOfPlatform();
 
-            return  ApiResponseUtil.success(discounts, "Get all discounts successfully.");
+            return ApiResponseUtil.success(discounts, "Get all discounts successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to get discounts", List.of(e.getMessage()));
         }
     }
-
 
     @GetMapping("/platform/active")
     public ResponseEntity<ApiResponse<List<? extends DiscountResponse>>> getActiveDiscountsOfPlatform() {
         try {
             List<? extends DiscountResponse> discounts = discountService.getActiveDiscountsOfPlatform();
 
-            return  ApiResponseUtil.success(discounts, "Get all discounts successfully.");
+            return ApiResponseUtil.success(discounts, "Get all discounts successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to get discounts", List.of(e.getMessage()));
         }
@@ -99,12 +94,11 @@ public class DiscountController {
 
     @GetMapping("/{code}")
     public ResponseEntity<ApiResponse<DiscountResponse>> getDiscountByCode(
-            @PathVariable String code
-    ) {
+            @PathVariable String code) {
         try {
             DiscountResponse discountResponse = discountService.getDiscountByCode(code);
 
-            return  ApiResponseUtil.success(discountResponse, "Get discount successfully.");
+            return ApiResponseUtil.success(discountResponse, "Get discount successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to get discount", List.of(e.getMessage()));
         }
@@ -113,12 +107,11 @@ public class DiscountController {
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<DiscountResponse>> updateDiscount(
             @PathVariable UUID id,
-            @RequestBody DiscountCreateRequest request
-    ) {
+            @RequestBody DiscountCreateRequest request) {
         try {
             DiscountResponse discountResponse = discountService.updateDiscount(id, request);
 
-            return  ApiResponseUtil.success(discountResponse, "Update discount successfully.");
+            return ApiResponseUtil.success(discountResponse, "Update discount successfully.");
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Failed to update discount", List.of(e.getMessage()));
         }
