@@ -11,8 +11,8 @@ import java.util.UUID;
 
 public interface DiscountService {
     DiscountResponse createDiscount(DiscountCreateRequest discount);
-    DiscountResponse getDiscountByCode(String code);
 
+    DiscountResponse getDiscountByCode(String code);
 
     List<DiscountResponse> getAllDiscounts();
 
@@ -20,14 +20,15 @@ public interface DiscountService {
 
     List<DiscountResponse> getActiveDiscountsOfPlatform();
 
-
     Discount getDiscountEntityByCode(String code);
+
     boolean validateDiscount(String code, BigDecimal orderTotal);
+
     BigDecimal applyDiscount(Discount discount, BigDecimal orderTotal, BigDecimal shippingCharges);
 
     List<DiscountResponse> getActiveDiscountsByShop(UUID shopId);
 
-    Page< DiscountResponse> getDiscountOfShop(UUID shopId, int page, int size);
+    Page<DiscountResponse> getDiscountOfShop(int page, int size);
 
     DiscountResponse updateDiscount(UUID discountId, DiscountCreateRequest request);
 
