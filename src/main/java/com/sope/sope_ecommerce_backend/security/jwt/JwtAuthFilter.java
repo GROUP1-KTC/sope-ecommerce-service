@@ -35,7 +35,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     private static final List<String> PROTECTED_PATHS = List.of(
-            "/api");
+            "/api/v1/auth/refresh-token",
+            "/api/v1/users",
+            "api/v1/");
     private static final List<String> WHITELISTED_PATHS = List.of(
             "/auth",
             "/public",
@@ -100,15 +102,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-//    private boolean isProtectedPath(String path) {
-//        return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
-//    }
     private boolean isProtectedPath(String path) {
-        boolean isWhitelisted = WHITELISTED_PATHS.stream()
-                .anyMatch(path::startsWith);
-
-        return !isWhitelisted;
+        return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
     }
+//    private boolean isProtectedPath(String path) {
+//        boolean isWhitelisted = WHITELISTED_PATHS.stream()
+//                .anyMatch(path::startsWith);
+//
+//        return !isWhitelisted;
+//    }
 
 
     private void setAuthentication(String token, String username, String userId, HttpServletRequest request) {
