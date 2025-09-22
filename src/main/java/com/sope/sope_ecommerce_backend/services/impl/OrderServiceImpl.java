@@ -86,7 +86,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<? extends OrderResponse> getRevenueByShop(UUID shopId) {
+    public List<? extends OrderResponse> getRevenueByShop() {
+        UUID shopId = shopService.getShopId();
         List<Order> orders = orderRepository.findByShop_Id(shopId);
 
         if (orders.isEmpty()) {

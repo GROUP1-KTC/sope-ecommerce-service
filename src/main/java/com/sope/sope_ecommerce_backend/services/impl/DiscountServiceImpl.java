@@ -81,11 +81,11 @@ public class DiscountServiceImpl implements DiscountService {
     }
 
     @Override
-    public Page<DiscountResponse> getDiscountOfShop(UUID shopId, int page, int size){
+    public Page<DiscountResponse> getDiscountOfShop(int page, int size) {
+        UUID shopId = shopService.getShopId();
         Page<Discount> discounts = discountRepository.findAll(
                 Specification.allOf(DiscountSpecification.byShopId(shopId)),
-                PageRequest.of(page, size)
-        );
+                PageRequest.of(page, size));
         return discounts.map(discountMapper::toResponse);
     }
 
@@ -96,16 +96,15 @@ public class DiscountServiceImpl implements DiscountService {
                         .and(DiscountSpecification.byScopes(
                                 DiscountScope.PLATFORM,
                                 DiscountScope.FREESHIP,
-                                DiscountScope.COIN_BACK
-                        ))
-        );
+                                DiscountScope.COIN_BACK)));
 
         return discountMapper.toResponseList(discounts);
     }
 
     @Override
     public List<DiscountResponse> getAllDiscountsOfPlatform() {
-        List<Discount> discounts = discountRepository.findByScopeIn(List.of(DiscountScope.PLATFORM, DiscountScope.FREESHIP, DiscountScope.COIN_BACK));
+        List<Discount> discounts = discountRepository
+                .findByScopeIn(List.of(DiscountScope.PLATFORM, DiscountScope.FREESHIP, DiscountScope.COIN_BACK));
         return discountMapper.toResponseList(discounts);
     }
 
@@ -113,8 +112,7 @@ public class DiscountServiceImpl implements DiscountService {
     public DiscountResponse getDiscountByCode(String code) {
 
         Discount discount = discountRepository.findByCode(code).orElseThrow(
-                () -> new IllegalArgumentException("Discount code " + code + " not found")
-        );
+                () -> new IllegalArgumentException("Discount code " + code + " not found"));
 
         return discountMapper.toResponse(discount);
     }
@@ -123,19 +121,16 @@ public class DiscountServiceImpl implements DiscountService {
     public Discount getDiscountEntityByCode(String code) {
 
         Discount discount = discountRepository.findByCode(code).orElseThrow(
-                () -> new IllegalArgumentException("Discount code " + code + " not found")
-        );
+                () -> new IllegalArgumentException("Discount code " + code + " not found"));
 
         return discount;
     }
-
 
     @Override
     @Transactional
     public DiscountResponse updateDiscount(UUID discountId, DiscountCreateRequest request) {
         Discount existingDiscount = discountRepository.findById(discountId).orElseThrow(
-                () -> new IllegalArgumentException("Discount with id " + discountId + " not found")
-        );
+                () -> new IllegalArgumentException("Discount with id " + discountId + " not found"));
 
         if (!existingDiscount.getCode().equals(request.code())) {
             Optional<Discount> discountWithSameCode = discountRepository.findByCode(request.code());
@@ -143,7 +138,8 @@ public class DiscountServiceImpl implements DiscountService {
                 Discount discount = discountWithSameCode.get();
                 LocalDateTime now = LocalDateTime.now();
                 boolean isNotExpired = discount.getEndDate() == null || !now.isAfter(discount.getEndDate());
-                boolean isNotUsedUp = discount.getMaxUsage() == 0 || discount.getCurrentUsage() < discount.getMaxUsage();
+                boolean isNotUsedUp = discount.getMaxUsage() == 0
+                        || discount.getCurrentUsage() < discount.getMaxUsage();
                 boolean isNotYetActive = discount.getStartDate() != null && now.isBefore(discount.getStartDate());
 
                 if (isNotExpired && isNotUsedUp || isNotYetActive) {
@@ -153,7 +149,7 @@ public class DiscountServiceImpl implements DiscountService {
             }
         }
 
-        if(existingDiscount.getScope() != request.scope()) {
+        if (existingDiscount.getScope() != request.scope()) {
             throw new IllegalArgumentException("Cannot change discount scope");
         }
 
@@ -169,7 +165,6 @@ public class DiscountServiceImpl implements DiscountService {
             shop.addDiscount(updatedDiscount);
         }
 
-
         Discount savedDiscount = discountRepository.save(updatedDiscount);
         return discountMapper.toResponse(savedDiscount);
     }
@@ -177,8 +172,7 @@ public class DiscountServiceImpl implements DiscountService {
     @Override
     public boolean validateDiscount(String code, BigDecimal orderTotal) {
         Discount discount = discountRepository.findByCode(code).orElseThrow(
-                () -> new IllegalArgumentException("Discount code " + code + " not found")
-        );
+                () -> new IllegalArgumentException("Discount code " + code + " not found"));
 
         return discount.isActive() && isOrderValueValid(discount, orderTotal);
     }

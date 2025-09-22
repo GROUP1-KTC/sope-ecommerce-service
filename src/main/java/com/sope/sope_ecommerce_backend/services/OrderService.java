@@ -23,7 +23,7 @@ public interface OrderService {
 
     public Page<OrderResponse> getOrdersForShipper(OrderStatus status, int page, int size);
 
-    public List<? extends OrderResponse> getRevenueByShop(UUID shopId);
+    public List<? extends OrderResponse> getRevenueByShop();
 
     public OrderResponse getOrderByOrderNumber(String orderNumber);
 
