@@ -35,10 +35,32 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     private static final List<String> PROTECTED_PATHS = List.of(
-            "/users",
-            "/products/init");
-    private static final List<String> WHITELISTED_PATHS = List.of(
-            "/auth",
+            "/addresses",
+            "/auth/change-password",
+            "/auth/refresh-token",
+            "/auth/logout",
+            "/cart",
+            "/conversations",
+            "/discounts/shop",
+            "/messages",
+            "/orders",
+            "/payment-cards",
+            "/payments/initiate",
+            "/products/init",
+            "/products/shop",
+            "/revenue/{shopId}",
+            "/revenue",
+            "/shop/address",
+            "users"
+            );
+    private static final List<String> PUBLIC_PATHS = List.of(
+            "/cart/guest/validate",
+            "/categories",
+            "/messages/chatbot",
+            "/payments/webhook",
+            "/orders/public",
+            "/shops/",
+            "/review/",
             "/public",
             "/swagger-ui",
             "/v3/api-docs"
@@ -101,15 +123,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private boolean isProtectedPath(String path) {
-        return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
-    }
 //    private boolean isProtectedPath(String path) {
-//        boolean isWhitelisted = WHITELISTED_PATHS.stream()
-//                .anyMatch(path::startsWith);
-//
-//        return !isWhitelisted;
+//        return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
 //    }
+
+    private boolean isProtectedPath(String path) {
+        boolean isPublic = PUBLIC_PATHS.stream()
+                .anyMatch(p -> path.startsWith(p));
+        if (isPublic) return false;
+
+        if (path.matches("/shops/[^/]+") || path.matches("/users/[^/]+")) {
+            return false; // không cần JWT
+        }
+
+        boolean isProtected = PROTECTED_PATHS.stream()
+                .anyMatch(p -> path.equals("/" + p));
+        return isProtected;
+    }
 
 
     private void setAuthentication(String token, String username, String userId, HttpServletRequest request) {
