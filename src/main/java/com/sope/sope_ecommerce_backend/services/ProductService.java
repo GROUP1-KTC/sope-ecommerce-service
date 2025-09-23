@@ -19,6 +19,7 @@ public interface ProductService {
 
       List<ProductDTO> getAllProducts();
 
+
       Page<ProductDTO> getProductsByShop(int page, int size);
 
       Page<ProductDTO> getApprovedProducts(int page, int size);

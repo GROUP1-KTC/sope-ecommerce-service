@@ -56,18 +56,8 @@ public class CategoryServiceImpl implements CategoryService {
 
             // Bước 3: Tạo slug
             Slugify slugify = Slugify.builder().lowerCase(true).build();
-            String nameSlug = slugify.slugify(category.getName());
-            String shortId = category.getId().toString().substring(0, 8);
 
-            String slug;
-
-            if (parent != null) {
-                  String parentSlug = parent.getSlug();
-                  String slugSuffix = parentSlug.substring(parentSlug.indexOf("cat."));
-                  slug = nameSlug + "-" + slugSuffix + "." + shortId;
-            } else {
-                  slug = nameSlug + "-cat." + shortId;
-            }
+            String slug = slugify.slugify(category.getName());
 
             category.setSlug(slug);
 

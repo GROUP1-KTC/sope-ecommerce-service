@@ -34,43 +34,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
-    private static final List<String> PROTECTED_PATHS = List.of(
-            "/addresses",
-            "/auth/change-password",
-            "/auth/refresh-token",
-            "/auth/logout",
-            "/cart",
-            "/conversations",
-            "/discounts/shop",
-            "/messages",
-            "/orders",
-            "/payment-cards",
-            "/payments/initiate",
-            "/products/init",
-            "/products/shop",
-            "/revenue/{shopId}",
-            "/revenue",
-            "/shop/address",
-            "users"
-            );
     private static final List<String> PUBLIC_PATHS = List.of(
-            "/cart/guest/validate",
-            "/categories",
-            "/messages/chatbot",
-            "/payments/webhook",
-            "/orders/public",
-            "/shops/",
-            "/review/",
-            "/public",
-            "/swagger-ui",
-            "/v3/api-docs"
+            "/auth/refresh-token",
+            "/v3/api-docs/**"
     );
 
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
-            @NonNull HttpServletResponse response,
-            @NonNull FilterChain filterChain)
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
@@ -79,7 +52,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String path = request.getServletPath();
-        if (!isProtectedPath(path)) {
+        if (isPublicPath(path)) {
+            // Không cần JWT
             filterChain.doFilter(request, response);
             return;
         }
@@ -127,25 +101,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 //        return PROTECTED_PATHS.stream().anyMatch(path::startsWith);
 //    }
 
-    private boolean isProtectedPath(String path) {
-        // Public check
-        boolean isPublic = PUBLIC_PATHS.stream()
-                .anyMatch(p -> path.startsWith(p));
-        if (isPublic) {
-            // ngoại lệ: path này vẫn cần JWT
-            if (path.startsWith("/shops/get-shop-id")) {
-                return true;
-            }
-            return false;
-        }
-
-        if (path.matches("/shops/[^/]+") || path.matches("/users/[^/]+")) {
-            return false; // không cần JWT
-        }
-
-        boolean isProtected = PROTECTED_PATHS.stream()
-                .anyMatch(p -> path.equals("/" + p));
-        return isProtected;
+    private boolean isPublicPath(String path) {
+        return PUBLIC_PATHS.stream()
+                .anyMatch(p -> {
+                    if (p.endsWith("/**")) {
+                        String base = p.substring(0, p.length() - 3);
+                        return path.startsWith(base);
+                    }
+                    return path.equals(p);
+                });
     }
 
 

@@ -27,7 +27,7 @@ public class ShopController {
     private final ShopService shopService;
 
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/create",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ShopResponse> createShop(
             @ModelAttribute ShopCreateForm form,
             @AuthenticationPrincipal CustomUserDetails user
@@ -35,6 +35,7 @@ public class ShopController {
         ShopResponse response = shopService.createShop(form, user.getUserId());
         return ResponseEntity.ok(response);
     }
+
 
 
     @GetMapping("/me")
