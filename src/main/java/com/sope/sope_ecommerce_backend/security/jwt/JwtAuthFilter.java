@@ -47,24 +47,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/payment-cards",
             "/payments/initiate",
             "/products/init",
-            "/products/shop",
             "/revenue/{shopId}",
             "/revenue",
             "/shop/address",
-            "users"
-            );
+            "/users"
+    );
     private static final List<String> PUBLIC_PATHS = List.of(
             "/cart/guest/validate",
             "/categories",
             "/messages/chatbot",
             "/payments/webhook",
             "/orders/public",
-            "/shops/",
             "/review/",
             "/public",
             "/swagger-ui",
+            "/shops/",
             "/v3/api-docs"
     );
+
+
+    private static final List<String> SPECIAL_PATHS = List.of(
+            "shops/me",
+            "shops/create",
+            "get-shop-id"
+    );
+
 
 
     @Override
@@ -128,23 +135,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 //    }
 
     private boolean isProtectedPath(String path) {
+        boolean isSpecial = SPECIAL_PATHS.stream().anyMatch(path::startsWith);
+        if (isSpecial) {
+            return true;
+        }
         // Public check
         boolean isPublic = PUBLIC_PATHS.stream()
                 .anyMatch(p -> path.startsWith(p));
         if (isPublic) {
-            // ngoại lệ: path này vẫn cần JWT
-            if (path.startsWith("/shops/get-shop-id")) {
-                return true;
-            }
             return false;
         }
 
-        if (path.matches("/shops/[^/]+") || path.matches("/users/[^/]+")) {
-            return false; // không cần JWT
-        }
-
-        boolean isProtected = PROTECTED_PATHS.stream()
-                .anyMatch(p -> path.equals("/" + p));
+        boolean isProtected = PROTECTED_PATHS.stream().anyMatch(path::startsWith);
         return isProtected;
     }
 
