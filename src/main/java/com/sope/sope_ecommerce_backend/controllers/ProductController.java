@@ -76,6 +76,11 @@ public class ProductController {
             return ResponseEntity.ok(productService.getAllProducts());
       }
 
+      @GetMapping
+      public ResponseEntity<List<ProductDTO>> getAllProductsByStatus(@PathVariable StatusProduct status) {
+            return ResponseEntity.ok(productService.getAllProductsByStatus(status));
+      }
+
       @GetMapping("/shop")
       public ResponseEntity<Page<ProductDTO>> getProductsByShop(
                   @RequestParam(defaultValue = "0") int page,

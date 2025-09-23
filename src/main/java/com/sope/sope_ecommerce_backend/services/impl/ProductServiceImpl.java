@@ -176,6 +176,15 @@ public class ProductServiceImpl implements ProductService {
 
       @Override
       @Transactional(readOnly = true)
+        public List<ProductDTO> getAllProductsByStatus(StatusProduct status) {
+                List<Product> products = productRepository.findByStatus(status)
+                            .map(List::of)
+                            .orElse(Collections.emptyList());
+                return productMapper.toDtoList(products);
+        }
+
+      @Override
+      @Transactional(readOnly = true)
       public ProductBasicWithVariantsDTO getProductWithVariants(UUID productId) {
             Product product = productRepository.findById(productId)
                         .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));

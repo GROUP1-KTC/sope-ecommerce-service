@@ -19,6 +19,8 @@ public interface ProductService {
 
       List<ProductDTO> getAllProducts();
 
+      List<ProductDTO> getAllProductsByStatus(StatusProduct status);
+
       Page<ProductDTO> getProductsByShop(int page, int size);
 
       Page<ProductDTO> getApprovedProducts(int page, int size);
