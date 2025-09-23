@@ -35,9 +35,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final HandlerExceptionResolver handlerExceptionResolver;
 
     private static final List<String> PROTECTED_PATHS = List.of(
-            "/api/v1/auth/refresh-token",
-            "/api/v1/users",
-            "api/v1/");
+            "/users",
+            "/products/init");
     private static final List<String> WHITELISTED_PATHS = List.of(
             "/auth",
             "/public",
