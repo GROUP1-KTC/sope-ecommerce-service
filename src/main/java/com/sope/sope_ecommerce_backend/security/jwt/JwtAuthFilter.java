@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
@@ -34,45 +35,42 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
     private final HandlerExceptionResolver handlerExceptionResolver;
 
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
     private static final List<String> PROTECTED_PATHS = List.of(
-            "/addresses",
+            "/addresses/**",
             "/auth/change-password",
             "/auth/refresh-token",
             "/auth/logout",
-            "/cart",
-            "/conversations",
-            "/discounts/shop",
-            "/messages",
-            "/orders",
-            "/payment-cards",
+            "/cart/**",
+            "/conversations/**",
+            "/discounts/shop/**",
+            "/messages/**",
+            "/orders/**",
+            "/payment-cards/**",
             "/payments/initiate",
             "/products/init",
             "/revenue/{shopId}",
-            "/revenue",
-            "/shop/address",
-            "/users"
+            "/revenue/**",
+            "/shop/address/**",
+            "/users/**",
+            "/shops/me",
+            "/shops/create",
+            "/shops/get-shop-id"
     );
     private static final List<String> PUBLIC_PATHS = List.of(
             "/cart/guest/validate",
-            "/categories",
+            "/categories/**",
             "/messages/chatbot",
-            "/payments/webhook",
-            "/orders/public",
-            "/review/",
-            "/public",
-            "/swagger-ui",
-            "/shops/",
-            "/v3/api-docs"
+            "/payments/webhook/**",
+
+            "/orders/public/**",
+            "/review/**",
+            "/public/**",
+            "/swagger-ui/**",
+            "/shops/**",
+            "/v3/api-docs/**"
     );
-
-
-    private static final List<String> SPECIAL_PATHS = List.of(
-            "shops/me",
-            "shops/create",
-            "get-shop-id"
-    );
-
-
+    
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
@@ -93,41 +91,41 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String token = jwtProvider.getTokenFromHeader(request);
 
-        try {
-            if (StringUtils.hasText(token)) {
-                jwtProvider.validateTokenOrThrow(token);
-
-                String username = jwtProvider.extractUsername(token);
-                String userId = jwtProvider.extractUserId(token);
-
-                if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                    setAuthentication(token, username, userId, request);
-                }
-            }
-        } catch (ExpiredJwtException ex) {
+        if (!StringUtils.hasText(token)) {
             SecurityContextHolder.clearContext();
-            log.warn("JWT token expired: {}", ex.getMessage());
+            log.warn("Missing JWT token for protected path {}", path);
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"JWT token expired\"}");
-            return;
-        } catch (AuthenticationException ex) {
-            SecurityContextHolder.clearContext();
-            log.error("Unauthorized error: {}", ex.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Unauthorized\"}");
-            return;
-        } catch (Exception ex) {
-            SecurityContextHolder.clearContext();
-            log.error("Invalid token or internal error in JwtAuthFilter: {}", ex.getMessage());
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"error\":\"Invalid token\"}");
+            response.getWriter().write("{\"error\":\"Missing JWT token\"}");
             return;
         }
 
-        filterChain.doFilter(request, response);
+        try {
+            jwtProvider.validateTokenOrThrow(token);
+
+            String username = jwtProvider.extractUsername(token);
+            String userId = jwtProvider.extractUserId(token);
+
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                setAuthentication(token, username, userId, request);
+            }
+
+            filterChain.doFilter(request, response);
+        } catch (ExpiredJwtException ex) {
+            SecurityContextHolder.clearContext();
+            log.warn("JWT token expired: {}", ex.getMessage());
+            handlerExceptionResolver.resolveException(request, response, null, ex);
+
+        } catch (AuthenticationException ex) {
+            SecurityContextHolder.clearContext();
+            log.error("Unauthorized error: {}", ex.getMessage());
+            handlerExceptionResolver.resolveException(request, response, null, ex);
+
+        } catch (Exception ex) {
+            SecurityContextHolder.clearContext();
+            log.error("Invalid token or internal error in JwtAuthFilter: {}", ex.getMessage(), ex);
+            handlerExceptionResolver.resolveException(request, response, null, ex);
+        }
     }
 
 //    private boolean isProtectedPath(String path) {
@@ -135,19 +133,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 //    }
 
     private boolean isProtectedPath(String path) {
-        boolean isSpecial = SPECIAL_PATHS.stream().anyMatch(path::startsWith);
-        if (isSpecial) {
-            return true;
-        }
-        // Public check
         boolean isPublic = PUBLIC_PATHS.stream()
-                .anyMatch(p -> path.startsWith(p));
+                .anyMatch(pattern -> PATH_MATCHER.match(pattern, path));
         if (isPublic) {
             return false;
         }
-
-        boolean isProtected = PROTECTED_PATHS.stream().anyMatch(path::startsWith);
-        return isProtected;
+        return PROTECTED_PATHS.stream()
+                .anyMatch(pattern -> PATH_MATCHER.match(pattern, path));
     }
 
 
