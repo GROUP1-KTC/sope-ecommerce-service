@@ -128,9 +128,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 //    }
 
     private boolean isProtectedPath(String path) {
+        // Public check
         boolean isPublic = PUBLIC_PATHS.stream()
                 .anyMatch(p -> path.startsWith(p));
-        if (isPublic) return false;
+        if (isPublic) {
+            // ngoại lệ: path này vẫn cần JWT
+            if (path.startsWith("/shops/get-shop-id")) {
+                return true;
+            }
+            return false;
+        }
 
         if (path.matches("/shops/[^/]+") || path.matches("/users/[^/]+")) {
             return false; // không cần JWT
@@ -140,6 +147,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 .anyMatch(p -> path.equals("/" + p));
         return isProtected;
     }
+
 
 
     private void setAuthentication(String token, String username, String userId, HttpServletRequest request) {
