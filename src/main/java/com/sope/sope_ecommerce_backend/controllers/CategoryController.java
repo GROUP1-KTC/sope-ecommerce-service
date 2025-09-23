@@ -1,7 +1,7 @@
 package com.sope.sope_ecommerce_backend.controllers;
 
 import com.sope.sope_ecommerce_backend.dto.request.CategoryCreateDTO;
-import com.sope.sope_ecommerce_backend.dto.request.CategoryUpdateCommissionDTO;
+import com.sope.sope_ecommerce_backend.dto.request.CategoryUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.CategoryDTO;
 // import com.sope.sope_ecommerce_backend.dto.response.CategoryTreeDTO;
 import com.sope.sope_ecommerce_backend.services.CategoryService;
@@ -40,11 +40,10 @@ public class CategoryController {
             return ResponseEntity.ok(breadcrumb);
       }
 
-      @PatchMapping("/{id}/fee-commission")
-      public ResponseEntity<CategoryDTO> updateCommissionFee(
-                  @PathVariable UUID id,
-                  @RequestBody CategoryUpdateCommissionDTO request) {
-            CategoryDTO updated = categoryService.updateCommissionFee(id, request);
+      @PatchMapping
+      public ResponseEntity<CategoryDTO> updateCategory(
+                  @RequestBody CategoryUpdateRequest request) {
+            CategoryDTO updated = categoryService.updateCategory(request);
             return ResponseEntity.ok(updated);
       }
 }

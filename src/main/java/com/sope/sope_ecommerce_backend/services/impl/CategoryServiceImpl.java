@@ -2,7 +2,7 @@ package com.sope.sope_ecommerce_backend.services.impl;
 
 import com.github.slugify.Slugify;
 import com.sope.sope_ecommerce_backend.dto.request.CategoryCreateDTO;
-import com.sope.sope_ecommerce_backend.dto.request.CategoryUpdateCommissionDTO;
+import com.sope.sope_ecommerce_backend.dto.request.CategoryUpdateRequest;
 import com.sope.sope_ecommerce_backend.dto.response.CategoryDTO;
 import com.sope.sope_ecommerce_backend.entities.Category;
 import com.sope.sope_ecommerce_backend.mapper.CategoryMapper;
@@ -106,11 +106,16 @@ public class CategoryServiceImpl implements CategoryService {
 
       @Override
       @Transactional
-      public CategoryDTO updateCommissionFee(UUID categoryId, CategoryUpdateCommissionDTO request) {
-            Category category = categoryRepository.findById(categoryId)
+      public CategoryDTO updateCategory(CategoryUpdateRequest request) {
+            Category category = categoryRepository.findById(request.categoryId())
                         .orElseThrow(() -> new RuntimeException("Category not found"));
 
-            category.setCommissionFeePercent(request.commissionFeePercent());
+            if (request.name() != null && !request.name().isEmpty()) {
+                  category.setName(request.name());
+            }
+            if (request.commissionFeePercent() != null) {
+                  category.setCommissionFeePercent(request.commissionFeePercent());
+            }
 
             category = categoryRepository.save(category);
             return categoryMapper.toDto(category);

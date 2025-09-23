@@ -96,36 +96,7 @@ spring:
             max-request-size: 20MB
 
 app:
-    jwt:
-        secret: "284dd6c8bceeacfa2559a1ca7ef3e4c25099bea3d6a7f3e9cb2470e39a46106f1379b3b61aedbaf5299126211f663aef6c79aac2fc3913752b5ae63e06c7a592="
-        header: Authorization
-        prefix: Bearer
-        expires-in-minutes: 60
-        refresh-expires-in-days: 14
-        clock-skew-second: 60
-        rotate-on-refresh: true
-        reuse-detection: true
-        expiration: 900000
-        refresh-expiration: 604800000
-    refresh-token:
-        enabled: true
-        header: X-Refresh-Token
-        prefix: Refresh
-        expires-in-minutes: 60
-        clock-skew-second: 60
     base-url: https://your-shop-domain.com
-
-    security:
-        user:
-        name: user
-        password: password
-        oauth2:
-        client:
-            registration:
-            google:
-                client-id: your-google-client-id
-                client-secret: your-google-client-secret
-                scope: profile, email
 
 cors:
     allowed-origins: "*"
