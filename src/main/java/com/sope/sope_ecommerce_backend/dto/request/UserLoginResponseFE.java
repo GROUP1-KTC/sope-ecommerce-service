@@ -7,6 +7,9 @@ public record UserLoginResponseFE(
         UUID id,
         String username,
         List<String> roles,
-        String accessToken
+        String accessToken,
+        String tempToken,
+        boolean twoFaRequired,
+        String faceAuthId
 ) {
 }

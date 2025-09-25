@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
+import com.sope.sope_ecommerce_backend.dto.request.FaceAuthRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
@@ -205,6 +206,15 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    public UserInformationResponse updateUserFaceAuth(UUID userId, FaceAuthRequest request) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setFaceAuthId(request.idObject());
+        userRepository.save(user);
+
+        return userMapper.toInfoResponse(user);
+    }
 
 
 }

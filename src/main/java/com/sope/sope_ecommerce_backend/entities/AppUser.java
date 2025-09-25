@@ -59,4 +59,7 @@
         @OneToOne(mappedBy = "appUser", cascade = CascadeType.ALL)
         private Shop shop;
 
+        @Column(name = "face_auth_id")
+        private String faceAuthId;
+
     }

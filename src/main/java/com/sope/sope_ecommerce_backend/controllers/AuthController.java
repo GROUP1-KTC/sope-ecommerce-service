@@ -75,7 +75,10 @@ public class AuthController {
                     loginResponse.id(),
                     loginResponse.username(),
                     loginResponse.roles(),
-                    loginResponse.access_token()
+                    loginResponse.access_token(),
+                    loginResponse.tempToken(),
+                    loginResponse.twoFaRequired(),
+                    loginResponse.faceAuthId()
             );
 
             // Tạo cookies
@@ -94,6 +97,49 @@ public class AuthController {
             return ApiResponseUtil.internalError("Failed to login user", List.of(e.getMessage()));
         }
     }
+
+    @PostMapping("/confirm-face")
+    public ResponseEntity<ApiResponse<UserLoginResponseFE>> confirmFace(
+            @RequestBody ConfirmFaceRequest request
+    ) {
+        try {
+            UserLoginResponse loginResponse = authService.confirmFace(request.tempToken());
+
+            UserLoginResponseFE responseFE = new UserLoginResponseFE(
+                    loginResponse.id(),
+                    loginResponse.username(),
+                    loginResponse.roles(),
+                    loginResponse.access_token(),
+                    loginResponse.tempToken(),
+                    loginResponse.twoFaRequired(),
+                    loginResponse.faceAuthId()
+            );
+
+            // tạo refresh cookie
+            ResponseCookie refreshCookie = null;
+            if (loginResponse.refresh_token() != null) {
+                refreshCookie = cookieService.createRefreshCookie(loginResponse.refresh_token());
+            }
+
+            ResponseEntity<ApiResponse<UserLoginResponseFE>> response = ApiResponseUtil.success(
+                    responseFE,
+                    "Face verification successful, user logged in"
+            );
+
+            ResponseEntity.BodyBuilder builder = ResponseEntity.status(response.getStatusCode())
+                    .headers(response.getHeaders());
+
+            if (refreshCookie != null) {
+                builder.header(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+            }
+
+            return builder.body(response.getBody());
+
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Face confirm failed", List.of(e.getMessage()));
+        }
+    }
+
 
     @PostMapping("/refresh-token")
     public ResponseEntity<TokenRefreshResponse> refreshAccessToken(
