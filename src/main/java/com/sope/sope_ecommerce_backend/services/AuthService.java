@@ -21,4 +21,5 @@ public interface AuthService {
     void resetPassword(ResetPasswordRequest request);
     void sendOtp(String email) throws MessagingException;
     void verifyOtp(String email, String otp) throws MessagingException;
+    UserLoginResponse confirmFace(String tempToken);
 }

@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.services;
 
+import com.sope.sope_ecommerce_backend.dto.request.FaceAuthRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
@@ -24,4 +25,10 @@ public interface UserService {
     UserInformationResponse updateUserAvatar(String avatarUrl);
 
     void addRoleToUser(UUID userId, RoleName roleName, String grantedBy);
+
+    UserInformationResponse updateUserFaceAuth(UUID userId, FaceAuthRequest request);
+
+    Boolean isFaceAuthEnabled();
+
+    Boolean disableFaceAuth();
 }

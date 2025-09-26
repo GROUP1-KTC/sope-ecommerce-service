@@ -75,7 +75,10 @@ public class AuthController {
                     loginResponse.id(),
                     loginResponse.username(),
                     loginResponse.roles(),
-                    loginResponse.access_token()
+                    loginResponse.access_token(),
+                    loginResponse.tempToken(),
+                    loginResponse.twoFaRequired(),
+                    loginResponse.faceAuthId()
             );
 
             // Tạo cookies
@@ -94,6 +97,42 @@ public class AuthController {
             return ApiResponseUtil.internalError("Failed to login user", List.of(e.getMessage()));
         }
     }
+
+    @PostMapping("/confirm-face")
+    public ResponseEntity<ApiResponse<UserLoginResponseFE>> confirmFace(
+            @RequestBody ConfirmFaceRequest request
+    ) {
+        try {
+            UserLoginResponse loginResponse = authService.confirmFace(request.faceAuthToken());
+
+            UserLoginResponseFE responseFE = new UserLoginResponseFE(
+                    loginResponse.id(),
+                    loginResponse.username(),
+                    loginResponse.roles(),
+                    loginResponse.access_token(),
+                    null,  // tempToken bỏ
+                    false,
+                    null
+            );
+
+            ResponseCookie refreshCookie = cookieService.createRefreshCookie(loginResponse.refresh_token());
+
+            ResponseEntity<ApiResponse<UserLoginResponseFE>> response = ApiResponseUtil.success(
+                    responseFE,
+                    "Face verification successful, user logged in"
+            );
+
+            return ResponseEntity.status(response.getStatusCode())
+                    .headers(response.getHeaders())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .body(response.getBody());
+
+        } catch (Exception e) {
+            return ApiResponseUtil.internalError("Face confirm failed", List.of(e.getMessage()));
+        }
+    }
+
+
 
     @PostMapping("/refresh-token")
     public ResponseEntity<TokenRefreshResponse> refreshAccessToken(
@@ -155,5 +194,7 @@ public class AuthController {
             return ApiResponseUtil.internalError("Failed to reset password", List.of(e.getMessage()));
         }
     }
+
+
 
 }

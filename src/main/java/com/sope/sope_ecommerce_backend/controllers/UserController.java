@@ -1,5 +1,6 @@
     package com.sope.sope_ecommerce_backend.controllers;
 
+import com.sope.sope_ecommerce_backend.dto.request.FaceAuthRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
@@ -60,5 +61,28 @@ public class UserController {
 
         return ResponseEntity.ok(updatedUser);
     }
+
+    @PostMapping("/{id}/face-auth")
+    public ResponseEntity<UserInformationResponse> updateFaceAuth(
+            @PathVariable UUID id,
+            @RequestBody FaceAuthRequest request) {
+
+        UserInformationResponse updatedUser = userService.updateUserFaceAuth(id, request);
+
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @GetMapping("/face-auth")
+    public ResponseEntity<Boolean> isFaceAuthEnabled() {
+        Boolean enabled = userService.isFaceAuthEnabled();
+        return ResponseEntity.ok(enabled);
+    }
+
+    @PostMapping("/face-auth")
+    public ResponseEntity<Boolean> disableFaceAuth() {
+        Boolean result = userService.disableFaceAuth();
+        return ResponseEntity.ok(result);
+    }
+
 
 }

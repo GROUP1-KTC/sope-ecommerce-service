@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
+import com.sope.sope_ecommerce_backend.dto.request.FaceAuthRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserStatusRequest;
 import com.sope.sope_ecommerce_backend.dto.request.UserUpdateRecord;
 import com.sope.sope_ecommerce_backend.dto.response.UserInformationResponse;
@@ -205,6 +206,51 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    public UserInformationResponse updateUserFaceAuth(UUID userId, FaceAuthRequest request) {
+        AppUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
+        user.setFaceAuthId(request.idObject());
+        userRepository.save(user);
+
+        return userMapper.toInfoResponse(user);
+    }
+
+    @Override
+    public Boolean isFaceAuthEnabled() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User chưa đăng nhập");
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        AppUser appUser = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new RuntimeException("User không tồn tại: " + userDetails.getUserId()));
+
+        return appUser.getFaceAuthId() != null;
+    }
+
+    @Override
+    public Boolean disableFaceAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User chưa đăng nhập");
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        AppUser appUser = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new RuntimeException("User không tồn tại: " + userDetails.getUserId()));
+
+        if (appUser.getFaceAuthId() != null) {
+            appUser.setFaceAuthId(null);
+            userRepository.save(appUser);
+        }
+
+        return true;
+    }
 
 }

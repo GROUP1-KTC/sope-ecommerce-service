@@ -241,8 +241,8 @@ public class GeminiServiceImpl implements GeminiService {
 
     private String summarizeReviews(String productName, List<String> reviews) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("Tổng hợp các review sau về sản phẩm thành một đánh giá tổng quát bằng tiếng Việt.\n")
-                .append("Chỉ dựa trên các review dưới đây, nêu ra ưu điểm, nhược điểm và đánh giá tổng thể.\n\n")
+        prompt.append("Dựa trên các review dưới đây về sản phẩm, hãy viết một đoạn văn duy nhất bằng tiếng Việt tóm tắt đánh giá tổng quan về sản phẩm. " +
+                        "Không phân tách ưu nhược điểm, không dùng ký hiệu, gạch đầu dòng hay Markdown, chỉ một đoạn văn liên tục.\n\n")
                 .append("Danh sách review:\n");
         for (String r : reviews) {
             prompt.append("- ").append(r).append("\n");
@@ -277,6 +277,7 @@ public class GeminiServiceImpl implements GeminiService {
 
         return "Không thể tổng hợp review do lỗi hệ thống.";
     }
+
 
 
 }

@@ -13,6 +13,9 @@ public record UserLoginResponse (
      String username,
      String access_token,
      String refresh_token,
-     List<String> roles
+     List<String> roles,
+        String tempToken,
+        boolean twoFaRequired,
+        String faceAuthId
 
 ){}

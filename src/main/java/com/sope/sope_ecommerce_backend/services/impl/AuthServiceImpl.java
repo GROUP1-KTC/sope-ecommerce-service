@@ -106,30 +106,44 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
-        try {
-            AppUser appUser = userRepository.findByEmail(request.email())
-                    .orElseThrow(() -> new RuntimeException("User does not exist."));
+        AppUser appUser = userRepository.findByEmail(request.email())
+                .orElseThrow(() -> new RuntimeException("User does not exist."));
 
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            appUser.getUsername(),
-                            request.password()
-                    )
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        appUser.getUsername(),
+                        request.password()
+                )
+        );
+
+        if (appUser.getFaceAuthId() != null) {
+            String tempToken = UUID.randomUUID().toString();
+            String faceAuthId = appUser.getFaceAuthId();
+            redisService.set("temp:" + tempToken, appUser.getId().toString(), 5, TimeUnit.MINUTES);
+
+            return new UserLoginResponse(
+                    appUser.getId(),
+                    appUser.getUsername(),
+                    null, // access_token
+                    null, // refresh_token
+                    List.of("ROLE_USER"), // roles
+                    tempToken,            // tempToken
+                    true,                  // twoFaRequired
+                    faceAuthId
             );
 
+        }
+
+        // user không bật FaceAuth → cấp token như cũ
         UserDetails userDetails = userDetailsService.loadUserByUsername(appUser.getUsername());
-
         String accessToken = jwtProvider.generateToken(userDetails, appUser.getId());
-
         String refreshToken = jwtProvider.generateRefreshToken(userDetails, appUser.getId());
 
         redisService.set("refresh:" + refreshToken, appUser.getId().toString(), 7, TimeUnit.DAYS);
 
         return userMapper.toLoginResponse(appUser, accessToken, refreshToken);
-        } catch (BadCredentialsException e) {
-            throw new RuntimeException("Incorrect username or password", e);
-        }
     }
+
 
 
     @Override
@@ -260,6 +274,40 @@ public class AuthServiceImpl implements AuthService {
         redisService.set("otp:verified:" + email, true, 10, TimeUnit.MINUTES);
 
         redisService.delete(redisKey);
+    }
+
+    @Override
+    public UserLoginResponse confirmFace(String faceAuthToken) {
+        if (faceAuthToken == null || faceAuthToken.isEmpty()) {
+            throw new RuntimeException("FaceAuth token is missing");
+        }
+
+        // Decode token để lấy userId
+        UUID userId = jwtProvider.getUserIdFromToken(faceAuthToken);
+        if (userId == null) {
+            throw new RuntimeException("Invalid faceAuth token");
+        }
+
+        AppUser appUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Tạo token mới cho session
+        UserDetails userDetails = userDetailsService.loadUserByUsername(appUser.getUsername());
+        String accessToken = jwtProvider.generateToken(userDetails, appUser.getId());
+        String refreshToken = jwtProvider.generateRefreshToken(userDetails, appUser.getId());
+
+        redisService.set("refresh:" + refreshToken, appUser.getId().toString(), 7, TimeUnit.DAYS);
+
+        return new UserLoginResponse(
+                appUser.getId(),
+                appUser.getUsername(),
+                accessToken,
+                refreshToken,
+                List.of("ROLE_USER"),
+                null,  // tempToken không cần nữa
+                false,
+                null
+        );
     }
 
 
