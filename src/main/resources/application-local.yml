@@ -96,7 +96,7 @@ spring:
             max-request-size: 20MB
 
 app:
-    base-url: https://your-shop-domain.com
+    base-url: https://sope.site
 
 cors:
     allowed-origins: "*"

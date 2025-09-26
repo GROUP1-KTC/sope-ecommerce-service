@@ -5,6 +5,7 @@ import com.sope.sope_ecommerce_backend.client.GeminiClient;
 import com.sope.sope_ecommerce_backend.dto.request.ChatRequest;
 import com.sope.sope_ecommerce_backend.dto.response.ChatAIResponse;
 import com.sope.sope_ecommerce_backend.entities.Product;
+import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
 import com.sope.sope_ecommerce_backend.repositories.ProductRepository;
 import com.sope.sope_ecommerce_backend.repositories.ReviewRepository;
 import com.sope.sope_ecommerce_backend.services.GeminiService;
@@ -22,6 +23,7 @@ public class GeminiServiceImpl implements GeminiService {
     private final GeminiClient geminiClient;
     private final ProductRepository productRepository;
     private final ReviewRepository reviewRepository;
+    private final ProductMapper productMapper;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -123,28 +125,41 @@ public class GeminiServiceImpl implements GeminiService {
         return callGemini(prompt.toString(), null);
     }
 
-
     private ChatAIResponse buildProductListResponse(String userQuestion, List<Product> candidates) {
         StringBuilder context = new StringBuilder();
         context.append("You are a friendly and polite chatbot for an e-commerce store.\n");
-        context.append("Your role is to answer customer questions clearly and warmly, ")
-                .append("suggest relevant products, and encourage browsing. ")
-                .append("Do NOT ask questions back. Keep the tone positive and inviting.\n\n");
+        context.append("Answer clearly and warmly, suggest relevant products, and encourage browsing.\n");
+        context.append("Answer in ONE short friendly paragraph (3–4 sentences max).\n");
+        context.append("Do NOT use bullet points, asterisks (*), or markdown (**).\n");
+        context.append("Do NOT ask questions back. Keep the tone positive.\n\n");
         context.append("Customer asks: ").append(userQuestion).append("\n\n");
-        context.append("Relevant products in inventory (include link in format <product name>: <link>):\n");
+
+        context.append("Relevant products in inventory:\n");
         for (Product p : candidates) {
+            var summary = productMapper.toProductSummaryResponse(p);
             context.append("- ").append(p.getName())
-                    .append(": ").append(baseUrl).append("/product-by-slug/").append(p.getSlug())
-                    .append("\n");
+                    .append(" | Price from: ").append(summary.minPrice()).append(" VND")
+                    .append(" (").append(baseUrl).append("/product-detail/").append(p.getSlug())
+                    .append(" | Image: ").append(p.getDefaultImage()).append("\n");
         }
-        context.append("\nPlease respond to the customer directly using the product names and links above. ")
-                .append("Make your answer friendly, polite, and encouraging.");
+
+        context.append("Return ONLY a valid JSON object in EXACTLY this format.\n")
+                .append("Do NOT include ```json, ``` or any extra explanation.\n")
+                .append("Do NOT include any text outside the JSON.\n")
+                .append("Format:\n")
+                .append("{\n")
+                .append("  \"content\": \"<friendly answer text>\",\n")
+                .append("  \"products\": [\n")
+                .append("    {\"name\": \"<product name>\", \"link\": \"<url>\", \"image\": \"<image url>\", \"minPrice\": 12345}\n")
+                .append("  ]\n")
+                .append("}\n");
 
         String link = candidates.isEmpty() ? null :
-                baseUrl + "/product-by-slug/" + candidates.get(0).getSlug();
+                baseUrl + "/product-detail/" + candidates.get(0).getSlug();
 
         return callGemini(context.toString(), link);
     }
+
 
     private ChatAIResponse callGemini(String prompt, String link) {
         Map<String, Object> finalMsg = new HashMap<>();
@@ -277,7 +292,4 @@ public class GeminiServiceImpl implements GeminiService {
 
         return "Không thể tổng hợp review do lỗi hệ thống.";
     }
-
-
-
 }
