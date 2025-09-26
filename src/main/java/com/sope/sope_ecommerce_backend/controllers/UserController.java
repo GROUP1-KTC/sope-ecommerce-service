@@ -72,5 +72,17 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
+    @GetMapping("/face-auth")
+    public ResponseEntity<Boolean> isFaceAuthEnabled() {
+        Boolean enabled = userService.isFaceAuthEnabled();
+        return ResponseEntity.ok(enabled);
+    }
+
+    @PostMapping("/face-auth")
+    public ResponseEntity<Boolean> disableFaceAuth() {
+        Boolean result = userService.disableFaceAuth();
+        return ResponseEntity.ok(result);
+    }
+
 
 }

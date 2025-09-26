@@ -103,42 +103,35 @@ public class AuthController {
             @RequestBody ConfirmFaceRequest request
     ) {
         try {
-            UserLoginResponse loginResponse = authService.confirmFace(request.tempToken());
+            UserLoginResponse loginResponse = authService.confirmFace(request.faceAuthToken());
 
             UserLoginResponseFE responseFE = new UserLoginResponseFE(
                     loginResponse.id(),
                     loginResponse.username(),
                     loginResponse.roles(),
                     loginResponse.access_token(),
-                    loginResponse.tempToken(),
-                    loginResponse.twoFaRequired(),
-                    loginResponse.faceAuthId()
+                    null,  // tempToken bỏ
+                    false,
+                    null
             );
 
-            // tạo refresh cookie
-            ResponseCookie refreshCookie = null;
-            if (loginResponse.refresh_token() != null) {
-                refreshCookie = cookieService.createRefreshCookie(loginResponse.refresh_token());
-            }
+            ResponseCookie refreshCookie = cookieService.createRefreshCookie(loginResponse.refresh_token());
 
             ResponseEntity<ApiResponse<UserLoginResponseFE>> response = ApiResponseUtil.success(
                     responseFE,
                     "Face verification successful, user logged in"
             );
 
-            ResponseEntity.BodyBuilder builder = ResponseEntity.status(response.getStatusCode())
-                    .headers(response.getHeaders());
-
-            if (refreshCookie != null) {
-                builder.header(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-            }
-
-            return builder.body(response.getBody());
+            return ResponseEntity.status(response.getStatusCode())
+                    .headers(response.getHeaders())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .body(response.getBody());
 
         } catch (Exception e) {
             return ApiResponseUtil.internalError("Face confirm failed", List.of(e.getMessage()));
         }
     }
+
 
 
     @PostMapping("/refresh-token")
@@ -201,5 +194,7 @@ public class AuthController {
             return ApiResponseUtil.internalError("Failed to reset password", List.of(e.getMessage()));
         }
     }
+
+
 
 }

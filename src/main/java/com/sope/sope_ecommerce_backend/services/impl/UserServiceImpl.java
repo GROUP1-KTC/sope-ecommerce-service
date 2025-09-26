@@ -216,5 +216,41 @@ public class UserServiceImpl implements UserService {
         return userMapper.toInfoResponse(user);
     }
 
+    @Override
+    public Boolean isFaceAuthEnabled() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User chưa đăng nhập");
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        AppUser appUser = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new RuntimeException("User không tồn tại: " + userDetails.getUserId()));
+
+        return appUser.getFaceAuthId() != null;
+    }
+
+    @Override
+    public Boolean disableFaceAuth() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User chưa đăng nhập");
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        AppUser appUser = userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new RuntimeException("User không tồn tại: " + userDetails.getUserId()));
+
+        if (appUser.getFaceAuthId() != null) {
+            appUser.setFaceAuthId(null);
+            userRepository.save(appUser);
+        }
+
+        return true;
+    }
 
 }

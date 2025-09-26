@@ -277,26 +277,26 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserLoginResponse confirmFace(String tempToken) {
-        String redisKey = "temp:" + tempToken;
-        Object userIdObj = redisService.get(redisKey);
-        if (userIdObj == null) {
-            throw new RuntimeException("Invalid or expired temp token");
+    public UserLoginResponse confirmFace(String faceAuthToken) {
+        if (faceAuthToken == null || faceAuthToken.isEmpty()) {
+            throw new RuntimeException("FaceAuth token is missing");
         }
 
-        String userIdStr = userIdObj.toString();
-        UUID userId = UUID.fromString(userIdStr);
+        // Decode token để lấy userId
+        UUID userId = jwtProvider.getUserIdFromToken(faceAuthToken);
+        if (userId == null) {
+            throw new RuntimeException("Invalid faceAuth token");
+        }
 
         AppUser appUser = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Tạo token mới cho session
         UserDetails userDetails = userDetailsService.loadUserByUsername(appUser.getUsername());
         String accessToken = jwtProvider.generateToken(userDetails, appUser.getId());
         String refreshToken = jwtProvider.generateRefreshToken(userDetails, appUser.getId());
 
         redisService.set("refresh:" + refreshToken, appUser.getId().toString(), 7, TimeUnit.DAYS);
-
-        redisService.delete(redisKey);
 
         return new UserLoginResponse(
                 appUser.getId(),
@@ -304,7 +304,7 @@ public class AuthServiceImpl implements AuthService {
                 accessToken,
                 refreshToken,
                 List.of("ROLE_USER"),
-                null,
+                null,  // tempToken không cần nữa
                 false,
                 null
         );

@@ -27,4 +27,8 @@ public interface UserService {
     void addRoleToUser(UUID userId, RoleName roleName, String grantedBy);
 
     UserInformationResponse updateUserFaceAuth(UUID userId, FaceAuthRequest request);
+
+    Boolean isFaceAuthEnabled();
+
+    Boolean disableFaceAuth();
 }

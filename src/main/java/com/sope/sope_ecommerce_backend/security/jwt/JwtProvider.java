@@ -118,4 +118,13 @@ public class JwtProvider {
         }
     }
 
+    public UUID getUserIdFromToken(String token) {
+        String userIdStr = extractUserId(token);
+        if (userIdStr == null) {
+            return null;
+        }
+        return UUID.fromString(userIdStr);
+    }
+
+
 }
