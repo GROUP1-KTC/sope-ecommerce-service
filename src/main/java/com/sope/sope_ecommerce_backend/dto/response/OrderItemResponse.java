@@ -11,6 +11,7 @@ public record OrderItemResponse(
                 int quantity,
                 BigDecimal price,
                 String imageUrl,
+                String slug,
                 BigDecimal commissionFeePercent,
                 List<AttributeDTO> attributes) {
 }
