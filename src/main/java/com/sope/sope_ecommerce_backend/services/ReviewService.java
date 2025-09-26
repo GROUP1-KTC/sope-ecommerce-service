@@ -14,4 +14,5 @@ public interface ReviewService {
 
       List<ReviewDTO> getReviewsByProductId(UUID productId);
 
+      List<ReviewDTO> getReviewsByUserId(UUID userId);
 }

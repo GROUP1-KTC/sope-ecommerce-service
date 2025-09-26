@@ -28,6 +28,12 @@ public class ReviewController {
 
       private final ReviewService reviewService;
 
+      @GetMapping("/user/{userId}")
+      public ResponseEntity<List<ReviewDTO>> getReviewsByUserId(@PathVariable UUID userId) {
+            List<ReviewDTO> reviews = reviewService.getReviewsByUserId(userId);
+            return ResponseEntity.ok(reviews);
+      }
+
       @GetMapping("/{productId}")
       public ResponseEntity<List<ReviewDTO>> getReviewsByProductId(@PathVariable UUID productId) {
             List<ReviewDTO> reviews = reviewService.getReviewsByProductId(productId);

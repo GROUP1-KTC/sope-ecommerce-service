@@ -51,6 +51,13 @@ public class ReviewServiceImpl implements ReviewService {
 
       @Override
       @Transactional(readOnly = true)
+      public List<ReviewDTO> getReviewsByUserId(UUID userId) {
+            List<ReviewEntity> reviews = reviewRepository.findByAppUserId(userId);
+            return reviewMapper.toDtoList(reviews);
+      }
+
+      @Override
+      @Transactional(readOnly = true)
       public List<ReviewDTO> getReviewsByProductId(UUID productId) {
             List<ReviewEntity> reviews = reviewRepository.findByProductVariant_Product_ProductId(productId);
             return reviewMapper.toDtoList(reviews);
@@ -117,7 +124,6 @@ public class ReviewServiceImpl implements ReviewService {
 
             return reviewMapper.toDto(saved);
       }
-
 
       @Override
       @Transactional

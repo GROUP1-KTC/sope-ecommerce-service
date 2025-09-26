@@ -18,4 +18,6 @@ public interface ReviewRepository extends JpaRepository<ReviewEntity, UUID> {
       @Query("SELECT r.content FROM ReviewEntity r WHERE r.productVariant.product.productId = :productId")
       List<String> findAllContentsByProductId(@Param("productId") UUID productId);
 
+      List<ReviewEntity> findByAppUserId(UUID userId);
+
 }
