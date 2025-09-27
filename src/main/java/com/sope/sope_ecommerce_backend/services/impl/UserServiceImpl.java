@@ -89,7 +89,7 @@ public class UserServiceImpl implements UserService {
         AppUser guestUser = userRepository.findByEmail(email).orElse(null);
         if (guestUser == null) {
             guestUser = AppUser.builder()
-                    .username(UUID.randomUUID().toString())
+                    .username(email.substring(0, email.indexOf("@")))
                     .email(email)
                     .password(passwordEncoder.encode(phone))
                     .phone(phone)
