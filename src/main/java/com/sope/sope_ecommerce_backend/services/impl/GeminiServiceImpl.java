@@ -292,4 +292,51 @@ public class GeminiServiceImpl implements GeminiService {
 
         return "Không thể tổng hợp review do lỗi hệ thống.";
     }
+
+    public List<String> extractVietnameseKeywordsFromCaption(String englishCaption) {
+        Map<String, Object> msg = new HashMap<>();
+        msg.put("role", "user");
+        msg.put("content",
+                "You are an expert bilingual translator and keyword extractor for e-commerce search.\n" +
+                        "Given the following English caption describing a product, do these steps:\n" +
+                        "1. Understand the product meaning.\n" +
+                        "2. Generate **5 short Vietnamese keywords** for searching this product in an e-commerce store.\n" +
+                        "   - 1–2 keywords should be specific (e.g. describe product type or color).\n" +
+                        "   - The remaining should be more general or common search terms.\n" +
+                        "   - Avoid overly detailed or repetitive phrases.\n" +
+                        "3. Return **only** a valid JSON array of Vietnamese keywords (no markdown, no explanation).\n\n" +
+                        "Caption: \"" + englishCaption + "\""
+        );
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("model", "gemini-2.0-flash");
+        body.put("messages", List.of(msg));
+
+        Map<String, Object> resp = geminiClient.sendChat(body);
+
+        List<String> keywords = new ArrayList<>();
+        try {
+            List<Map<String, Object>> choices = (List<Map<String, Object>>) resp.get("choices");
+            if (choices != null && !choices.isEmpty()) {
+                Map<String, Object> first = choices.get(0);
+                Map<String, Object> messageResp = (Map<String, Object>) first.get("message");
+                String content = messageResp.get("content").toString().trim();
+
+                // Xử lý chuỗi JSON hợp lệ
+                content = content
+                        .replaceAll("(?s)```json", "")
+                        .replaceAll("```", "")
+                        .trim();
+
+                ObjectMapper mapper = new ObjectMapper();
+                keywords = mapper.readValue(content, List.class);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return keywords;
+    }
+
+
 }

@@ -28,4 +28,10 @@ public interface AiService {
     Map<String, String> updateUserRecommendation(
             @RequestParam(name = "top_n", required = false, defaultValue = "10") Integer topN);
 
+    @PostMapping(
+            value = "/caption",
+            consumes = {"multipart/form-data"}
+    )
+    Map<String, Object> getCaptionFromImage(@RequestPart("file") org.springframework.web.multipart.MultipartFile file);
+
 }

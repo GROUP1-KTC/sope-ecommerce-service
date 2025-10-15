@@ -57,4 +57,9 @@ public interface ProductService {
       List<ProductSummaryResponse> getSuggestedProducts(UUID productId, int limit);
 
       List<ProductSummaryResponse> getProducts(UUID productId, int limit, Function<Product, List<Product>> relatedFunc);
+
+      List<ProductSummaryResponse>  searchProductsByKeywords(List<String> keywords, int limit);
+
+      List<ProductSummaryResponse> searchProductsByImage(MultipartFile image, int limit);
+
 }

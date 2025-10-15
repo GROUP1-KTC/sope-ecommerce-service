@@ -6,6 +6,8 @@ import java.util.UUID;
 import com.sope.sope_ecommerce_backend.dto.response.*;
 import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -144,6 +146,25 @@ public class ProductController {
                         defaultVideoIntro,
                         productImages,
                         variantFiles);
+      }
+
+      @PostMapping("/search-by-keywords")
+      public ResponseEntity<List<ProductSummaryResponse>> searchByKeywords(
+              @RequestBody List<String> keywords,
+              @RequestParam(defaultValue = "10") int limit) {
+            return ResponseEntity.ok(productService.searchProductsByKeywords(keywords, limit));
+      }
+
+      @PostMapping(value = "/search-by-image", consumes = "multipart/form-data")
+      public ResponseEntity<List<ProductSummaryResponse>> searchByImage(
+              @Parameter(
+                      description = "Ảnh sản phẩm cần tìm",
+                      required = true,
+                      schema = @Schema(type = "string", format = "binary")
+              )
+              @RequestPart("image") MultipartFile image,
+              @RequestParam(defaultValue = "10") int limit) {
+            return ResponseEntity.ok(productService.searchProductsByImage(image, limit));
       }
 
 }
