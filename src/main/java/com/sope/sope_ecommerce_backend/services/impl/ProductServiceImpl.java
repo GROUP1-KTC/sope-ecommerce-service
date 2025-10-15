@@ -1,5 +1,6 @@
 package com.sope.sope_ecommerce_backend.services.impl;
 
+import com.sope.sope_ecommerce_backend.client.AiService;
 import com.sope.sope_ecommerce_backend.dto.request.ProductCreateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductUpdateDTO;
 import com.sope.sope_ecommerce_backend.dto.request.ProductVariantRequestDTO;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -56,12 +58,12 @@ public class ProductServiceImpl implements ProductService {
       private final ProductVariantRepository productVariantRepository;
       private final ProductMapper productMapper;
       private final ProductVariantMapper productVariantMapper;
-      // private final AttributeMapper attributeMapper;
       private final CategoryRepository categoryRepository;
       private final ShopRepository shopRepository;
       private final Cloudinary cloudinary;
       private final AttributeRepository attributeRepository;
       private final ShopService shopService;
+      private final AiService aiService;
 
       private final UserService userService;
 
@@ -653,5 +655,54 @@ public class ProductServiceImpl implements ProductService {
                         .map(productMapper::toProductSummaryResponse)
                         .collect(Collectors.toList());
       }
+
+      @Override
+      @Transactional(readOnly = true)
+      public List<ProductSummaryResponse> searchProductsByKeywords(List<String> keywords, int limit) {
+            if (keywords == null || keywords.isEmpty()) {
+                  return Collections.emptyList();
+            }
+
+            // Tạo pattern LIKE cho từng keyword
+            String[] patterns = keywords.stream()
+                    .filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .map(k -> "%" + k.toLowerCase() + "%")
+                    .toArray(String[]::new);
+
+            if (patterns.length == 0) {
+                  return Collections.emptyList();
+            }
+
+            List<Product> products = productRepository.searchByKeywords(patterns, limit);
+
+            return products.stream()
+                    .map(productMapper::toProductSummaryResponse)
+                    .collect(Collectors.toList());
+      }
+
+      public List<ProductSummaryResponse> searchProductsByImage(MultipartFile image, int limit) {
+            try {
+                  String caption = getCaptionFromAi(image);
+                  System.out.println("📸 Caption from AI: " + caption);
+
+                  List<String> keywords = geminiService.extractVietnameseKeywordsFromCaption(caption);
+                  System.out.println("🔍 Vietnamese Keywords: " + keywords);
+
+                  // 3️⃣ Tìm sản phẩm theo các keywords này
+                  return searchProductsByKeywords(keywords, limit);
+            } catch (Exception e) {
+                  e.printStackTrace();
+                  throw new RuntimeException("Lỗi khi tìm kiếm sản phẩm từ hình ảnh: " + e.getMessage());
+            }
+      }
+
+      private String getCaptionFromAi(MultipartFile image) throws IOException {
+            // Gọi AI service qua Feign client
+            Map<String, Object> resp = aiService.getCaptionFromImage(image);
+            return resp.get("caption").toString();
+      }
+
 
 }
