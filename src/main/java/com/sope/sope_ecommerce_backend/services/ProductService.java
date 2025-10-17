@@ -62,4 +62,8 @@ public interface ProductService {
 
       List<ProductSummaryResponse> searchProductsByImage(MultipartFile image, int limit);
 
+      ProductDTO getProductById(UUID productId);
+
+      List<ProductSummaryResponse> getProductsByName(String name, int limit);
+
 }

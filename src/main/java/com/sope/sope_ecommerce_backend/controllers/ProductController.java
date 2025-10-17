@@ -167,4 +167,19 @@ public class ProductController {
             return ResponseEntity.ok(productService.searchProductsByImage(image, limit));
       }
 
+      @GetMapping("/id/{productId}")
+      public ResponseEntity<ProductDTO> getProductById(@PathVariable UUID productId) {
+            ProductDTO product = productService.getProductById(productId);
+            return ResponseEntity.ok(product);
+      }
+
+      @GetMapping("/search-by-name")
+      public ResponseEntity<List<ProductSummaryResponse>> getProductsByName(
+              @RequestParam String name,
+              @RequestParam(defaultValue = "10") int limit) {
+            return ResponseEntity.ok(productService.getProductsByName(name, limit));
+      }
+
+
+
 }

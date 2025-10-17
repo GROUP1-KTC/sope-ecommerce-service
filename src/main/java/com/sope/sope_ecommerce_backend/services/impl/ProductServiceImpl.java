@@ -10,7 +10,6 @@ import com.sope.sope_ecommerce_backend.enums.StatusProduct;
 import com.sope.sope_ecommerce_backend.mapper.ProductMapper;
 import com.sope.sope_ecommerce_backend.mapper.ProductVariantMapper;
 import com.sope.sope_ecommerce_backend.repositories.*;
-import com.sope.sope_ecommerce_backend.security.user.CustomUserDetails;
 import com.sope.sope_ecommerce_backend.services.GeminiService;
 import com.sope.sope_ecommerce_backend.services.PhobertEmbeddedService;
 import com.sope.sope_ecommerce_backend.services.ProductService;
@@ -22,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -35,7 +33,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -704,5 +701,21 @@ public class ProductServiceImpl implements ProductService {
             return resp.get("caption").toString();
       }
 
+      @Override
+      @Transactional(readOnly = true)
+      public ProductDTO getProductById(UUID productId) {
+            return productRepository.findById(productId)
+                    .map(productMapper::toDto)
+                    .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
+      }
+
+      @Override
+      @Transactional(readOnly = true)
+      public List<ProductSummaryResponse> getProductsByName(String name, int limit) {
+            List<Product> products = productRepository.findByNameContainingIgnoreCase(name, limit);
+            return products.stream()
+                    .map(productMapper::toProductSummaryResponse)
+                    .toList();
+      }
 
 }

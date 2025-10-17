@@ -66,5 +66,11 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 	@Query(value = "SELECT * FROM products ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
 	List<Product> findRandomProducts(@Param("limit") int limit);
 
+	@Query(value = """
+        SELECT * FROM products
+        WHERE LOWER(name) LIKE LOWER(CONCAT('%', :name, '%'))
+        LIMIT :limit
+        """, nativeQuery = true)
+	List<Product> findByNameContainingIgnoreCase(@Param("name") String name, @Param("limit") int limit);
 
 }
